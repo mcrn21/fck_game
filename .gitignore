@@ -1,0 +1,7 @@
+# CMake user
+*.user
+
+# Makefiles
+Makefile
+Makefile.*
+
