@@ -6,6 +6,8 @@
 #include <imgui-SFML.h>
 #include <imgui.h>
 
+#include <SFML/Graphics.hpp>
+
 namespace fck
 {
 
@@ -15,7 +17,8 @@ public:
     GuiBase() = default;
     virtual ~GuiBase() = default;
 
-    virtual void draw() = 0;
+    virtual void resize(const sf::Vector2f &size) = 0;
+    virtual void draw(sf::RenderTarget &target, const sf::RenderStates &states) = 0;
 
 public:
     static ImFont *main_menu_font;

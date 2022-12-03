@@ -89,56 +89,68 @@ void ResourceCache::removeResource(const std::string &resource_name)
 template<typename T, typename... Args>
 T *ResourceCache::loadFromFile(const std::string &resource_name, Args &&...args)
 {
-    std::unique_ptr<T> resource = std::make_unique<T>();
-    T *resource_ptr = resource.get();
-    if (!resource->loadFromFile(std::forward<Args>(args)...))
+    T *exist_resource = resource<T>(resource_name);
+    if (exist_resource)
+        return exist_resource;
+
+    std::unique_ptr<T> res = std::make_unique<T>();
+    T *res_ptr = res.get();
+    if (!res->loadFromFile(std::forward<Args>(args)...))
         return nullptr;
 
     Cache<T> *c = instance().cache<T>();
-    c->data.emplace(resource_name, std::move(resource));
+    c->data.emplace(resource_name, std::move(res));
 
     spdlog::debug("Load resource: \"{0}\"", resource_name);
 
-    return resource_ptr;
+    return res_ptr;
 }
 
 template<typename T, typename... Args>
 T *ResourceCache::loadFromMemory(const std::string &resource_name, Args &&...args)
 {
-    std::unique_ptr<T> resource = std::make_unique<T>();
-    T *resource_ptr = resource.get();
-    if (!resource->loadFromMemory(std::forward<Args>(args)...))
+    T *exist_resource = resource<T>(resource_name);
+    if (exist_resource)
+        return exist_resource;
+
+    std::unique_ptr<T> res = std::make_unique<T>();
+    T *res_ptr = res.get();
+    if (!res->loadFromMemory(std::forward<Args>(args)...))
         return nullptr;
 
     Cache<T> *c = instance().cache<T>();
-    c->data.emplace(resource_name, resource);
+    c->data.emplace(resource_name, std::move(res));
 
-    spdlog::debug("Load resource: \"{0}\"", std::move(resource));
+    spdlog::debug("Load resource: \"{0}\"", resource_name);
 
-    return resource_ptr;
+    return res_ptr;
 }
 
 template<typename T, typename... Args>
 T *ResourceCache::loadFromStream(const std::string &resource_name, Args &&...args)
 {
-    std::unique_ptr<T> resource = std::make_unique<T>();
-    T *resource_ptr = resource.get();
-    if (!resource->loadFromStream(std::forward<Args>(args)...))
+    T *exist_resource = resource<T>(resource_name);
+    if (exist_resource)
+        return exist_resource;
+
+    std::unique_ptr<T> res = std::make_unique<T>();
+    T *res_ptr = res.get();
+    if (!res->loadFromStream(std::forward<Args>(args)...))
         return nullptr;
 
     Cache<T> *c = instance().cache<T>();
-    c->data.emplace(resource_name, resource);
+    c->data.emplace(resource_name, std::move(res));
 
-    spdlog::debug("Load resource: \"{0\"}", std::move(resource));
+    spdlog::debug("Load resource: \"{0\"}", resource_name);
 
-    return resource_ptr;
+    return res_ptr;
 }
 
 template<typename T>
 ResourceCache::Cache<T> *ResourceCache::cache(bool need_create)
 {
     std::type_index type_index = typeid(T);
-    Cache<T> *cache;
+    Cache<T> *cache = nullptr;
     auto found = m_caches.find(type_index);
     if (found != m_caches.end())
     {

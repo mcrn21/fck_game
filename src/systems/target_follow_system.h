@@ -25,9 +25,6 @@ public:
 
     void update(double delta_time);
 
-    void startFollow(Entity &entity);
-    void stopFollow(Entity &entity);
-
 private:
     PathFinder *m_path_finder;
 };

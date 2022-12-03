@@ -3,22 +3,21 @@
 
 #include "../gui_base.h"
 
-#include <SFML/Graphics.hpp>
-
 namespace fck
 {
 
 class SplashscreenGui : public GuiBase
 {
 public:
-    SplashscreenGui(sf::View *view);
+    SplashscreenGui(const sf::Vector2f &size);
     ~SplashscreenGui() = default;
 
-    void draw();
+    void resize(const sf::Vector2f &size);
+    void draw(sf::RenderTarget &target, const sf::RenderStates &states);
 
 private:
-    sf::View *m_view;
-    sf::Texture *m_spalshscreen_texture;
+    sf::Vector2f m_size;
+    sf::Sprite m_splashsceen_sprite;
 };
 
 } // namespace fck

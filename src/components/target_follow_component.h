@@ -24,9 +24,8 @@ struct TargetFollowComponent
     float min_distance = 0.0f;
     float max_distance = 0.0f;
 
-    bool following = false;
+    State state = NO_FOLLOWING;
     std::vector<sf::Vector2i> path;
-    State state = LOST;
 };
 
 template<>

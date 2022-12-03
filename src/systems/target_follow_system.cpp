@@ -24,20 +24,30 @@ void TargetFollowSystem::update(double delta_time)
 
         if (!target_component.target.isValid())
         {
-            stopFollow(entity);
+            target_follow_component.follow = false;
+            target_follow_component.state = TargetFollowComponent::NO_FOLLOWING;
             continue;
         }
 
         if (!target_follow_component.follow)
+        {
+            target_follow_component.state = TargetFollowComponent::NO_FOLLOWING;
             continue;
+        }
+
+        //        if (target_component.target.component<StateComponent>().state == entity_state::DEATH)
+        //        {
+        //            target_follow_component.follow = false;
+        //            target_follow_component.state = TargetFollowComponent::NO_FOLLOWING;
+        //            continue;
+        //        }
 
         velocity_component.velocity = {0.0f, 0.0f};
 
-        if (state_component.state != entity_state::IDLE
-            && state_component.state != entity_state::MOVE)
+        if (entity_state::NOT_AVALIBLE & state_component.state)
             continue;
 
-        float old_following = target_follow_component.following;
+        TargetFollowComponent::State old_state = target_follow_component.state;
 
         TransformComponent &target_transform_component
             = target_component.target.component<TransformComponent>();
@@ -53,12 +63,13 @@ void TargetFollowSystem::update(double delta_time)
                 transform_component.transform.getPosition(),
                 target_transform_component.transform.getPosition());
 
-            if (!target_follow_component.following
+            if (target_follow_component.state != TargetFollowComponent::FOLLOW
                 && dist > target_follow_component.min_distance * 1.5
                 && dist < target_follow_component.max_distance)
-                target_follow_component.following = true;
+                target_follow_component.state = TargetFollowComponent::FOLLOW;
 
-            if (target_follow_component.following && dist > target_follow_component.min_distance
+            if (target_follow_component.state == TargetFollowComponent::FOLLOW
+                && dist > target_follow_component.min_distance
                 && dist < target_follow_component.max_distance)
             {
                 target_follow_component.path = m_path_finder->findPath(
@@ -87,16 +98,13 @@ void TargetFollowSystem::update(double delta_time)
                         -velocity_component.max_velocity.y * std::sin(angle));
 
                     velocity_component.velocity = velocity;
-
-                    target_follow_component.state = TargetFollowComponent::FOLLOW;
                 }
             }
             else
             {
-                if (target_follow_component.following)
+                if (target_follow_component.state == TargetFollowComponent::FOLLOW)
                 {
                     target_follow_component.path.clear();
-                    target_follow_component.following = false;
 
                     if (dist < target_follow_component.min_distance)
                         target_follow_component.state = TargetFollowComponent::RICHED;
@@ -108,15 +116,14 @@ void TargetFollowSystem::update(double delta_time)
         }
         else
         {
-            if (target_follow_component.following)
+            if (target_follow_component.state == TargetFollowComponent::FOLLOW)
             {
                 target_follow_component.path.clear();
-                target_follow_component.following = false;
                 target_follow_component.state = TargetFollowComponent::LOST;
             }
         }
 
-        if (old_following != target_follow_component.following)
+        if (old_state != target_follow_component.state)
         {
             if (velocity_component.velocity.x != 0 || velocity_component.velocity.y != 0)
                 EntityUtils::setEntityState(entity, entity_state::MOVE);
@@ -124,7 +131,7 @@ void TargetFollowSystem::update(double delta_time)
                 EntityUtils::setEntityState(entity, entity_state::IDLE);
         }
 
-        if (target_follow_component.following)
+        if (target_follow_component.state == TargetFollowComponent::FOLLOW)
         {
             if (target_transform_component.transform.getPosition().x
                 > transform_component.transform.getPosition().x)
@@ -135,28 +142,6 @@ void TargetFollowSystem::update(double delta_time)
                 EntityUtils::setEntityDirection(entity, entity_state::LEFT);
         }
     }
-}
-
-void TargetFollowSystem::startFollow(Entity &entity)
-{
-    TargetComponent &target_component = entity.component<TargetComponent>();
-    TargetFollowComponent &target_follow_component = entity.component<TargetFollowComponent>();
-    if (target_component.target.isValid())
-    {
-        target_follow_component.follow = true;
-        target_follow_component.following = false;
-        target_follow_component.path.clear();
-        target_follow_component.state = TargetFollowComponent::LOST;
-    }
-}
-
-void TargetFollowSystem::stopFollow(Entity &entity)
-{
-    TargetFollowComponent &target_follow_component = entity.component<TargetFollowComponent>();
-    target_follow_component.follow = false;
-    target_follow_component.following = false;
-    target_follow_component.path.clear();
-    target_follow_component.state = TargetFollowComponent::NO_FOLLOWING;
 }
 
 } // namespace fck

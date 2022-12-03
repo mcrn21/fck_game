@@ -4,6 +4,8 @@
 #include "../knowledge_base.h"
 #include "../skill_base.h"
 
+#include "../fck/utilities.h"
+
 #include <memory>
 #include <vector>
 
@@ -26,12 +28,20 @@ struct KnowledgeBase::ComponentItem<SkillsComponent> : ComponentItemBase
 
     void init(toml::table *table)
     {
+        if (table->contains("skills"))
+            skills = vector::tomlArrayToStringVector(table->at("skills").as_array());
     }
 
     void create(Entity &entity)
     {
         SkillsComponent &component = entity.addComponent<SkillsComponent>();
+
+        for (const std::string &skill : skills)
+            component.skills.push_back(
+                std::unique_ptr<SkillBase>(KnowledgeBase::skill(skill)->create()));
     }
+
+    std::vector<std::string> skills;
 };
 
 KNOWLEDGE_BASE_REGISTER_COMPONENT(SkillsComponent);

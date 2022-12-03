@@ -30,6 +30,12 @@ public:
     static void setEntityState(const Entity &entity, entity_state::State state);
     static void setEntityDirection(const Entity &entity, entity_state::Direction direction);
 
+    // stats
+    static void addEntityHealth(const Entity &entity, float health);
+    static void setEntityHealth(const Entity &entity, float health);
+    static void addEntityArmor(const Entity &entity, float armor);
+    static void setEntityArmor(const Entity &entity, float armor);
+
 public: //signals
     // transform
     static Signal<const Entity &, const sf::Vector2f &> entity_moved;
@@ -38,6 +44,13 @@ public: //signals
     // state
     static Signal<const Entity &, entity_state::State> entity_state_changed;
     static Signal<const Entity &, entity_state::Direction> entity_direction_changed;
+
+    // target
+    static Signal<const Entity &, const Entity &> entity_target_changed;
+
+    // stats
+    static Signal<const Entity &, float> entity_health_changed;
+    static Signal<const Entity &, float> entity_armor_changed;
 };
 
 } // namespace fck

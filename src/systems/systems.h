@@ -1,7 +1,6 @@
 #ifndef SYSTEMS_H
 #define SYSTEMS_H
 
-#include "actions_system.h"
 #include "collision_system.h"
 #include "damage_system.h"
 #include "drawable_animation_system.h"

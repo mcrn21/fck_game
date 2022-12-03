@@ -10,12 +10,6 @@ namespace fck
 
 struct TargetComponent
 {
-    ~TargetComponent()
-    {
-        if (target_mark.isValid())
-            target_mark.destroy();
-    }
-
     Entity target;
     Entity target_mark;
 };

@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <bitset>
 #include <functional>
+#include <limits>
 #include <memory>
 #include <set>
 #include <vector>
@@ -17,7 +18,7 @@ struct Id
 {
     static Id invalid;
 
-    Id() : m_id(0)
+    Id() : m_id(std::numeric_limits<uint64_t>::max())
     {
     }
     explicit Id(uint64_t id) : m_id(id)

@@ -14,8 +14,6 @@
 
 #include <SFML/Graphics.hpp>
 
-#include <sol/sol.hpp>
-
 #include <list>
 #include <memory>
 
@@ -45,7 +43,6 @@ private:
     void loadFonts();
     void loadTextures();
     void loadSounds();
-    void loadScripts();
 
     void exitGame();
     void newGame();
@@ -61,7 +58,10 @@ public: // slots
     void onEntityStateChanged(const Entity &entity, entity_state::State old_state);
     void onEntityDirectionChanged(const Entity &entity, entity_state::Direction old_direction);
 
-    void onEntityParentChanged(const Entity &entity, const Entity &old_parent);
+    void onEntityTargetChanged(const Entity &entity, const Entity &target);
+
+    void onEntityHealthChanged(const Entity &entity, float old_health);
+    void onEntityArmorChanged(const Entity &entity, float old_armor);
 
 private:
     sf::RenderTexture m_scene_render_texture;
@@ -98,14 +98,11 @@ private:
     ScriptSystem m_script_system;
     TargetFollowSystem m_target_follow_system;
     LookAroundSystem m_look_around_system;
-    ActionsSystem m_actions_system;
     StatsSystem m_stats_system;
     SkillsSystem m_skills_system;
     DamageSystem m_damage_sysytem;
 
     bool m_render_debug;
-
-    sol::state m_lua;
 };
 
 } // namespace fck

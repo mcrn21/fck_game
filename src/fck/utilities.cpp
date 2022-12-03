@@ -137,4 +137,61 @@ sf::FloatRect tomlArrayToFloatRect(toml::array *array)
 
 } // namespace rect
 
+namespace pair
+{
+
+std::pair<int32_t, int32_t> tomlArrayToIntPair(toml::array *array)
+{
+    if (array->size() < 2)
+        return {0, 0};
+
+    std::pair<int32_t, int32_t> pair;
+
+    pair.first = array->at(0).as_integer()->get();
+    pair.second = array->at(1).as_integer()->get();
+
+    return pair;
+}
+
+std::pair<float, float> tomlArrayToFloatPair(toml::array *array)
+{
+    if (array->size() < 2)
+        return {0, 0};
+
+    std::pair<float, float> pair;
+
+    pair.first = array->at(0).as_floating_point()->get();
+    pair.second = array->at(1).as_floating_point()->get();
+
+    return pair;
+}
+
+std::pair<double, double> tomlArrayToDoublePair(toml::array *array)
+{
+    if (array->size() < 2)
+        return {0, 0};
+
+    std::pair<double, double> pair;
+
+    pair.first = array->at(0).as_floating_point()->get();
+    pair.second = array->at(1).as_floating_point()->get();
+
+    return pair;
+}
+
+} // namespace pair
+
+namespace vector
+{
+
+std::vector<std::string> tomlArrayToStringVector(toml::array *array)
+{
+    std::vector<std::string> vec;
+    for (auto &v : *array)
+        vec.push_back(v.as_string()->get());
+    return vec;
+}
+
+} // namespace vector
+
 } // namespace fck

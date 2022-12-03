@@ -3,8 +3,6 @@
 
 #include "../gui_base.h"
 
-#include <SFML/Graphics.hpp>
-
 #include <functional>
 #include <vector>
 
@@ -14,10 +12,11 @@ namespace fck
 class MainMenuGui : public GuiBase
 {
 public:
-    MainMenuGui(sf::View *view, bool level = false);
+    MainMenuGui(const sf::Vector2f &size, bool level = false);
     ~MainMenuGui() = default;
 
-    void draw();
+    void resize(const sf::Vector2f &size);
+    void draw(sf::RenderTarget &target, const sf::RenderStates &states);
 
     void onActionActivated(keyboard_action::Action action);
 
@@ -26,7 +25,7 @@ private:
     void drawReturnToMainMenuDialog();
 
 private:
-    sf::View *m_view;
+    sf::Vector2f m_size;
     bool m_level;
 
     struct MenuEntry

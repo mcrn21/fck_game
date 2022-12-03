@@ -78,6 +78,12 @@ bool isValid(const sf::Vector2<T> &vector)
     return vector.x != 0 || vector.y != 0;
 }
 
+template<typename T>
+sf::Vector2<T> mult(const sf::Vector2<T> &v1, const sf::Vector2<T> &v2)
+{
+    return {v1.x * v2.x, v1.y * v2.y};
+}
+
 sf::Vector2i tomlArrayToVector2i(toml::array *array);
 sf::Vector2f tomlArrayToVector2f(toml::array *array);
 
@@ -127,6 +133,22 @@ inline int8_t sign(const T &value)
 }
 
 } // namespace number
+
+namespace pair
+{
+
+std::pair<int32_t, int32_t> tomlArrayToIntPair(toml::array *array);
+std::pair<float, float> tomlArrayToFloatPair(toml::array *array);
+std::pair<double, double> tomlArrayToDoublePair(toml::array *array);
+
+} // namespace pair
+
+namespace vector
+{
+
+std::vector<std::string> tomlArrayToStringVector(toml::array *array);
+
+}
 
 } // namespace fck
 

@@ -2,12 +2,9 @@
 #define LEVELGUI_H
 
 #include "../gui_base.h"
-
 #include "../knowledge_base.h"
 
 #include "../fck/entity.h"
-
-#include <SFML/Graphics.hpp>
 
 namespace fck
 {
@@ -15,45 +12,50 @@ namespace fck
 class LevelGui : public GuiBase
 {
 public:
-    LevelGui(sf::View *view, const Entity &player_entity);
+    LevelGui(const sf::Vector2f &size, const Entity &player_entity);
     ~LevelGui() = default;
 
-    void draw();
+    void resize(const sf::Vector2f &size);
+    void draw(sf::RenderTarget &target, const sf::RenderStates &states);
+
+    void updatePlayerStats();
+    void updatePlayerSkills();
+    void updateTargetStats();
 
 private:
-    void drawPlayerStats(const Entity &entity);
-    void drawPlayerSkills(const Entity &entity);
-    void drawTargetStats(const Entity &entity);
+    void drawPlayerStats(sf::RenderTarget &target, const sf::RenderStates &states);
+    void drawPlayerSkills(sf::RenderTarget &target, const sf::RenderStates &states);
+    void drawTargetStats(sf::RenderTarget &target, const sf::RenderStates &states);
 
 private:
-    sf::View *m_view;
+    sf::Vector2f m_size;
     Entity m_player_entity;
 
-    sf::Vector2f m_scale;
     sf::Vector2f m_border_offset;
+    sf::Vector2f m_scale;
+    sf::Vector2f m_stats_scale;
 
-    sf::Vector2f m_player_stats_window_size;
-    sf::Vector2f m_target_stats_window_size;
+    float m_stats_hp_bar_width;
+    float m_stats_armor_bar_width;
 
     // player stats
     sf::Sprite m_player_stats_bg_sprite;
+    sf::Sprite m_player_hp_bar_sprite;
+    sf::Sprite m_player_armor_bar_sprite;
+    sf::Text m_player_hp_text;
+    sf::Text m_player_armor_text;
 
     // target stats
     sf::Sprite m_target_stats_bg_sprite;
-    sf::Sprite m_target_skull_sprite;
-
-    // common
-    sf::Sprite m_stats_hp_bar_sprite;
-    float m_stats_hp_bar_width;
-
-    sf::Sprite m_stats_armor_bar_sprite;
-    float m_stats_armor_bar_width;
+    sf::Sprite m_target_hp_bar_sprite;
+    sf::Text m_target_hp_text;
 
     struct Skill
     {
         KnowledgeBase::SkillItemBase *skill_item = nullptr;
         SkillBase *skill = nullptr;
         sf::Sprite sprite;
+        sf::Text key_text;
     };
     std::vector<Skill> m_skills;
 };

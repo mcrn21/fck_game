@@ -1,7 +1,6 @@
 #ifndef COMPONENTS_H
 #define COMPONENTS_H
 
-#include "actions_component.h"
 #include "collision_component.h"
 #include "damage_component.h"
 #include "drawable_animation_component.h"

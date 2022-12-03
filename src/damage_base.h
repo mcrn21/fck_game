@@ -20,8 +20,9 @@ public:
     const Entity &source() const;
 
     double interval() const;
-    double remainedTime() const;
+    double elapsed() const;
     bool isReady() const;
+    void finish();
 
 protected:
     virtual void update(double delta_time) = 0;
@@ -33,7 +34,7 @@ private:
     Entity m_entity;
     Entity m_source;
     double m_interval;
-    double m_remained_time;
+    double m_elapsed;
 };
 
 } // namespace fck

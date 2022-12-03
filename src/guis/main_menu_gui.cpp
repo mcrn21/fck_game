@@ -5,7 +5,7 @@
 namespace fck
 {
 
-MainMenuGui::MainMenuGui(sf::View *view, bool level) : m_view{view}, m_level{level}
+MainMenuGui::MainMenuGui(const sf::Vector2f &size, bool level) : m_size{size}, m_level{level}
 {
     if (!m_level)
     {
@@ -32,17 +32,17 @@ MainMenuGui::MainMenuGui(sf::View *view, bool level) : m_view{view}, m_level{lev
     }
 }
 
-void MainMenuGui::draw()
+void MainMenuGui::resize(const sf::Vector2f &size)
 {
-    if (!m_view)
-        return;
+    m_size = size;
+}
 
-    sf::FloatRect v{sf::Vector2f(0, 0), m_view->getSize()};
-
+void MainMenuGui::draw(sf::RenderTarget &target, const sf::RenderStates &states)
+{
     ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]);
 
     ImGui::SetNextWindowPos(ImVec2(0, 0));
-    ImGui::SetNextWindowSize(ImVec2(v.width, v.height));
+    ImGui::SetNextWindowSize(m_size);
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
@@ -61,7 +61,7 @@ void MainMenuGui::draw()
     {
         ImGui::SetCursorScreenPos(ImVec2(
             screen_offset,
-            m_view->getSize().y - screen_offset - button_size.y * (m_main_menu_entries.size() - i)
+            m_size.y - screen_offset - button_size.y * (m_main_menu_entries.size() - i)
                 - button_space * (m_main_menu_entries.size() - 1 - i)));
 
         bool selected = false;

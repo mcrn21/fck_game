@@ -3,265 +3,230 @@
 #include "../components/components.h"
 
 #include "../fck/resource_cache.h"
+#include "../fck/utilities.h"
 
 namespace fck
 {
 
-LevelGui::LevelGui(sf::View *view, const Entity &player_entity)
-    : m_view{view}, m_player_entity(player_entity)
+LevelGui::LevelGui(const sf::Vector2f &size, const Entity &player_entity)
+    : m_size{size}, m_player_entity(player_entity)
 {
-    m_scale = {1.0f, 1.0f};
     m_border_offset = {20.0f, 40.0f};
 
-    m_player_stats_window_size = {284.0f * m_scale.x, 64.0f * m_scale.y};
-    m_target_stats_window_size = {284.0f * m_scale.x, 128.0f * m_scale.y};
+    m_scale = {1.0f, 1.0f};
+    m_stats_scale = {4.0f, 4.0f};
+
+    m_stats_hp_bar_width = 68.0f;
+    m_stats_armor_bar_width = 52.0f;
 
     // player
-    m_player_stats_bg_sprite.setTexture(*ResourceCache::resource<sf::Texture>("hud"));
-    m_player_stats_bg_sprite.setTextureRect(sf::IntRect{{0, 0}, {284, 64}});
-    m_player_stats_bg_sprite.scale(m_scale);
+    m_player_stats_bg_sprite.setTexture(*ResourceCache::resource<sf::Texture>("ui"));
+    m_player_stats_bg_sprite.setTextureRect(sf::IntRect{{0, 0}, {76, 16}});
+    m_player_stats_bg_sprite.scale(m_stats_scale);
+
+    m_player_hp_bar_sprite.setTexture(*ResourceCache::resource<sf::Texture>("ui"));
+    m_player_hp_bar_sprite.setTextureRect(sf::IntRect{{2, 25}, {68, 3}});
+    m_player_hp_bar_sprite.scale(m_stats_scale);
+
+    m_player_armor_bar_sprite.setTexture(*ResourceCache::resource<sf::Texture>("ui"));
+    m_player_armor_bar_sprite.setTextureRect(sf::IntRect{{2, 33}, {52, 3}});
+    m_player_armor_bar_sprite.scale(m_stats_scale);
+
+    m_player_hp_text.setFont(*ResourceCache::resource<sf::Font>("mini_pixel-7"));
+    m_player_hp_text.setCharacterSize(24);
+    m_player_hp_text.setOutlineColor(sf::Color::Black);
+    m_player_hp_text.setOutlineThickness(1.0f);
+
+    m_player_armor_text.setFont(*ResourceCache::resource<sf::Font>("mini_pixel-7"));
+    m_player_armor_text.setCharacterSize(24);
+    m_player_armor_text.setOutlineColor(sf::Color::Black);
+    m_player_armor_text.setOutlineThickness(1.0f);
+
+    updatePlayerStats();
 
     // target
-    m_target_stats_bg_sprite.setTexture(*ResourceCache::resource<sf::Texture>("hud"));
-    m_target_stats_bg_sprite.setTextureRect(sf::IntRect{{0, 64}, {284, 32}});
-    m_target_stats_bg_sprite.scale(m_scale);
+    m_target_stats_bg_sprite.setTexture(*ResourceCache::resource<sf::Texture>("ui"));
+    m_target_stats_bg_sprite.setTextureRect(sf::IntRect{{0, 16}, {76, 8}});
+    m_target_stats_bg_sprite.setOrigin({m_target_stats_bg_sprite.getLocalBounds().width, 0.0f});
+    m_target_stats_bg_sprite.scale(m_stats_scale);
 
-    m_target_skull_sprite.setTexture(*ResourceCache::resource<sf::Texture>("hud"));
-    m_target_skull_sprite.setTextureRect(sf::IntRect{{0, 136}, {44, 48}});
-    m_target_skull_sprite.scale(m_scale);
+    m_target_hp_bar_sprite.setTexture(*ResourceCache::resource<sf::Texture>("ui"));
+    m_target_hp_bar_sprite.setTextureRect(sf::IntRect{{2, 25}, {68, 3}});
+    m_target_hp_bar_sprite.setOrigin({m_target_hp_bar_sprite.getLocalBounds().width, 0.0f});
+    m_target_hp_bar_sprite.scale(m_stats_scale);
 
-    // common
-    m_stats_hp_bar_sprite.setTexture(*ResourceCache::resource<sf::Texture>("hud"));
-    m_stats_hp_bar_sprite.setTextureRect(sf::IntRect{{8, 100}, {268, 12}});
-    m_stats_hp_bar_sprite.scale(m_scale);
-    m_stats_hp_bar_width = 268;
+    m_target_hp_text.setFont(*ResourceCache::resource<sf::Font>("mini_pixel-7"));
+    m_target_hp_text.setCharacterSize(24);
+    m_target_hp_text.setOutlineColor(sf::Color::Black);
+    m_target_hp_text.setOutlineThickness(1.0f);
+    m_target_hp_text.setOrigin({m_target_hp_text.getLocalBounds().width, 0.0f});
 
-    m_stats_armor_bar_sprite.setTexture(*ResourceCache::resource<sf::Texture>("hud"));
-    m_stats_armor_bar_sprite.setTextureRect(sf::IntRect{{8, 120}, {200, 12}});
-    m_stats_armor_bar_sprite.scale(m_scale);
-    m_stats_armor_bar_width = 200;
+    updateTargetStats();
 
-    // player skills
-    SkillsComponent &skills_component = m_player_entity.component<SkillsComponent>();
-    for (const auto &skill : skills_component.skills)
-    {
-        KnowledgeBase::SkillItemBase *skill_item = KnowledgeBase::skill(skill->name());
-        if (skill_item)
-        {
-            Skill s;
-            s.skill_item = skill_item;
-            s.skill = skill.get();
-            s.sprite.setTexture(*ResourceCache::resource<sf::Texture>(skill_item->textureName()));
-            s.sprite.setTextureRect(skill_item->textureRect());
-            m_skills.push_back(s);
-        }
-    }
+    updatePlayerSkills();
 }
 
-void LevelGui::draw()
+void LevelGui::resize(const sf::Vector2f &size)
+{
+    m_size = size;
+
+    // player
+    m_player_stats_bg_sprite.setPosition(m_border_offset);
+    m_player_hp_bar_sprite.setPosition(
+        m_border_offset + vector2::mult(sf::Vector2f{2.0f, 2.0f}, m_stats_scale));
+    m_player_armor_bar_sprite.setPosition(
+        m_border_offset + vector2::mult(sf::Vector2f{2.0f, 10.0f}, m_stats_scale));
+    m_player_hp_text.setPosition(
+        m_border_offset + vector2::mult(sf::Vector2f{4.0f, -2.0f}, m_stats_scale));
+    m_player_armor_text.setPosition(
+        m_border_offset + vector2::mult(sf::Vector2f{4.0f, 6.0f}, m_stats_scale));
+
+    // skills
+    if (!m_skills.empty())
+    {
+        sf::Vector2f skill_icon_size = m_skills.front().sprite.getLocalBounds().getSize();
+
+        for (int32_t i = 0; i < m_skills.size(); ++i)
+        {
+            float space = i == 0 ? 0.0f : 4.0f * m_stats_scale.x;
+            m_skills[m_skills.size() - 1 - i].sprite.setPosition(
+                m_size - m_border_offset - sf::Vector2f{skill_icon_size.x + space, 0} * float(i));
+            m_skills[m_skills.size() - 1 - i].key_text.setPosition(
+                m_size - m_border_offset
+                - sf::Vector2f{(skill_icon_size.x + space) * float(i), 4.0f});
+        }
+    }
+
+    // target
+    m_target_stats_bg_sprite.setPosition({m_size.x - m_border_offset.x, m_border_offset.y});
+    m_target_hp_bar_sprite.setPosition(
+        sf::Vector2f{m_size.x - m_border_offset.x, m_border_offset.y}
+        + vector2::mult(sf::Vector2f{-6.0f, 2.0f}, m_stats_scale));
+    m_target_hp_text.setPosition(
+        sf::Vector2f{m_size.x - m_border_offset.x, m_border_offset.y}
+        + vector2::mult(sf::Vector2f{-8.0f, -2.0f}, m_stats_scale));
+}
+
+void LevelGui::draw(sf::RenderTarget &target, const sf::RenderStates &states)
 {
     if (!m_player_entity.isValid())
         return;
 
-    drawPlayerStats(m_player_entity);
-    drawPlayerSkills(m_player_entity);
+    drawPlayerStats(target, states);
+    drawPlayerSkills(target, states);
 
     TargetComponent &target_component = m_player_entity.component<TargetComponent>();
-    if (!target_component.target.isValid())
-        return;
-    drawTargetStats(target_component.target);
+    if (target_component.target.isValid())
+        drawTargetStats(target, states);
 }
 
-void LevelGui::drawPlayerStats(const Entity &entity)
+void LevelGui::updatePlayerStats()
 {
-    StatsComponent &stats_component = entity.component<StatsComponent>();
+    StatsComponent &stats_component = m_player_entity.component<StatsComponent>();
 
     std::string hp_text = std::to_string(int32_t(stats_component.health)) + "/"
         + std::to_string(int32_t(stats_component.max_health));
+
     std::string armor_text = std::to_string(int32_t(stats_component.armor)) + "/"
         + std::to_string(int32_t(stats_component.max_armor));
 
     float health_ratio = stats_component.health / stats_component.max_health;
     float armor_ratio = stats_component.armor / stats_component.max_armor;
 
-    ImGui::SetNextWindowPos(m_border_offset);
-    ImGui::SetNextWindowSize(m_player_stats_window_size);
+    sf::IntRect hp_bar_rect = m_player_hp_bar_sprite.getTextureRect();
+    hp_bar_rect.width = m_stats_hp_bar_width * health_ratio;
+    m_player_hp_bar_sprite.setTextureRect(hp_bar_rect);
 
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {0, 0});
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+    sf::IntRect armor_bar_rect = m_player_armor_bar_sprite.getTextureRect();
+    armor_bar_rect.width = m_stats_armor_bar_width * armor_ratio;
+    m_player_armor_bar_sprite.setTextureRect(armor_bar_rect);
 
-    ImGui::PushStyleColor(ImGuiCol_WindowBg, {0.0f, 0.0f, 0.0f, 0.0f});
-
-    ImGui::PushFont(GuiBase::hp_hud_font);
-
-    ImGui::Begin(
-        "Player stats", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize);
-
-    // content
-    ImGui::Image(m_player_stats_bg_sprite);
-
-    ImGui::SetCursorPos({8.0f * m_scale.x, 8.0f * m_scale.y});
-    sf::IntRect player_hp_bar_rect = m_stats_hp_bar_sprite.getTextureRect();
-    player_hp_bar_rect.width = m_stats_hp_bar_width * health_ratio;
-    m_stats_hp_bar_sprite.setTextureRect(player_hp_bar_rect);
-    ImGui::Image(m_stats_hp_bar_sprite);
-
-    ImGui::SetCursorPos({8.0f * m_scale.x, 40.0f * m_scale.y});
-    sf::IntRect player_armor_bar_rect = m_stats_armor_bar_sprite.getTextureRect();
-    player_armor_bar_rect.width = m_stats_armor_bar_width * armor_ratio;
-    m_stats_armor_bar_sprite.setTextureRect(player_armor_bar_rect);
-    ImGui::Image(m_stats_armor_bar_sprite);
-
-    ImGui::SetCursorPos({14.0f * m_scale.x, -1.0f * m_scale.y});
-    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 0, 0, 255));
-    ImGui::Text("%s", hp_text.c_str());
-    ImGui::PopStyleColor(1);
-
-    ImGui::SetCursorPos({12.0f * m_scale.x, -1.5f * m_scale.y});
-    ImGui::Text("%s", hp_text.c_str());
-
-    ImGui::SetCursorPos({14.0f * m_scale.x, 31.0f * m_scale.y});
-    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 0, 0, 255));
-    ImGui::Text("%s", armor_text.c_str());
-    ImGui::PopStyleColor(1);
-
-    ImGui::SetCursorPos({12.0f * m_scale.x, 30.0f * m_scale.y});
-    ImGui::Text("%s", armor_text.c_str());
-
-    ImGui::End();
-
-    ImGui::PopFont();
-    ImGui::PopStyleVar(2);
-    ImGui::PopStyleColor(1);
+    m_player_hp_text.setString(hp_text);
+    m_player_armor_text.setString(armor_text);
 }
 
-void LevelGui::drawPlayerSkills(const Entity &entity)
+void LevelGui::updatePlayerSkills()
 {
-    if (m_skills.empty())
-        return;
+    SkillsComponent &skills_component = m_player_entity.component<SkillsComponent>();
+    m_skills.clear();
 
-    sf::Vector2f view_size = m_view->getSize();
-    sf::Vector2i skill_icon_size = m_skills.front().sprite.getTextureRect().getSize();
-    float window_width = m_skills.size() * skill_icon_size.x * m_scale.x;
-
-    ImGui::SetNextWindowPos(ImVec2{
-        view_size.x - m_border_offset.x - window_width,
-        view_size.y - m_border_offset.y - skill_icon_size.x * m_scale.y});
-    ImGui::SetNextWindowSize({window_width, skill_icon_size.y * m_scale.x});
-
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {0, 0});
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-
-    ImGui::PushStyleColor(ImGuiCol_WindowBg, {0.0f, 0.0f, 0.0f, 0.0f});
-
-    ImGui::PushFont(GuiBase::hp_hud_font);
-
-    ImGui::Begin(
-        "Player actions", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize);
-
-    std::vector<std::string> key_texts = {"J", "K", "L"};
-
-    for (int32_t i = 0; i < m_skills.size(); ++i)
+    for (const auto &skill : skills_component.skills)
     {
-        ImGui::SetCursorPos({float(skill_icon_size.x * m_scale.x * i), 0});
+        KnowledgeBase::SkillItemBase *skill_item = KnowledgeBase::skill(skill->name());
+        if (skill_item)
+        {
+            Skill s;
 
-        ImGui::BeginDisabled(!m_skills[i].skill->isReady());
-        ImGui::Image(m_skills[i].sprite);
-        ImGui::EndDisabled();
+            s.skill_item = skill_item;
+            s.skill = skill.get();
 
-        std::string key_text = key_texts[i];
-        ImVec2 key_text_size = ImGui::CalcTextSize(key_text.c_str());
+            s.sprite.setTexture(*ResourceCache::resource<sf::Texture>(skill_item->textureName()));
+            s.sprite.setTextureRect(skill_item->textureRect());
+            s.sprite.setOrigin(s.sprite.getLocalBounds().getSize());
 
-        ImGui::SetCursorPos(
-            {float(skill_icon_size.x * m_scale.x * i) + (skill_icon_size.x - 11.0f) * m_scale.x
-                 - key_text_size.x,
-             13.0f * m_scale.y});
+            s.key_text.setFont(*ResourceCache::resource<sf::Font>("mini_pixel-7"));
+            s.key_text.setString("J");
+            s.key_text.setCharacterSize(24);
+            s.key_text.setOutlineColor(sf::Color::Black);
+            s.key_text.setOutlineThickness(1.0f);
+            s.key_text.setOrigin(
+                {s.key_text.getLocalBounds().width / 2 + s.sprite.getLocalBounds().width / 2,
+                 0.0f});
 
-        ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 0, 0, 255));
-        ImGui::Text("%s", key_text.c_str());
-        ImGui::PopStyleColor(1);
-
-        ImGui::SetCursorPos(
-            {float(skill_icon_size.x * m_scale.x * i) + (skill_icon_size.x - 12.0f) * m_scale.x
-                 - key_text_size.x,
-             12.0f * m_scale.y});
-        ImGui::Text("%s", key_text.c_str());
-
-        //        ImGui::SetCursorPos(ImVec2{float(10 + 60 * i), 70});
-        //        ImGui::ProgressBar(1 - (action->remained() / action->cooldown()), ImVec2{50, 10}, "");
+            m_skills.push_back(s);
+        }
     }
 
-    ImGui::End();
-
-    ImGui::PopFont();
-    ImGui::PopStyleVar(2);
-    ImGui::PopStyleColor(1);
+    resize(m_size);
 }
 
-void LevelGui::drawTargetStats(const Entity &entity)
+void LevelGui::updateTargetStats()
 {
-    StatsComponent &stats_component = entity.component<StatsComponent>();
+    TargetComponent &target_component = m_player_entity.component<TargetComponent>();
+    if (!target_component.target.isValid())
+        return;
+
+    StatsComponent &stats_component = target_component.target.component<StatsComponent>();
 
     std::string hp_text = std::to_string(int32_t(stats_component.health)) + "/"
         + std::to_string(int32_t(stats_component.max_health));
+
     float health_ratio = stats_component.health / stats_component.max_health;
 
-    sf::Vector2f view_size = m_view->getSize();
-
-    ImGui::SetNextWindowPos(
-        ImVec2{view_size.x - m_border_offset.x - m_target_stats_window_size.x, m_border_offset.y});
-    ImGui::SetNextWindowSize(m_target_stats_window_size);
-
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {0.0f, 0.0f});
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-
-    ImGui::PushStyleColor(ImGuiCol_WindowBg, {0.0f, 0.0f, 0.0f, 0.0f});
-
-    ImGui::PushFont(GuiBase::hp_hud_font);
-
-    ImGui::Begin(
-        "Target stats", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize);
-
-    // content
-
-    float bg_y_offset = 0.0f * m_scale.y;
-
-    ImGui::SetCursorPos({0.0f, bg_y_offset});
-    ImGui::Image(m_target_stats_bg_sprite);
-
-    sf::IntRect hp_bar_rect = m_stats_hp_bar_sprite.getTextureRect();
+    sf::IntRect hp_bar_rect = m_target_hp_bar_sprite.getTextureRect();
     hp_bar_rect.width = m_stats_hp_bar_width * health_ratio;
-    m_stats_hp_bar_sprite.setTextureRect(hp_bar_rect);
+    m_target_hp_bar_sprite.setTextureRect(hp_bar_rect);
+    m_target_hp_bar_sprite.setOrigin({m_target_hp_bar_sprite.getLocalBounds().width, 0.0f});
 
-    ImGui::SetCursorPos(
-        {m_target_stats_window_size.x - (hp_bar_rect.width + 8.0f) * m_scale.x,
-         bg_y_offset + 8.0f * m_scale.y});
-    ImGui::Image(m_stats_hp_bar_sprite);
+    m_target_hp_text.setString(hp_text);
+    m_target_hp_text.setOrigin({m_target_hp_text.getLocalBounds().width, 0.0f});
+}
 
-    ImVec2 target_hp_text_size = ImGui::CalcTextSize(hp_text.c_str());
+void LevelGui::drawPlayerStats(sf::RenderTarget &target, const sf::RenderStates &states)
+{
+    target.draw(m_player_stats_bg_sprite);
+    target.draw(m_player_hp_bar_sprite);
+    target.draw(m_player_armor_bar_sprite);
+    target.draw(m_player_hp_text);
+    target.draw(m_player_armor_text);
+}
 
-    ImGui::SetCursorPos(
-        {m_target_stats_window_size.x - (target_hp_text_size.x + 10.0f * m_scale.x),
-         bg_y_offset - 1.0f * m_scale.y});
-    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 0, 0, 255));
-    ImGui::Text("%s", hp_text.c_str());
-    ImGui::PopStyleColor(1);
+void LevelGui::drawPlayerSkills(sf::RenderTarget &target, const sf::RenderStates &states)
+{
+    for (auto &skill : m_skills)
+    {
+        skill.sprite.setColor(
+            skill.skill->isReady() ? sf::Color::White : sf::Color(255, 255, 255, 127));
+        target.draw(skill.sprite);
+        target.draw(skill.key_text);
+    }
+}
 
-    ImGui::SetCursorPos(
-        {m_target_stats_window_size.x - (target_hp_text_size.x + 12.0f * m_scale.x),
-         bg_y_offset - 1.5f * m_scale.y});
-    ImGui::Text("%s", hp_text.c_str());
-
-    ImGui::SetCursorPos(
-        {m_target_stats_window_size.x - (m_target_skull_sprite.getTextureRect().width * m_scale.x),
-         bg_y_offset + (m_target_stats_bg_sprite.getTextureRect().height) * m_scale.y});
-    ImGui::Image(m_target_skull_sprite);
-
-    ImGui::End();
-
-    ImGui::PopFont();
-    ImGui::PopStyleVar(2);
-    ImGui::PopStyleColor(1);
+void LevelGui::drawTargetStats(sf::RenderTarget &target, const sf::RenderStates &states)
+{
+    target.draw(m_target_stats_bg_sprite);
+    target.draw(m_target_hp_bar_sprite);
+    target.draw(m_target_hp_text);
 }
 
 } // namespace fck

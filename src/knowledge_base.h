@@ -1,6 +1,7 @@
 #ifndef KNOWLEDGEBASE_H
 #define KNOWLEDGEBASE_H
 
+#include "entity_script_base.h"
 #include "fck_common.h"
 #include "skill_base.h"
 
@@ -28,9 +29,13 @@
     inline const bool knowledge_base_component_##_class_ \
         = ::fck::KnowledgeBase::registerComponent<_class_>()
 
-#define KNOWLEDGE_BASE_REGISTER_SKILL(_class_) \
-    inline const bool knowledge_base_skill_##_class_ \
-        = ::fck::KnowledgeBase::registerSkill<_class_>()
+#define KNOWLEDGE_BASE_REGISTER_BASE_SKILL(_class_, _base_skill_name_) \
+    inline const bool knowledge_base_base_skill_##_class_ \
+        = ::fck::KnowledgeBase::registerBaseSkill<_class_>(_base_skill_name_)
+
+#define KNOWLEDGE_BASE_REGISTER_BASE_ENTITY_SCRIPT(_class_, _base_entity_script_name_) \
+    inline const bool knowledge_base_base_entity_script_##_class_ \
+        = ::fck::KnowledgeBase::registerBaseEntityScript<_class_>(_base_entity_script_name_)
 
 namespace fck
 {
@@ -99,12 +104,17 @@ public:
     // Skills
     struct SkillItemBase
     {
+        friend class KnowledgeBase;
+
         virtual const std::string &name() const = 0;
         virtual const std::string &displayName() const = 0;
         virtual const std::string &displayDescription() const = 0;
         virtual const std::string &textureName() const = 0;
         virtual const sf::IntRect &textureRect() const = 0;
         virtual SkillBase *create() const = 0;
+
+    private:
+        virtual void init(toml::table *table) = 0;
     };
 
     template<typename T>
@@ -112,10 +122,36 @@ public:
     {
     };
 
-    template<typename T>
-    static bool registerSkill();
-
     static SkillItemBase *skill(const std::string &name);
+
+    template<typename T>
+    static bool registerBaseSkill(const std::string &base_skill_name);
+
+    static void loadSkillsDirectory(const std::string &dir_name);
+
+    // Entity scripts
+    struct EntityScriptItemBase
+    {
+        friend class KnowledgeBase;
+
+        virtual const std::string &name() const = 0;
+        virtual EntityScriptBase *create() const = 0;
+
+    private:
+        virtual void init(toml::table *table) = 0;
+    };
+
+    template<typename T>
+    struct EntityScriptItem : EntityScriptItemBase
+    {
+    };
+
+    static EntityScriptBase *createEntityScript(const std::string &name);
+
+    template<typename T>
+    static bool registerBaseEntityScript(const std::string &base_entity_script_name);
+
+    static void loadEntityScriptsDirectory(const std::string &dir_name);
 
 private:
     static KnowledgeBase &instance();
@@ -131,7 +167,12 @@ private:
         m_component_fabrics;
     std::unordered_map<std::string, std::unique_ptr<EntityItem>> m_entities;
 
+    std::unordered_map<std::string, std::function<SkillItemBase *()>> m_base_skill_fabrics;
     std::unordered_map<std::string, std::unique_ptr<SkillItemBase>> m_skills;
+
+    std::unordered_map<std::string, std::function<EntityScriptItemBase *()>>
+        m_base_entity_script_fabrics;
+    std::unordered_map<std::string, std::unique_ptr<EntityScriptItemBase>> m_entity_scripts;
 };
 
 template<typename T, typename U>
@@ -164,11 +205,19 @@ bool KnowledgeBase::registerComponent()
 }
 
 template<typename T>
-bool KnowledgeBase::registerSkill()
+bool KnowledgeBase::registerBaseSkill(const std::string &base_skill_name)
 {
-    std::unique_ptr<SkillItem<T>> skill_item = std::make_unique<SkillItem<T>>();
-    spdlog::info("Register skill: {}", skill_item->name());
-    instance().m_skills.emplace(skill_item->name(), std::move(skill_item));
+    spdlog::info("Register base skill: {}", base_skill_name);
+    instance().m_base_skill_fabrics.emplace(base_skill_name, []() { return new SkillItem<T>(); });
+    return true;
+}
+
+template<typename T>
+bool KnowledgeBase::registerBaseEntityScript(const std::string &base_entity_script_name)
+{
+    spdlog::info("Register base entity script: {}", base_entity_script_name);
+    instance().m_base_entity_script_fabrics.emplace(
+        base_entity_script_name, []() { return new EntityScriptItem<T>(); });
     return true;
 }
 

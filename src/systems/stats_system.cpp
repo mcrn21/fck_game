@@ -20,24 +20,21 @@ void StatsSystem::update(double delta_time)
         StatsComponent &stats_component = entity.component<StatsComponent>();
         StateComponent &state_component = entity.component<StateComponent>();
 
-        if (stats_component.health > 0 && stats_component.damage > 0)
+        if (stats_component.damage > 0)
         {
-            stats_component.health -= stats_component.damage;
+            if (stats_component.armor > 0)
+            {
+                EntityUtils::addEntityArmor(entity, -stats_component.damage);
+                stats_component.damage = 0;
+                continue;
+            }
+
+            EntityUtils::addEntityHealth(entity, -stats_component.damage);
             stats_component.damage = 0;
         }
 
         if (stats_component.health <= 0 && state_component.state != entity_state::DEATH)
-        {
-            DrawableAnimationComponent &drawable_animation_component
-                = entity.component<DrawableAnimationComponent>();
-            SpriteAnimation *sprite_animation = static_cast<SpriteAnimation *>(
-                drawable_animation_component.drawable_animation.get());
-
             EntityUtils::setEntityState(entity, entity_state::DEATH);
-
-            sprite_animation->setCurrentState("death");
-            sprite_animation->start();
-        }
 
         if (state_component.state == entity_state::DEATH)
         {

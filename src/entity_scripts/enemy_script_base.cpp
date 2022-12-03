@@ -1,15 +1,14 @@
-#include "kyoshi_script.h"
-
+#include "enemy_script_base.h"
 #include "../components/components.h"
 
 namespace fck
 {
 
-KyoshiScript::KyoshiScript() : m_attack_interval{0.5}
+EnemyScriptBase::EnemyScriptBase(double attack_interval) : m_attack_interval{attack_interval}
 {
 }
 
-void KyoshiScript::update(const Entity &entity, double delta_time)
+void EnemyScriptBase::update(const Entity &entity, double delta_time)
 {
     TargetFollowComponent &target_follow_component = entity.component<TargetFollowComponent>();
     TargetComponent &target_component = entity.component<TargetComponent>();

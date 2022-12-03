@@ -11,23 +11,35 @@ namespace entity_state
 std::string stateToString(State state)
 {
     static std::unordered_map<State, std::string> strings
-        = {{State::IDLE, "idle"}, {State::MOVE, "move"}};
+        = {{State::IDLE, "idle"},
+           {State::MOVE, "move"},
+           {State::BASE_ATTACK, "base_attack"},
+           {State::ULTIMATE_ATTACK, "ultimate_attack"},
+           {State::DAMAGED, "damage"},
+           {State::DODGE, "dodge"},
+           {State::DEATH, "death"}};
 
     auto strings_found = strings.find(state);
     if (strings_found != strings.end())
         return strings_found->second;
-    return "unknow";
+    return "idle";
 }
 
 State stateFromString(const std::string &string)
 {
     static std::unordered_map<std::string, State> states
-        = {{"idle", State::IDLE}, {"move", State::MOVE}};
+        = {{"idle", State::IDLE},
+           {"move", State::MOVE},
+           {"base_attack", State::BASE_ATTACK},
+           {"ultimate_attack", State::ULTIMATE_ATTACK},
+           {"damage", State::DAMAGED},
+           {"dodge", State::DODGE},
+           {"death", State::DEATH}};
 
     auto states_found = states.find(string);
     if (states_found != states.end())
         return states_found->second;
-    return State::NO_STATE;
+    return State::IDLE;
 }
 
 std::string directionToString(Direction direction)
@@ -49,7 +61,7 @@ Direction directionFromString(const std::string &string)
     auto directions_found = directions.find(string);
     if (directions_found != directions.end())
         return directions_found->second;
-    return Direction::NO_DIRECTION;
+    return Direction::RIGHT;
 }
 
 } // namespace entity_state

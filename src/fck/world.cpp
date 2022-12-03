@@ -55,6 +55,9 @@ std::vector<Entity> World::createEntities(int32_t size)
 
 void World::destroyEntity(Entity &entity)
 {
+    if (!entity.isValid())
+        return;
+
     disableEntity(entity);
     m_entity_cache.destroyed.push_back(entity);
 }
@@ -68,8 +71,8 @@ void World::destroyEntities(std::vector<Entity> &entities)
 void World::destroyAllEntities()
 {
     destroyEntities(m_entity_cache.alive);
-    destroyEntities(m_entity_cache.enabled);
-    destroyEntities(m_entity_cache.disabled);
+    //    destroyEntities(m_entity_cache.enabled);
+    //    destroyEntities(m_entity_cache.disabled);
 }
 
 int32_t World::entityCount() const

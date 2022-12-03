@@ -3,8 +3,8 @@
 namespace fck
 {
 
-SkillBase::SkillBase(const std::string &name, double cooldown_interval)
-    : m_name{name}, m_cooldown_intreval{cooldown_interval}, m_remained_time{0}
+SkillBase::SkillBase(const std::string &name, double cooldown)
+    : m_name{name}, m_cooldown{cooldown}, m_elapsed{cooldown}, m_broken{false}
 {
 }
 
@@ -13,36 +13,48 @@ const std::string &SkillBase::name() const
     return m_name;
 }
 
-double SkillBase::remainedTime() const
+double SkillBase::elapsed() const
 {
-    return m_remained_time;
+    return m_elapsed;
 }
 
-double SkillBase::cooldownInterval() const
+double SkillBase::cooldown() const
 {
-    return m_cooldown_intreval;
+    return m_cooldown;
 }
 
 bool SkillBase::isReady()
 {
-    return m_remained_time == 0;
+    return m_elapsed == m_cooldown;
+}
+
+void SkillBase::finish()
+{
+    m_elapsed = m_cooldown;
+}
+
+void SkillBase::broke()
+{
+    m_broken = true;
 }
 
 void SkillBase::_apply(const Entity &entity, const Entity &target)
 {
-    m_remained_time = m_cooldown_intreval;
+    m_elapsed = 0;
+    m_broken = false;
     apply(entity, target);
 }
 
 void SkillBase::_update(double delta_time)
 {
-    if (m_remained_time > 0)
-        m_remained_time -= delta_time;
+    if (m_elapsed < m_cooldown)
+        m_elapsed += delta_time;
 
-    if (m_remained_time < 0)
-        m_remained_time = 0;
+    if (m_elapsed > m_cooldown)
+        m_elapsed = m_cooldown;
 
-    update(delta_time);
+    if (!m_broken)
+        update(delta_time);
 }
 
 } // namespace fck

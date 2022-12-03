@@ -12,7 +12,7 @@ namespace fck
 struct StateComponent
 {
     entity_state::State state = entity_state::IDLE;
-    entity_state::Direction direction = entity_state::NO_DIRECTION;
+    entity_state::Direction direction = entity_state::RIGHT;
 };
 
 template<>
@@ -41,8 +41,8 @@ struct KnowledgeBase::ComponentItem<StateComponent> : ComponentItemBase
         component.direction = direction;
     }
 
-    entity_state::State state = entity_state::NO_STATE;
-    entity_state::Direction direction = entity_state::NO_DIRECTION;
+    entity_state::State state = entity_state::IDLE;
+    entity_state::Direction direction = entity_state::RIGHT;
 };
 
 KNOWLEDGE_BASE_REGISTER_COMPONENT(StateComponent);

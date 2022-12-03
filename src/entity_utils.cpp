@@ -95,6 +95,8 @@ void EntityUtils::setEntityTarget(
             EntityUtils::entity_moved.emit(target_component.target_mark, sf::Vector2f{});
         }
     }
+
+    entity_target_changed.emit(entity, target_component.target);
 }
 
 void EntityUtils::setEntityState(const Entity &entity, entity_state::State state)
@@ -121,6 +123,54 @@ void EntityUtils::setEntityDirection(const Entity &entity, entity_state::Directi
     entity_direction_changed.emit(entity, old_direction);
 }
 
+void EntityUtils::addEntityHealth(const Entity &entity, float health)
+{
+    if (health == 0.0f)
+        return;
+
+    StatsComponent &stats_component = entity.component<StatsComponent>();
+    float old_health = stats_component.health;
+    stats_component.health += health;
+    if (stats_component.health < 0.0f)
+        stats_component.health = 0.0f;
+    if (stats_component.health > stats_component.max_health)
+        stats_component.health = stats_component.max_health;
+
+    entity_health_changed.emit(entity, old_health);
+}
+
+void EntityUtils::setEntityHealth(const Entity &entity, float health)
+{
+    StatsComponent &stats_component = entity.component<StatsComponent>();
+    float old_health = stats_component.health;
+    stats_component.health = health;
+    entity_health_changed.emit(entity, old_health);
+}
+
+void EntityUtils::addEntityArmor(const Entity &entity, float armor)
+{
+    if (armor == 0.0f)
+        return;
+
+    StatsComponent &stats_component = entity.component<StatsComponent>();
+    float old_armor = stats_component.armor;
+    stats_component.armor += armor;
+    if (stats_component.armor < 0.0f)
+        stats_component.armor = 0.0f;
+    if (stats_component.armor > stats_component.max_armor)
+        stats_component.armor = stats_component.max_armor;
+
+    entity_armor_changed.emit(entity, old_armor);
+}
+
+void EntityUtils::setEntityArmor(const Entity &entity, float armor)
+{
+    StatsComponent &stats_component = entity.component<StatsComponent>();
+    float old_armor = stats_component.armor;
+    stats_component.armor = armor;
+    entity_armor_changed.emit(entity, old_armor);
+}
+
 // transform
 Signal<const Entity &, const sf::Vector2f &> EntityUtils::entity_moved;
 Signal<const Entity &, const Entity &> EntityUtils::entity_parent_changed;
@@ -128,5 +178,12 @@ Signal<const Entity &, const Entity &> EntityUtils::entity_parent_changed;
 // state
 Signal<const Entity &, entity_state::State> EntityUtils::entity_state_changed;
 Signal<const Entity &, entity_state::Direction> EntityUtils::entity_direction_changed;
+
+// target
+Signal<const Entity &, const Entity &> EntityUtils::entity_target_changed;
+
+// stats
+Signal<const Entity &, float> EntityUtils::entity_health_changed;
+Signal<const Entity &, float> EntityUtils::entity_armor_changed;
 
 } // namespace fck

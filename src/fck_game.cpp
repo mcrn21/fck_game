@@ -5,7 +5,6 @@
 #include "knowledge_base.h"
 #include "settings.h"
 
-#include "actions/test_action.h"
 #include "components/components.h"
 #include "damages/damages.h"
 #include "entity_scripts/entity_scripts.h"
@@ -74,18 +73,23 @@ FckGame::FckGame()
     m_world.addSystem(m_script_system);
     m_world.addSystem(m_target_follow_system);
     m_world.addSystem(m_look_around_system);
-    m_world.addSystem(m_actions_system);
     m_world.addSystem(m_stats_system);
     m_world.addSystem(m_skills_system);
     m_world.addSystem(m_damage_sysytem);
 
     // transform
     EntityUtils::entity_moved.connect(this, &FckGame::onEntityMoved);
-    EntityUtils::entity_parent_changed.connect(this, &FckGame::onEntityParentChanged);
 
     // state
     EntityUtils::entity_state_changed.connect(this, &FckGame::onEntityStateChanged);
     EntityUtils::entity_direction_changed.connect(this, &FckGame::onEntityDirectionChanged);
+
+    // taregt
+    EntityUtils::entity_target_changed.connect(this, &FckGame::onEntityTargetChanged);
+
+    // stats
+    EntityUtils::entity_health_changed.connect(this, &FckGame::onEntityHealthChanged);
+    EntityUtils::entity_armor_changed.connect(this, &FckGame::onEntityArmorChanged);
 }
 
 void FckGame::init()
@@ -104,21 +108,50 @@ void FckGame::init()
 
     TaskSequence *first_loading_tasks = new TaskSequence();
     first_loading_tasks->setTasks(
-        {[this]() { setState(game_state::FIRST_LOADING); },
-         [this]() { loadFonts(); },
-         [this]() { loadTextures(); },
-         [this]() { loadSounds(); },
+        {[this, first_loading_tasks]() {
+             setState(game_state::FIRST_LOADING);
+             //             first_loading_tasks->pause();
+             //             Timer::singleShot(
+             //                 sf::milliseconds(1000), [first_loading_tasks]() { first_loading_tasks->start(); });
+         },
+         [this]() { setState(game_state::LOADING); },
+         [this, first_loading_tasks]() {
+             LoadingGui *loading_gui = static_cast<LoadingGui *>(m_gui_list.back().get());
+             loading_gui->setTotal(first_loading_tasks->tasks().size() - 4);
+             loading_gui->increaseProgress();
+             loadFonts();
+         },
          [this]() {
+             static_cast<LoadingGui *>(m_gui_list.back().get())->increaseProgress();
+             loadTextures();
+         },
+         [this]() {
+             static_cast<LoadingGui *>(m_gui_list.back().get())->increaseProgress();
+             loadSounds();
+         },
+         [this]() {
+             static_cast<LoadingGui *>(m_gui_list.back().get())->increaseProgress();
              auto settings = Settings::global();
              KnowledgeBase::loadDrawablesDirectory(settings->sprites_dir_name);
          },
          [this]() {
+             static_cast<LoadingGui *>(m_gui_list.back().get())->increaseProgress();
+             auto settings = Settings::global();
+             KnowledgeBase::loadSkillsDirectory(settings->skills_dir_name);
+         },
+         [this]() {
+             auto settings = Settings::global();
+             KnowledgeBase::loadEntityScriptsDirectory(settings->scripts_dir_name);
+         },
+         [this]() {
+             static_cast<LoadingGui *>(m_gui_list.back().get())->increaseProgress();
              auto settings = Settings::global();
              KnowledgeBase::loadEntitiesDirectory(settings->entities_dir_name);
          },
-         [this]() { auto settings = Settings::global(); },
-         [this]() { loadScripts(); },
-         [this]() { setupInputActions(); },
+         [this]() {
+             static_cast<LoadingGui *>(m_gui_list.back().get())->increaseProgress();
+             setupInputActions();
+         },
          [this, first_loading_tasks]() {
              setState(game_state::MAIN_MENU);
              first_loading_tasks->deleteLater();
@@ -144,7 +177,6 @@ void FckGame::update(const sf::Time &elapsed)
         m_script_system.update(delta_time);
 
         m_skills_system.update(delta_time);
-        m_actions_system.update(delta_time);
         m_damage_sysytem.update(delta_time);
         m_stats_system.update(delta_time);
 
@@ -267,7 +299,7 @@ void FckGame::draw(const sf::Time &elapsed)
 
     // Draw gui
     for (auto &gui : m_gui_list)
-        gui->draw();
+        gui->draw(renderWindow(), sf::RenderStates{});
 
     ImGui::SFML::Render(renderWindow());
 
@@ -290,19 +322,18 @@ void FckGame::setState(game_state::State state)
         {
         case game_state::FIRST_LOADING: {
             m_gui_list.clear();
-            m_gui_list.push_back(std::make_unique<SplashscreenGui>(&m_render_window_view));
-
+            m_gui_list.push_back(std::make_unique<SplashscreenGui>(m_render_window_view.getSize()));
             break;
         }
         case game_state::LOADING: {
             m_gui_list.clear();
-            m_gui_list.push_back(std::make_unique<SplashscreenGui>(&m_render_window_view));
+            m_gui_list.push_back(std::make_unique<LoadingGui>(m_render_window_view.getSize()));
 
             break;
         }
         case game_state::MAIN_MENU: {
             m_gui_list.clear();
-            MainMenuGui *main_menu_gui = new MainMenuGui(&m_render_window_view);
+            MainMenuGui *main_menu_gui = new MainMenuGui(m_render_window_view.getSize());
             m_gui_list.push_back(std::unique_ptr<MainMenuGui>(main_menu_gui));
 
             m_input_actions.action_activated.connect(
@@ -315,7 +346,7 @@ void FckGame::setState(game_state::State state)
 
             if (old_state != game_state::LEVEL_MENU)
             {
-                LevelGui *level_gui = new LevelGui(&m_render_window_view, m_player_entity);
+                LevelGui *level_gui = new LevelGui(m_render_window_view.getSize(), m_player_entity);
                 m_gui_list.push_back(std::unique_ptr<LevelGui>(level_gui));
             }
 
@@ -325,7 +356,7 @@ void FckGame::setState(game_state::State state)
             break;
         }
         case game_state::LEVEL_MENU: {
-            MainMenuGui *main_menu_gui = new MainMenuGui(&m_render_window_view, true);
+            MainMenuGui *main_menu_gui = new MainMenuGui(m_render_window_view.getSize(), true);
             m_gui_list.push_back(std::unique_ptr<MainMenuGui>(main_menu_gui));
 
             m_input_actions.action_activated.connect(
@@ -361,6 +392,10 @@ void FckGame::event(Event *event)
             sf::Vector2f(e->get().size.width / 2, e->get().size.height / 2));
 
         renderWindow().setView(m_render_window_view);
+
+        // Resize gui
+        for (auto &gui : m_gui_list)
+            gui->resize(m_render_window_view.getSize());
 
         return;
     }
@@ -400,20 +435,9 @@ void FckGame::initFirstResources()
 
     // Load splashscreen
     ResourceCache::loadFromFile<sf::Texture>("splash", settings->splash_screen_bg_file_name);
-
-    // Load fonts
-    ImGui::GetIO().Fonts->Clear();
-    GuiBase::main_menu_font = ImGui::GetIO().Fonts->AddFontFromFileTTF(
-        settings->font_file_name.c_str(),
-        gui::FONT_SIZE,
-        nullptr,
-        ImGui::GetIO().Fonts->GetGlyphRangesCyrillic());
-    GuiBase::hp_hud_font = ImGui::GetIO().Fonts->AddFontFromFileTTF(
-        settings->font_file_name.c_str(),
-        gui::HP_HUD_SIZE,
-        nullptr,
-        ImGui::GetIO().Fonts->GetGlyphRangesCyrillic());
-    (void)(ImGui::SFML::UpdateFontTexture());
+    ResourceCache::loadFromFile<sf::Texture>("ui", settings->ui_file_name);
+    ResourceCache::loadFromFile<sf::Font>("mini_pixel-7", settings->font_file_name)
+        ->setSmooth(true);
 }
 
 void FckGame::loadFonts()
@@ -435,10 +459,22 @@ void FckGame::loadFonts()
 
         sf::Font *font = ResourceCache::loadFromFile<sf::Font>(file_name, file_path);
         if (font)
-        {
-            font->setSmooth(false);
-        }
+            font->setSmooth(true);
     }
+
+    // Load fonts to ImGui
+    ImGui::GetIO().Fonts->Clear();
+    GuiBase::main_menu_font = ImGui::GetIO().Fonts->AddFontFromFileTTF(
+        settings->font_file_name.c_str(),
+        gui::FONT_SIZE,
+        nullptr,
+        ImGui::GetIO().Fonts->GetGlyphRangesCyrillic());
+    GuiBase::hp_hud_font = ImGui::GetIO().Fonts->AddFontFromFileTTF(
+        settings->font_file_name.c_str(),
+        gui::HP_HUD_SIZE,
+        nullptr,
+        ImGui::GetIO().Fonts->GetGlyphRangesCyrillic());
+    (void)(ImGui::SFML::UpdateFontTexture());
 }
 
 void FckGame::loadTextures()
@@ -483,37 +519,6 @@ void FckGame::loadSounds()
     }
 }
 
-void FckGame::loadScripts()
-{
-    auto settings = Settings::global();
-
-    for (const auto &entry : std::filesystem::directory_iterator(settings->scripts_dir_name))
-    {
-        std::string file_name;
-        if (entry.path().filename().has_stem())
-            file_name = entry.path().filename().stem().string();
-        else
-            file_name = entry.path().filename().string();
-
-        if (file_name.empty())
-            continue;
-
-        std::string file_path = entry.path().relative_path().string();
-        sol::load_result script = m_lua.load_file(file_path);
-
-        if (!script.valid())
-        {
-            sol::error error = script;
-            spdlog::warn("Failed to load script {}: {}", file_name, error.what());
-            continue;
-        }
-
-        script();
-
-        spdlog::info("Load script: {}", file_name);
-    }
-}
-
 void FckGame::exitGame()
 {
     exit();
@@ -539,11 +544,6 @@ void FckGame::newGame()
 
              onEntityMoved(m_player_entity, sf::Vector2f{});
 
-             SkillsComponent &skills_component = m_player_entity.addComponent<SkillsComponent>();
-
-             skills_component.skills.push_back(
-                 std::unique_ptr<SkillBase>(KnowledgeBase::skill("base_attack")->create()));
-
              m_player_entity.enable();
 
              /////////////////////////////////
@@ -555,13 +555,13 @@ void FckGame::newGame()
              //             k1.component<SceneComponent>().wall = true;
 
              TargetComponent &k1_target_component = k1.component<TargetComponent>();
-             //             k1_target_component.target = m_player_entity;
+             //k1_target_component.target = m_player_entity;
 
              TargetFollowComponent &k1_target_foolow_component
                  = k1.component<TargetFollowComponent>();
-             //             k1_target_foolow_component.follow = true;
-             //             k1_target_foolow_component.min_distance = 32.0f;
-             //             k1_target_foolow_component.max_distance = 200.0f;
+             k1_target_foolow_component.follow = true;
+             k1_target_foolow_component.min_distance = 32.0f;
+             k1_target_foolow_component.max_distance = 200.0f;
 
              onEntityMoved(k1, sf::Vector2f{});
 
@@ -583,16 +583,8 @@ void FckGame::newGame()
              TargetFollowComponent &k2_target_foolow_component
                  = k2.component<TargetFollowComponent>();
              k2_target_foolow_component.follow = true;
-             k2_target_foolow_component.min_distance = 32.0f;
-             k2_target_foolow_component.max_distance = 200.0f;
-
-             DamageComponent &k2_damage_component = k2.addComponent<DamageComponent>();
-             k2_damage_component.damage.reset(new BaseAttackDamage{10, m_player_entity, 2});
 
              onEntityMoved(k2, sf::Vector2f{});
-
-             ScriptComponent &k2_script_component = k2.addComponent<ScriptComponent>();
-             k2_script_component.entity_script.reset(new KyoshiScript());
 
              k2.enable();
 
@@ -777,10 +769,6 @@ void FckGame::onEntityMoved(const Entity &entity, const sf::Vector2f &offset)
         m_look_around_system.updateBounds(entity);
 }
 
-void FckGame::onEntityParentChanged(const Entity &entity, const Entity &old_parent)
-{
-}
-
 void FckGame::onEntityStateChanged(const Entity &entity, entity_state::State old_state)
 {
     StateComponent &state_component = entity.component<StateComponent>();
@@ -825,6 +813,55 @@ void FckGame::onEntityDirectionChanged(const Entity &entity, entity_state::Direc
 
     if (entity.hasComponent<LookAroundComponent>())
         m_look_around_system.updateBounds(entity);
+}
+
+void FckGame::onEntityTargetChanged(const Entity &entity, const Entity &target)
+{
+    if (entity == m_player_entity && m_state == game_state::LEVEL)
+    {
+        LevelGui *level_gui = static_cast<LevelGui *>(m_gui_list.back().get());
+        level_gui->updateTargetStats();
+    }
+}
+
+void FckGame::onEntityHealthChanged(const Entity &entity, float old_health)
+{
+    if (m_state == game_state::LEVEL)
+    {
+        if (m_player_entity.isValid())
+        {
+            if (entity == m_player_entity)
+            {
+                LevelGui *level_gui = static_cast<LevelGui *>(m_gui_list.back().get());
+                level_gui->updatePlayerStats();
+            }
+            else if (entity == m_player_entity.component<TargetComponent>().target)
+            {
+                LevelGui *level_gui = static_cast<LevelGui *>(m_gui_list.back().get());
+                level_gui->updateTargetStats();
+            }
+        }
+    }
+}
+
+void FckGame::onEntityArmorChanged(const Entity &entity, float old_armor)
+{
+    if (m_state == game_state::LEVEL)
+    {
+        if (m_player_entity.isValid())
+        {
+            if (entity == m_player_entity)
+            {
+                LevelGui *level_gui = static_cast<LevelGui *>(m_gui_list.back().get());
+                level_gui->updatePlayerStats();
+            }
+            else if (entity == m_player_entity.component<TargetComponent>().target)
+            {
+                LevelGui *level_gui = static_cast<LevelGui *>(m_gui_list.back().get());
+                level_gui->updateTargetStats();
+            }
+        }
+    }
 }
 
 } // namespace fck

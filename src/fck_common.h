@@ -77,19 +77,16 @@ namespace entity_state
 
 enum State
 {
-    NO_STATE = 1,
-
-    IDLE = 2,
-    MOVE = 4,
-
-    ACTION = 50,
-    UNDER_ACTION = 51,
-
-    SKILL_APPLY = 8,
+    IDLE = 1,
+    MOVE = 2,
+    BASE_ATTACK = 4,
+    ULTIMATE_ATTACK = 8,
     DAMAGED = 16,
-    DEATH = 32,
+    DODGE = 32,
+    DEATH = 64,
 
-    NOT_AVALIBLE = SKILL_APPLY | DAMAGED | DEATH
+    ATTACK = BASE_ATTACK | ULTIMATE_ATTACK,
+    NOT_AVALIBLE = ATTACK | DAMAGED | DODGE | DEATH
 };
 
 std::string stateToString(State state);
@@ -97,7 +94,6 @@ State stateFromString(const std::string &string);
 
 enum Direction
 {
-    NO_DIRECTION = 0,
     LEFT = -1,
     RIGHT = 1
 };

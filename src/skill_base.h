@@ -15,14 +15,16 @@ class SkillBase
     friend class SkillsSystem;
 
 public:
-    SkillBase(const std::string &name, double cooldown_interval);
+    SkillBase(const std::string &name, double cooldown);
     virtual ~SkillBase() = default;
 
     const std::string &name() const;
 
-    double remainedTime() const;
-    double cooldownInterval() const;
+    double elapsed() const;
+    double cooldown() const;
     bool isReady();
+    void finish();
+    void broke();
 
 protected:
     virtual void apply(const Entity &entity, const Entity &target) = 0;
@@ -35,8 +37,9 @@ private:
 private:
     std::string m_name;
 
-    double m_remained_time;
-    double m_cooldown_intreval;
+    double m_elapsed;
+    double m_cooldown;
+    float m_broken;
 };
 
 } // namespace fck

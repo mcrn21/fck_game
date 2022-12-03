@@ -13,6 +13,9 @@ public:
     ~KyoshiScript() = default;
 
     void update(const Entity &entity, double delta_time);
+
+private:
+    double m_attack_interval;
 };
 
 } // namespace fck

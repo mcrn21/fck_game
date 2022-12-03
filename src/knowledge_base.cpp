@@ -73,8 +73,8 @@ Entity KnowledgeBase::createEntity(const std::string &entity_name, World *world)
 
     if (entity.hasComponent<StateComponent>())
     {
-        EntityUtils::entity_state_changed.emit(entity, entity_state::NO_STATE);
-        EntityUtils::entity_direction_changed.emit(entity, entity_state::NO_DIRECTION);
+        EntityUtils::entity_state_changed.emit(entity, entity_state::IDLE);
+        EntityUtils::entity_direction_changed.emit(entity, entity_state::RIGHT);
     }
 
     return entity;
@@ -155,6 +155,84 @@ KnowledgeBase::SkillItemBase *KnowledgeBase::skill(const std::string &name)
     if (skills_found == instance().m_skills.end())
         return nullptr;
     return skills_found->second.get();
+}
+
+void KnowledgeBase::loadSkillsDirectory(const std::string &dir_name)
+{
+    spdlog::info("Load skills directory...");
+
+    for (const auto &entry : std::filesystem::directory_iterator(dir_name))
+    {
+        std::string file_name = entry.path().relative_path().string();
+
+        toml::table table;
+        try
+        {
+            table = toml::parse_file(file_name);
+
+            std::string base_skill = table.at("base_skill").as_string()->get();
+
+            auto skill_fabrics = instance().m_base_skill_fabrics.find(base_skill);
+            if (skill_fabrics == instance().m_base_skill_fabrics.end())
+                throw Exception{fmt::format("Base skill not found: {}", base_skill)};
+
+            std::unique_ptr<SkillItemBase> skill_item_base;
+            skill_item_base.reset(skill_fabrics->second());
+
+            skill_item_base->init(&table);
+
+            spdlog::info("Add skill: {}", skill_item_base->name());
+            instance().m_skills.emplace(skill_item_base->name(), std::move(skill_item_base));
+        }
+        catch (const std::exception &e)
+        {
+            spdlog::warn("Error parsing sprite file \"{}\": {}", file_name, e.what());
+        }
+    }
+}
+
+EntityScriptBase *KnowledgeBase::createEntityScript(const std::string &name)
+{
+    auto entity_scripts_found = instance().m_entity_scripts.find(name);
+    if (entity_scripts_found == instance().m_entity_scripts.end())
+        return nullptr;
+    return entity_scripts_found->second->create();
+}
+
+void KnowledgeBase::loadEntityScriptsDirectory(const std::string &dir_name)
+{
+    spdlog::info("Load entity scripts directory...");
+
+    for (const auto &entry : std::filesystem::directory_iterator(dir_name))
+    {
+        std::string file_name = entry.path().relative_path().string();
+
+        toml::table table;
+        try
+        {
+            table = toml::parse_file(file_name);
+
+            std::string base_skill = table.at("base_entity_script").as_string()->get();
+
+            auto base_entity_script_fabrics_found
+                = instance().m_base_entity_script_fabrics.find(base_skill);
+            if (base_entity_script_fabrics_found == instance().m_base_entity_script_fabrics.end())
+                throw Exception{fmt::format("Base entity script not found: {}", base_skill)};
+
+            std::unique_ptr<EntityScriptItemBase> entity_script_item_base;
+            entity_script_item_base.reset(base_entity_script_fabrics_found->second());
+
+            entity_script_item_base->init(&table);
+
+            spdlog::info("Add entity script: {}", entity_script_item_base->name());
+            instance().m_entity_scripts.emplace(
+                entity_script_item_base->name(), std::move(entity_script_item_base));
+        }
+        catch (const std::exception &e)
+        {
+            spdlog::warn("Error parsing sprite file \"{}\": {}", file_name, e.what());
+        }
+    }
 }
 
 KnowledgeBase &KnowledgeBase::instance()
