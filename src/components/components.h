@@ -10,6 +10,7 @@
 #include "player_component.h"
 #include "scene_component.h"
 #include "script_component.h"
+#include "shadow_component.h"
 #include "skills_component.h"
 #include "sound_component.h"
 #include "state_component.h"

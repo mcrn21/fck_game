@@ -16,10 +16,13 @@ namespace fck
 struct DrawableComponent
 {
     std::unique_ptr<Drawable> drawable;
+
     sf::FloatRect global_bounds;
     sf::FloatRect global_content_bounds;
+
     int32_t tree_id = -1;
     b2::DynamicTree<Entity> *tree = nullptr;
+
     int32_t z_order = 0;
     bool z_order_fill_y_coordinate = true;
 };
@@ -34,7 +37,6 @@ struct KnowledgeBase::ComponentItem<DrawableComponent> : ComponentItemBase
 
     void init(toml::table *table)
     {
-        type = drawable_type::fromString(table->at("type").as_string()->get());
         name = table->at("name").as_string()->get();
 
         if (table->contains("z_order"))
@@ -48,27 +50,23 @@ struct KnowledgeBase::ComponentItem<DrawableComponent> : ComponentItemBase
     {
         DrawableComponent &component = entity.addComponent<DrawableComponent>();
 
-        if (type == drawable_type::SPRITE)
+        auto drawable = KnowledgeBase::createDrawable(name);
+        component.global_bounds = drawable.first->localBounds();
+        component.drawable.reset(drawable.first);
+
+        if (drawable.second)
         {
-            auto sprite = KnowledgeBase::createDrawable(name);
-            component.global_bounds = sprite.first->localBounds();
-            component.drawable.reset(sprite.first);
-
-            if (sprite.second)
-            {
-                DrawableAnimationComponent &drawable_animation_component
-                    = entity.addComponent<DrawableAnimationComponent>();
-                drawable_animation_component.drawable_animation.reset(sprite.second);
-            }
-            component.z_order = z_order;
-            component.z_order_fill_y_coordinate = z_order_fill_y_coordinate;
-
-            return;
+            DrawableAnimationComponent &drawable_animation_component
+                = entity.addComponent<DrawableAnimationComponent>();
+            drawable_animation_component.drawable_animation.reset(drawable.second);
         }
+
+        component.z_order = z_order;
+        component.z_order_fill_y_coordinate = z_order_fill_y_coordinate;
     }
 
-    drawable_type::Type type = drawable_type::NO_TYPE;
     std::string name;
+
     int32_t z_order = 0;
     bool z_order_fill_y_coordinate = true;
 };

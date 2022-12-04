@@ -90,7 +90,8 @@ std::string toString(Type type)
            {Type::ACTIONS, "actions"},
            {Type::SKILLS, "skills"},
            {Type::DAMAGE, "damage"},
-           {Type::MARKER, "marker"}};
+           {Type::MARKER, "marker"},
+           {Type::SHADOW, "shadow"}};
 
     auto strings_found = strings.find(type);
     if (strings_found != strings.end())
@@ -119,7 +120,8 @@ Type fromString(const std::string &string)
            {"actions", Type::ACTIONS},
            {"skills", Type::SKILLS},
            {"damage", Type::DAMAGE},
-           {"marker", Type::MARKER}};
+           {"marker", Type::MARKER},
+           {"shadow", Type::SHADOW}};
 
     auto types_found = types.find(string);
     if (types_found != types.end())

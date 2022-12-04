@@ -257,6 +257,13 @@ void FckGame::draw(const sf::Time &elapsed)
 
                 sf::RenderStates render_states;
                 render_states.transform *= transform_component.transform.getTransform();
+
+                if (entity.hasComponent<ShadowComponent>())
+                {
+                    ShadowComponent &shadow_component = entity.component<ShadowComponent>();
+                    m_scene_render_texture.draw(shadow_component.shadow);
+                }
+
                 drawable_component.drawable->draw(m_scene_render_texture, render_states);
 
                 if (transparented)
@@ -771,6 +778,12 @@ void FckGame::entityMove(const Entity &entity, const sf::Vector2f &offset)
 
     if (entity.hasComponent<LookAroundComponent>())
         m_look_around_system.updateBounds(entity);
+
+    if (entity.hasComponent<ShadowComponent>())
+    {
+        ShadowComponent &shadow_component = entity.component<ShadowComponent>();
+        shadow_component.shadow.setPosition(transform_component.transform.getPosition());
+    }
 }
 
 void FckGame::entitySetPosition(const Entity &entity, const sf::Vector2f &position)
