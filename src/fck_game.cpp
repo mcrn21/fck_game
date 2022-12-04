@@ -78,18 +78,21 @@ FckGame::FckGame()
     m_world.addSystem(m_damage_sysytem);
 
     // transform
-    EntityUtils::entity_moved.connect(this, &FckGame::onEntityMoved);
-
+    entity::move.connect(this, &FckGame::entityMove);
+    entity::set_position.connect(this, &FckGame::entitySetPosition);
+    entity::set_parent.connect(this, &FckGame::entitySetParent);
     // state
-    EntityUtils::entity_state_changed.connect(this, &FckGame::onEntityStateChanged);
-    EntityUtils::entity_direction_changed.connect(this, &FckGame::onEntityDirectionChanged);
-
+    entity::set_state.connect(this, &FckGame::entitySetState);
+    entity::set_direction.connect(this, &FckGame::entitySetDirection);
     // taregt
-    EntityUtils::entity_target_changed.connect(this, &FckGame::onEntityTargetChanged);
-
+    entity::set_target.connect(this, &FckGame::entitySetTarget);
+    // marker
+    entity::set_marker.connect(this, &FckGame::entitySetMarker);
     // stats
-    EntityUtils::entity_health_changed.connect(this, &FckGame::onEntityHealthChanged);
-    EntityUtils::entity_armor_changed.connect(this, &FckGame::onEntityArmorChanged);
+    entity::set_heath.connect(this, &FckGame::entitySetHealth);
+    entity::set_armor.connect(this, &FckGame::entitySetArmor);
+    // destroy
+    entity::destroy.connect(this, &FckGame::entityDestroy);
 }
 
 void FckGame::init()
@@ -542,7 +545,7 @@ void FckGame::newGame()
                  = m_player_entity.addComponent<ScriptComponent>();
              player_entity_script_component.entity_script.reset(new PlayerScript());
 
-             onEntityMoved(m_player_entity, sf::Vector2f{});
+             entityMove(m_player_entity, sf::Vector2f{});
 
              m_player_entity.enable();
 
@@ -563,7 +566,7 @@ void FckGame::newGame()
              k1_target_foolow_component.min_distance = 32.0f;
              k1_target_foolow_component.max_distance = 200.0f;
 
-             onEntityMoved(k1, sf::Vector2f{});
+             entityMove(k1, sf::Vector2f{});
 
              ScriptComponent &k1_script_component = k1.addComponent<ScriptComponent>();
              k1_script_component.entity_script.reset(new KyoshiScript());
@@ -584,7 +587,7 @@ void FckGame::newGame()
                  = k2.component<TargetFollowComponent>();
              k2_target_foolow_component.follow = true;
 
-             onEntityMoved(k2, sf::Vector2f{});
+             entityMove(k2, sf::Vector2f{});
 
              k2.enable();
 
@@ -664,7 +667,7 @@ void FckGame::newGame()
 
                          collision_component.type = collision_type::STATIC;
 
-                         onEntityMoved(entity, sf::Vector2f{});
+                         entityMove(entity, sf::Vector2f{});
 
                          entity.enable();
                      }
@@ -730,9 +733,10 @@ void FckGame::onActionActivated(keyboard_action::Action action)
         setState(game_state::LEVEL_MENU);
 }
 
-void FckGame::onEntityMoved(const Entity &entity, const sf::Vector2f &offset)
+void FckGame::entityMove(const Entity &entity, const sf::Vector2f &offset)
 {
     TransformComponent &transform_component = entity.component<TransformComponent>();
+    transform_component.transform.move(offset);
 
     if (!transform_component.children.empty())
     {
@@ -742,7 +746,7 @@ void FckGame::onEntityMoved(const Entity &entity, const sf::Vector2f &offset)
             if (it->isValid())
             {
                 TransformComponent &child_transform_component = it->component<TransformComponent>();
-                EntityUtils::setEntityPosition(*it, transform_component.transform.getPosition());
+                entitySetPosition(*it, transform_component.transform.getPosition());
                 ++it;
             }
             else
@@ -769,12 +773,60 @@ void FckGame::onEntityMoved(const Entity &entity, const sf::Vector2f &offset)
         m_look_around_system.updateBounds(entity);
 }
 
-void FckGame::onEntityStateChanged(const Entity &entity, entity_state::State old_state)
+void FckGame::entitySetPosition(const Entity &entity, const sf::Vector2f &position)
+{
+    TransformComponent &transform_component = entity.component<TransformComponent>();
+    entityMove(entity, position - transform_component.transform.getPosition());
+}
+
+void FckGame::entitySetParent(const Entity &entity, const Entity &parent)
+{
+    TransformComponent &transform_component = entity.component<TransformComponent>();
+
+    if (transform_component.parent == parent)
+        return;
+
+    if (transform_component.parent.isValid())
+    {
+        TransformComponent &parent_transform_component
+            = transform_component.parent.component<TransformComponent>();
+
+        parent_transform_component.children.erase(
+            std::remove(
+                parent_transform_component.children.begin(),
+                parent_transform_component.children.end(),
+                entity),
+            parent_transform_component.children.end());
+    }
+
+    transform_component.parent = parent;
+
+    if (transform_component.parent.isValid())
+    {
+        TransformComponent &parent_transform_component
+            = transform_component.parent.component<TransformComponent>();
+        parent_transform_component.children.push_back(entity);
+        entity::set_position.emit(entity, parent_transform_component.transform.getPosition());
+    }
+}
+
+void FckGame::entitySetState(const Entity &entity, entity_state::State state)
 {
     StateComponent &state_component = entity.component<StateComponent>();
+
+    if (state_component.state == state)
+        return;
+
+    state_component.state = state;
     std::string state_string = entity_state::stateToString(state_component.state);
 
-    if (state_component.state != old_state && entity.hasComponent<DrawableAnimationComponent>())
+    if (state_component.state == entity_state::DEATH && entity.hasComponent<VelocityComponent>())
+    {
+        VelocityComponent &velocity_component = entity.component<VelocityComponent>();
+        velocity_component.velocity = {};
+    }
+
+    if (entity.hasComponent<DrawableAnimationComponent>())
     {
         DrawableAnimationComponent &drawable_animation_component
             = entity.component<DrawableAnimationComponent>();
@@ -786,7 +838,7 @@ void FckGame::onEntityStateChanged(const Entity &entity, entity_state::State old
         }
     }
 
-    if (state_component.state != old_state && entity.hasComponent<SoundComponent>())
+    if (entity.hasComponent<SoundComponent>())
     {
         SoundComponent &sound_component = entity.component<SoundComponent>();
 
@@ -801,9 +853,14 @@ void FckGame::onEntityStateChanged(const Entity &entity, entity_state::State old
     }
 }
 
-void FckGame::onEntityDirectionChanged(const Entity &entity, entity_state::Direction old_direction)
+void FckGame::entitySetDirection(const Entity &entity, entity_state::Direction direction)
 {
     StateComponent &state_component = entity.component<StateComponent>();
+
+    if (state_component.direction == direction)
+        return;
+
+    state_component.direction = direction;
 
     if (entity.hasComponent<TransformComponent>())
     {
@@ -815,8 +872,47 @@ void FckGame::onEntityDirectionChanged(const Entity &entity, entity_state::Direc
         m_look_around_system.updateBounds(entity);
 }
 
-void FckGame::onEntityTargetChanged(const Entity &entity, const Entity &target)
+void FckGame::entitySetTarget(const Entity &entity, const Entity &target)
 {
+    TargetComponent &target_component = entity.component<TargetComponent>();
+
+    if (target_component.target == target)
+        return;
+
+    Entity old_target = target_component.target;
+    target_component.target = target;
+
+    if (old_target.isValid())
+    {
+        TargetComponent &old_target_target_component = old_target.component<TargetComponent>();
+
+        old_target_target_component.lookings.erase(
+            std::remove(
+                old_target_target_component.lookings.begin(),
+                old_target_target_component.lookings.end(),
+                entity),
+            old_target_target_component.lookings.end());
+    }
+
+    if (target_component.target.isValid())
+    {
+        TargetComponent &target_target_component
+            = target_component.target.component<TargetComponent>();
+        target_target_component.lookings.push_back(entity);
+    }
+
+    // Set marker
+    if (entity == m_player_entity)
+    {
+        if (old_target.isValid())
+            entitySetMarker(old_target, Entity{});
+
+        if (target_component.target.isValid())
+            entitySetMarker(
+                target_component.target, KnowledgeBase::createEntity("target", &m_world));
+    }
+
+    // Update target stats gui
     if (entity == m_player_entity && m_state == game_state::LEVEL)
     {
         LevelGui *level_gui = static_cast<LevelGui *>(m_gui_list.back().get());
@@ -824,8 +920,39 @@ void FckGame::onEntityTargetChanged(const Entity &entity, const Entity &target)
     }
 }
 
-void FckGame::onEntityHealthChanged(const Entity &entity, float old_health)
+void FckGame::entitySetMarker(const Entity &entity, const Entity &marker)
 {
+    MarkerComponent &marker_component = entity.component<MarkerComponent>();
+
+    if (marker_component.marker == marker)
+        return;
+
+    if (marker_component.marker.isValid())
+        entityDestroy(marker_component.marker);
+
+    marker_component.marker = marker;
+
+    if (marker_component.marker.isValid())
+    {
+        entitySetParent(marker_component.marker, entity);
+        if (!marker_component.marker.isEnabled())
+            marker_component.marker.enable();
+    }
+}
+
+void FckGame::entitySetHealth(const Entity &entity, float health)
+{
+    StatsComponent &stats_component = entity.component<StatsComponent>();
+
+    stats_component.health = health;
+
+    if (stats_component.health < 0)
+        stats_component.health = 0;
+
+    if (stats_component.health > stats_component.max_health)
+        stats_component.health = stats_component.max_health;
+
+    // Update stats gui
     if (m_state == game_state::LEVEL)
     {
         if (m_player_entity.isValid())
@@ -844,8 +971,19 @@ void FckGame::onEntityHealthChanged(const Entity &entity, float old_health)
     }
 }
 
-void FckGame::onEntityArmorChanged(const Entity &entity, float old_armor)
+void FckGame::entitySetArmor(const Entity &entity, float armor)
 {
+    StatsComponent &stats_component = entity.component<StatsComponent>();
+
+    stats_component.armor = armor;
+
+    if (stats_component.armor < 0)
+        stats_component.armor = 0;
+
+    if (stats_component.armor > stats_component.max_armor)
+        stats_component.armor = stats_component.max_armor;
+
+    // Update stats gui
     if (m_state == game_state::LEVEL)
     {
         if (m_player_entity.isValid())
@@ -862,6 +1000,20 @@ void FckGame::onEntityArmorChanged(const Entity &entity, float old_armor)
             }
         }
     }
+}
+
+void FckGame::entityDestroy(const Entity &entity)
+{
+    if (entity.hasComponent<TransformComponent>())
+        entitySetParent(entity, Entity{});
+
+    if (entity.hasComponent<TargetComponent>())
+        entitySetTarget(entity, Entity{});
+
+    if (entity.hasComponent<MarkerComponent>())
+        entitySetMarker(entity, Entity{});
+
+    m_world.destroyEntity(entity);
 }
 
 } // namespace fck

@@ -9,7 +9,7 @@ find_package(SFML COMPONENTS Graphics System Window Network Audio REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(tomlplusplus REQUIRED)
 find_package(ImGui-SFML REQUIRED)
-find_package(tinyxml2 REQUIRED)
+find_package(pugixml REQUIRED)
 
 file(GLOB_RECURSE PROJECT_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 file(GLOB_RECURSE PROJECT_H ${CMAKE_CURRENT_SOURCE_DIR}/src/*.h)
@@ -25,4 +25,4 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     spdlog::spdlog
     tomlplusplus::tomlplusplus
     ImGui-SFML::ImGui-SFML
-    tinyxml2::tinyxml2)
+    pugixml::pugixml)

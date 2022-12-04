@@ -42,16 +42,16 @@ public:
     Entity createEntity();
     std::vector<Entity> createEntities(int32_t size);
 
-    void destroyEntity(Entity &entity);
-    void destroyEntities(std::vector<Entity> &entities);
+    void destroyEntity(const Entity &entity);
+    void destroyEntities(const std::vector<Entity> &entities);
     void destroyAllEntities();
 
     int32_t entityCount() const;
     const std::vector<Entity> &entities() const;
     Entity entity(std::size_t index);
 
-    void enableEntity(Entity &entity);
-    void disableEntity(Entity &entity);
+    void enableEntity(const Entity &entity);
+    void disableEntity(const Entity &entity);
     bool isEnabled(const Entity &entity) const;
     bool isValid(const Entity &entity) const;
 

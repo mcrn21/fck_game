@@ -54,7 +54,7 @@ void BaseAttackSkill::apply(const Entity &entity, const Entity &target)
             ? (m_target_jump_offset.x + target_scene_component.global_bounds.width / 2)
             : -(m_target_jump_offset.x + target_scene_component.global_bounds.width / 2);
 
-        EntityUtils::setEntityDirection(
+        entity::set_direction.emit(
             m_entity,
             m_jump_point.x > target_transform_component.transform.getPosition().x
                 ? entity_state::LEFT
@@ -82,7 +82,7 @@ void BaseAttackSkill::apply(const Entity &entity, const Entity &target)
     m_jump_velocity
         = sf::Vector2f(-velocity * std::cos(angle_to_point), -velocity * std::sin(angle_to_point));
 
-    EntityUtils::setEntityState(entity, entity_state::BASE_ATTACK);
+    entity::set_state.emit(entity, entity_state::BASE_ATTACK);
 
     std::random_device rd;
     std::mt19937 mt(rd());
@@ -97,7 +97,7 @@ void BaseAttackSkill::update(double delta_time)
     m_attack_function(delta_time);
 
     if (isReady())
-        EntityUtils::setEntityState(m_entity, entity_state::IDLE);
+        entity::set_state.emit(m_entity, entity_state::IDLE);
 }
 
 void BaseAttackSkill::idleAttack(double delta_time)

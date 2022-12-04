@@ -69,12 +69,12 @@ Entity KnowledgeBase::createEntity(const std::string &entity_name, World *world)
 
     // notify
     if (entity.hasComponent<TransformComponent>())
-        EntityUtils::entity_moved.emit(entity, sf::Vector2f{});
+        entity::move.emit(entity, sf::Vector2f{});
 
     if (entity.hasComponent<StateComponent>())
     {
-        EntityUtils::entity_state_changed.emit(entity, entity_state::IDLE);
-        EntityUtils::entity_direction_changed.emit(entity, entity_state::RIGHT);
+        entity::set_state.emit(entity, entity_state::IDLE);
+        entity::set_direction.emit(entity, entity_state::RIGHT);
     }
 
     return entity;

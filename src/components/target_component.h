@@ -5,13 +5,15 @@
 
 #include "../fck/entity.h"
 
+#include <vector>
+
 namespace fck
 {
 
 struct TargetComponent
 {
     Entity target;
-    Entity target_mark;
+    std::vector<Entity> lookings;
 };
 
 template<>

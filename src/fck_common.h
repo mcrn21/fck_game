@@ -126,7 +126,8 @@ enum Type
     STATS,
     ACTIONS,
     SKILLS,
-    DAMAGE
+    DAMAGE,
+    MARKER
 };
 
 std::string toString(Type type);

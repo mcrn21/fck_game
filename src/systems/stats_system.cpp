@@ -24,23 +24,23 @@ void StatsSystem::update(double delta_time)
         {
             if (stats_component.armor > 0)
             {
-                EntityUtils::addEntityArmor(entity, -stats_component.damage);
+                entity::set_armor.emit(entity, stats_component.armor - stats_component.damage);
                 stats_component.damage = 0;
                 continue;
             }
 
-            EntityUtils::addEntityHealth(entity, -stats_component.damage);
+            entity::set_heath.emit(entity, stats_component.health - stats_component.damage);
             stats_component.damage = 0;
         }
 
         if (stats_component.health <= 0 && state_component.state != entity_state::DEATH)
-            EntityUtils::setEntityState(entity, entity_state::DEATH);
+            entity::set_state.emit(entity, entity_state::DEATH);
 
         if (state_component.state == entity_state::DEATH)
         {
             stats_component.death_elipsed += delta_time;
             if (stats_component.death_elipsed > stats_component.disappearance_time)
-                entity.destroy();
+                entity::destroy.emit(entity);
         }
     }
 }

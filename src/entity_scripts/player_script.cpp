@@ -29,67 +29,65 @@ void PlayerScript::updateTarget(const Entity &entity)
 
     if (!target_component.target.isValid())
     {
-        if (target_component.target_mark.isValid())
-            target_component.target_mark.destroy();
-
-        if (!look_around_component.look_at_entities.empty())
+        for (const Entity &looked_entity : look_around_component.look_at_entities)
         {
-            for (const Entity &looked_entity : look_around_component.look_at_entities)
+            StateComponent &looked_entity_state_component
+                = looked_entity.component<StateComponent>();
+            if (looked_entity_state_component.state != entity_state::DEATH)
             {
-                StateComponent &looked_entity_state_component
-                    = looked_entity.component<StateComponent>();
-
-                if (looked_entity_state_component.state != entity_state::DEATH)
-                {
-                    EntityUtils::setEntityTarget(
-                        entity,
-                        looked_entity,
-                        KnowledgeBase::createEntity("target", entity.world()));
-                    break;
-                }
+                entity::set_target.emit(entity, looked_entity);
+                break;
             }
         }
     }
     else
     {
-        StateComponent &target_state_component
-            = target_component.target.component<StateComponent>();
-        if (target_state_component.state == entity_state::DEATH)
-        {
-            if (target_component.target_mark.isValid())
-                target_component.target_mark.destroy();
-        }
+        auto look_at_entities_found = std::find(
+            look_around_component.look_at_entities.begin(),
+            look_around_component.look_at_entities.end(),
+            target_component.target);
 
-        if (look_around_component.look_at_entities.empty())
+        if (look_at_entities_found == look_around_component.look_at_entities.end())
         {
-            EntityUtils::setEntityTarget(entity, Entity{});
+            entity::set_target.emit(entity, Entity{});
+            for (const Entity &looked_entity : look_around_component.look_at_entities)
+            {
+                StateComponent &looked_entity_state_component
+                    = looked_entity.component<StateComponent>();
+                if (looked_entity_state_component.state != entity_state::DEATH)
+                {
+                    entity::set_target.emit(entity, looked_entity);
+                    break;
+                }
+            }
         }
         else if (player_component.need_change_target)
         {
-            auto looked_entities_found = std::find(
-                look_around_component.look_at_entities.begin(),
-                look_around_component.look_at_entities.end(),
-                target_component.target);
-            if (looked_entities_found != look_around_component.look_at_entities.end())
-            {
-                ++looked_entities_found;
-                if (looked_entities_found == look_around_component.look_at_entities.end())
-                    looked_entities_found = look_around_component.look_at_entities.begin();
+            player_component.need_change_target = false;
+            auto current_target_it = look_at_entities_found;
 
-                Entity &looked_entity = *looked_entities_found;
+            while (true)
+            {
+                ++look_at_entities_found;
+                if (look_at_entities_found == look_around_component.look_at_entities.end())
+                    look_at_entities_found = look_around_component.look_at_entities.begin();
+
+                if (look_at_entities_found == current_target_it)
+                {
+                    entity::set_target.emit(entity, Entity{});
+                    break;
+                }
+
+                Entity &looked_entity = *look_at_entities_found;
                 StateComponent &looked_entity_state_component
                     = looked_entity.component<StateComponent>();
 
                 if (looked_entity_state_component.state != entity_state::DEATH)
                 {
-                    EntityUtils::setEntityTarget(
-                        entity,
-                        looked_entity,
-                        KnowledgeBase::createEntity("target", entity.world()));
+                    entity::set_target.emit(entity, looked_entity);
+                    break;
                 }
             }
-
-            player_component.need_change_target = false;
         }
     }
 }

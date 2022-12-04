@@ -115,7 +115,7 @@ void CollisionSystem::update(double delta_time)
         {
             position -= velocity_component.velocity * float(delta_time) * 1.2f;
             position += delta_position;
-            EntityUtils::setEntityPosition(entity, position);
+            entity::set_position.emit(entity, position);
         }
     }
 }

@@ -1,11 +1,11 @@
 #ifndef TMX_H
 #define TMX_H
 
-#include <tinyxml2.h>
-
 #include <SFML/Graphics/Rect.hpp>
 #include <SFML/System/InputStream.hpp>
 #include <SFML/System/Vector2.hpp>
+
+#include <pugixml.hpp>
 
 #include <map>
 #include <string>
@@ -76,6 +76,16 @@ public:
         std::vector<Object> objects;
     };
 
+    struct Group
+    {
+        int32_t id;
+        std::string name;
+        std::vector<Layer> layers;
+        std::vector<ObjectGroup> object_groups;
+        std::vector<Group> groups;
+        std::map<std::string, std::string> properties;
+    };
+
     Tmx();
     Tmx(const Tmx &other);
     ~Tmx() = default;
@@ -89,9 +99,11 @@ public:
     int32_t infinite() const;
     int32_t nextLayerId() const;
     int32_t nextObjectId() const;
+    const std::map<std::string, std::string> &properties() const;
     const std::vector<Tileset> &tilesets() const;
     const std::vector<Layer> &layers() const;
     const std::vector<ObjectGroup> &objectGroups() const;
+    const std::vector<Group> &groups() const;
 
     bool loadFromFile(const std::string &filename);
     bool loadFromMemory(const void *data, std::size_t size);
@@ -99,7 +111,13 @@ public:
 
 private:
     void clear();
-    std::pair<bool, std::string> loadXml(const tinyxml2::XMLDocument &xml);
+
+    void loadXml(const pugi::xml_document &xml);
+    std::vector<Tileset> loadTilesets(const pugi::xml_node &node);
+    std::vector<Layer> loadLayers(const pugi::xml_node &node);
+    std::vector<ObjectGroup> loadObjectGroups(const pugi::xml_node &node);
+    std::vector<Group> loadGroups(const pugi::xml_node &node);
+    std::map<std::string, std::string> loadProperties(const pugi::xml_node &node);
 
 private:
     std::string m_version;
@@ -111,9 +129,11 @@ private:
     int32_t m_infinite;
     int32_t m_next_layer_id;
     int32_t m_next_object_id;
+    std::map<std::string, std::string> m_properties;
     std::vector<Tileset> m_tilesets;
     std::vector<Layer> m_layers;
     std::vector<ObjectGroup> m_object_groups;
+    std::vector<Group> m_groups;
 };
 } // namespace fck
 

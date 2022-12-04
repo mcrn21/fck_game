@@ -48,14 +48,14 @@ void PlayerActionsSystem::update(double delta_time)
             velocity_component.velocity.y += velocity_component.max_velocity.y;
 
         if (velocity_component.velocity.x != 0 || velocity_component.velocity.y != 0)
-            EntityUtils::setEntityState(entity, entity_state::MOVE);
+            entity::set_state.emit(entity, entity_state::MOVE);
         else
-            EntityUtils::setEntityState(entity, entity_state::IDLE);
+            entity::set_state.emit(entity, entity_state::IDLE);
 
         if (velocity_component.velocity.x > 0)
-            EntityUtils::setEntityDirection(entity, entity_state::RIGHT);
+            entity::set_direction.emit(entity, entity_state::RIGHT);
         else if (velocity_component.velocity.x < 0)
-            EntityUtils::setEntityDirection(entity, entity_state::LEFT);
+            entity::set_direction.emit(entity, entity_state::LEFT);
     }
 }
 

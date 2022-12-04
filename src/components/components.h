@@ -6,6 +6,7 @@
 #include "drawable_animation_component.h"
 #include "drawable_component.h"
 #include "look_around_component.h"
+#include "marker_component.h"
 #include "player_component.h"
 #include "scene_component.h"
 #include "script_component.h"

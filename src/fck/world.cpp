@@ -53,7 +53,7 @@ std::vector<Entity> World::createEntities(int32_t size)
     return entities;
 }
 
-void World::destroyEntity(Entity &entity)
+void World::destroyEntity(const Entity &entity)
 {
     if (!entity.isValid())
         return;
@@ -62,7 +62,7 @@ void World::destroyEntity(Entity &entity)
     m_entity_cache.destroyed.push_back(entity);
 }
 
-void World::destroyEntities(std::vector<Entity> &entities)
+void World::destroyEntities(const std::vector<Entity> &entities)
 {
     for (auto &entity : entities)
         destroyEntity(entity);
@@ -71,8 +71,6 @@ void World::destroyEntities(std::vector<Entity> &entities)
 void World::destroyAllEntities()
 {
     destroyEntities(m_entity_cache.alive);
-    //    destroyEntities(m_entity_cache.enabled);
-    //    destroyEntities(m_entity_cache.disabled);
 }
 
 int32_t World::entityCount() const
@@ -90,14 +88,14 @@ Entity World::entity(std::size_t index)
     return Entity{m_entity_id_storage.get(index), this};
 }
 
-void World::enableEntity(Entity &entity)
+void World::enableEntity(const Entity &entity)
 {
     fck_assert(isValid(entity), "invalid entity tried to be activated");
 
     m_entity_cache.enabled.push_back(entity);
 }
 
-void World::disableEntity(Entity &entity)
+void World::disableEntity(const Entity &entity)
 {
     fck_assert(isValid(entity), "invalid entity tried to be deactivated");
 

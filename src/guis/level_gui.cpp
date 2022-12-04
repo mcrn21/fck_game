@@ -20,46 +20,47 @@ LevelGui::LevelGui(const sf::Vector2f &size, const Entity &player_entity)
     m_stats_armor_bar_width = 52.0f;
 
     // player
-    m_player_stats_bg_sprite.setTexture(*ResourceCache::resource<sf::Texture>("ui"));
-    m_player_stats_bg_sprite.setTextureRect(sf::IntRect{{0, 0}, {76, 16}});
-    m_player_stats_bg_sprite.scale(m_stats_scale);
+    m_player_hp_progress_bar.setTexture(*ResourceCache::resource<sf::Texture>("ui"));
+    m_player_hp_progress_bar.setBackgroundTextureRect(sf::IntRect{{0, 0}, {76, 8}});
+    m_player_hp_progress_bar.setBarTextureRect(sf::IntRect{{2, 25}, {68, 3}});
+    m_player_hp_progress_bar.setBarPosition({2.0f, 2.0f});
+    m_player_hp_progress_bar.setScale(m_stats_scale);
 
-    m_player_hp_bar_sprite.setTexture(*ResourceCache::resource<sf::Texture>("ui"));
-    m_player_hp_bar_sprite.setTextureRect(sf::IntRect{{2, 25}, {68, 3}});
-    m_player_hp_bar_sprite.scale(m_stats_scale);
+    m_player_hp_progress_bar.text().setFont(*ResourceCache::resource<sf::Font>("mini_pixel-7"));
+    m_player_hp_progress_bar.text().setCharacterSize(24);
+    m_player_hp_progress_bar.text().setOutlineColor(sf::Color::Black);
+    m_player_hp_progress_bar.text().setOutlineThickness(1.0f);
+    m_player_hp_progress_bar.text().setScale(vector2::div({1.0f, 1.0f}, m_stats_scale));
+    m_player_hp_progress_bar.text().setPosition({4.0f, -2.0f});
 
-    m_player_armor_bar_sprite.setTexture(*ResourceCache::resource<sf::Texture>("ui"));
-    m_player_armor_bar_sprite.setTextureRect(sf::IntRect{{2, 33}, {52, 3}});
-    m_player_armor_bar_sprite.scale(m_stats_scale);
+    m_player_armor_progress_bar.setTexture(*ResourceCache::resource<sf::Texture>("ui"));
+    m_player_armor_progress_bar.setBackgroundTextureRect(sf::IntRect{{0, 8}, {56, 8}});
+    m_player_armor_progress_bar.setBarTextureRect(sf::IntRect{{2, 33}, {52, 3}});
+    m_player_armor_progress_bar.setBarPosition({2.0f, 2.0f});
+    m_player_armor_progress_bar.setScale(m_stats_scale);
 
-    m_player_hp_text.setFont(*ResourceCache::resource<sf::Font>("mini_pixel-7"));
-    m_player_hp_text.setCharacterSize(24);
-    m_player_hp_text.setOutlineColor(sf::Color::Black);
-    m_player_hp_text.setOutlineThickness(1.0f);
-
-    m_player_armor_text.setFont(*ResourceCache::resource<sf::Font>("mini_pixel-7"));
-    m_player_armor_text.setCharacterSize(24);
-    m_player_armor_text.setOutlineColor(sf::Color::Black);
-    m_player_armor_text.setOutlineThickness(1.0f);
+    m_player_armor_progress_bar.text().setFont(*ResourceCache::resource<sf::Font>("mini_pixel-7"));
+    m_player_armor_progress_bar.text().setCharacterSize(24);
+    m_player_armor_progress_bar.text().setOutlineColor(sf::Color::Black);
+    m_player_armor_progress_bar.text().setOutlineThickness(1.0f);
+    m_player_armor_progress_bar.text().setScale(vector2::div({1.0f, 1.0f}, m_stats_scale));
+    m_player_armor_progress_bar.text().setPosition({4.0f, -2.0f});
 
     updatePlayerStats();
 
     // target
-    m_target_stats_bg_sprite.setTexture(*ResourceCache::resource<sf::Texture>("ui"));
-    m_target_stats_bg_sprite.setTextureRect(sf::IntRect{{0, 16}, {76, 8}});
-    m_target_stats_bg_sprite.setOrigin({m_target_stats_bg_sprite.getLocalBounds().width, 0.0f});
-    m_target_stats_bg_sprite.scale(m_stats_scale);
+    m_target_hp_progress_bar.setTexture(*ResourceCache::resource<sf::Texture>("ui"));
+    m_target_hp_progress_bar.setBackgroundTextureRect(sf::IntRect{{0, 0}, {76, 8}});
+    m_target_hp_progress_bar.setBarTextureRect(sf::IntRect{{2, 25}, {68, 3}});
+    m_target_hp_progress_bar.setBarPosition({2.0f, 2.0f});
+    m_target_hp_progress_bar.setScale({-m_stats_scale.x, m_stats_scale.y});
 
-    m_target_hp_bar_sprite.setTexture(*ResourceCache::resource<sf::Texture>("ui"));
-    m_target_hp_bar_sprite.setTextureRect(sf::IntRect{{2, 25}, {68, 3}});
-    m_target_hp_bar_sprite.setOrigin({m_target_hp_bar_sprite.getLocalBounds().width, 0.0f});
-    m_target_hp_bar_sprite.scale(m_stats_scale);
-
-    m_target_hp_text.setFont(*ResourceCache::resource<sf::Font>("mini_pixel-7"));
-    m_target_hp_text.setCharacterSize(24);
-    m_target_hp_text.setOutlineColor(sf::Color::Black);
-    m_target_hp_text.setOutlineThickness(1.0f);
-    m_target_hp_text.setOrigin({m_target_hp_text.getLocalBounds().width, 0.0f});
+    m_target_hp_progress_bar.text().setFont(*ResourceCache::resource<sf::Font>("mini_pixel-7"));
+    m_target_hp_progress_bar.text().setCharacterSize(24);
+    m_target_hp_progress_bar.text().setOutlineColor(sf::Color::Black);
+    m_target_hp_progress_bar.text().setOutlineThickness(1.0f);
+    m_target_hp_progress_bar.text().setScale(vector2::div({-1.0f, 1.0f}, m_stats_scale));
+    m_target_hp_progress_bar.text().setPosition({4.0f, -2.0f});
 
     updateTargetStats();
 
@@ -71,15 +72,9 @@ void LevelGui::resize(const sf::Vector2f &size)
     m_size = size;
 
     // player
-    m_player_stats_bg_sprite.setPosition(m_border_offset);
-    m_player_hp_bar_sprite.setPosition(
-        m_border_offset + vector2::mult(sf::Vector2f{2.0f, 2.0f}, m_stats_scale));
-    m_player_armor_bar_sprite.setPosition(
-        m_border_offset + vector2::mult(sf::Vector2f{2.0f, 10.0f}, m_stats_scale));
-    m_player_hp_text.setPosition(
-        m_border_offset + vector2::mult(sf::Vector2f{4.0f, -2.0f}, m_stats_scale));
-    m_player_armor_text.setPosition(
-        m_border_offset + vector2::mult(sf::Vector2f{4.0f, 6.0f}, m_stats_scale));
+    m_player_hp_progress_bar.setPosition(m_border_offset);
+    m_player_armor_progress_bar.setPosition(
+        m_border_offset + vector2::mult(sf::Vector2f{0.0f, 8.0f}, m_stats_scale));
 
     // skills
     if (!m_skills.empty())
@@ -98,13 +93,7 @@ void LevelGui::resize(const sf::Vector2f &size)
     }
 
     // target
-    m_target_stats_bg_sprite.setPosition({m_size.x - m_border_offset.x, m_border_offset.y});
-    m_target_hp_bar_sprite.setPosition(
-        sf::Vector2f{m_size.x - m_border_offset.x, m_border_offset.y}
-        + vector2::mult(sf::Vector2f{-6.0f, 2.0f}, m_stats_scale));
-    m_target_hp_text.setPosition(
-        sf::Vector2f{m_size.x - m_border_offset.x, m_border_offset.y}
-        + vector2::mult(sf::Vector2f{-8.0f, -2.0f}, m_stats_scale));
+    m_target_hp_progress_bar.setPosition({m_size.x - m_border_offset.x, m_border_offset.y});
 }
 
 void LevelGui::draw(sf::RenderTarget &target, const sf::RenderStates &states)
@@ -133,16 +122,11 @@ void LevelGui::updatePlayerStats()
     float health_ratio = stats_component.health / stats_component.max_health;
     float armor_ratio = stats_component.armor / stats_component.max_armor;
 
-    sf::IntRect hp_bar_rect = m_player_hp_bar_sprite.getTextureRect();
-    hp_bar_rect.width = m_stats_hp_bar_width * health_ratio;
-    m_player_hp_bar_sprite.setTextureRect(hp_bar_rect);
+    m_player_hp_progress_bar.setProgress(health_ratio);
+    m_player_hp_progress_bar.text().setString(hp_text);
 
-    sf::IntRect armor_bar_rect = m_player_armor_bar_sprite.getTextureRect();
-    armor_bar_rect.width = m_stats_armor_bar_width * armor_ratio;
-    m_player_armor_bar_sprite.setTextureRect(armor_bar_rect);
-
-    m_player_hp_text.setString(hp_text);
-    m_player_armor_text.setString(armor_text);
+    m_player_armor_progress_bar.setProgress(armor_ratio);
+    m_player_armor_progress_bar.text().setString(armor_text);
 }
 
 void LevelGui::updatePlayerSkills()
@@ -192,23 +176,17 @@ void LevelGui::updateTargetStats()
         + std::to_string(int32_t(stats_component.max_health));
 
     float health_ratio = stats_component.health / stats_component.max_health;
+    m_target_hp_progress_bar.setProgress(health_ratio);
 
-    sf::IntRect hp_bar_rect = m_target_hp_bar_sprite.getTextureRect();
-    hp_bar_rect.width = m_stats_hp_bar_width * health_ratio;
-    m_target_hp_bar_sprite.setTextureRect(hp_bar_rect);
-    m_target_hp_bar_sprite.setOrigin({m_target_hp_bar_sprite.getLocalBounds().width, 0.0f});
-
-    m_target_hp_text.setString(hp_text);
-    m_target_hp_text.setOrigin({m_target_hp_text.getLocalBounds().width, 0.0f});
+    m_target_hp_progress_bar.text().setString(hp_text);
+    m_target_hp_progress_bar.text().setOrigin(
+        {m_target_hp_progress_bar.text().getLocalBounds().width, 0.0f});
 }
 
 void LevelGui::drawPlayerStats(sf::RenderTarget &target, const sf::RenderStates &states)
 {
-    target.draw(m_player_stats_bg_sprite);
-    target.draw(m_player_hp_bar_sprite);
-    target.draw(m_player_armor_bar_sprite);
-    target.draw(m_player_hp_text);
-    target.draw(m_player_armor_text);
+    target.draw(m_player_hp_progress_bar);
+    target.draw(m_player_armor_progress_bar);
 }
 
 void LevelGui::drawPlayerSkills(sf::RenderTarget &target, const sf::RenderStates &states)
@@ -224,9 +202,7 @@ void LevelGui::drawPlayerSkills(sf::RenderTarget &target, const sf::RenderStates
 
 void LevelGui::drawTargetStats(sf::RenderTarget &target, const sf::RenderStates &states)
 {
-    target.draw(m_target_stats_bg_sprite);
-    target.draw(m_target_hp_bar_sprite);
-    target.draw(m_target_hp_text);
+    target.draw(m_target_hp_progress_bar);
 }
 
 } // namespace fck

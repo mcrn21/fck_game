@@ -1,6 +1,8 @@
 #ifndef LOADINGGUI_H
 #define LOADINGGUI_H
 
+#include "gui_elements.h"
+
 #include "../gui_base.h"
 
 namespace fck
@@ -27,11 +29,7 @@ private:
     sf::Vector2f m_scale;
     sf::Vector2f m_border_offset;
 
-    float m_progress_width;
-
-    sf::Sprite m_progress_bg_sprite;
-    sf::Sprite m_progress_sprite;
-    sf::Text m_progress_text;
+    ProgressBar m_progress_bar;
 };
 
 } // namespace fck

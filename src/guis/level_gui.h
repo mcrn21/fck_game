@@ -1,6 +1,8 @@
 #ifndef LEVELGUI_H
 #define LEVELGUI_H
 
+#include "gui_elements.h"
+
 #include "../gui_base.h"
 #include "../knowledge_base.h"
 
@@ -39,16 +41,11 @@ private:
     float m_stats_armor_bar_width;
 
     // player stats
-    sf::Sprite m_player_stats_bg_sprite;
-    sf::Sprite m_player_hp_bar_sprite;
-    sf::Sprite m_player_armor_bar_sprite;
-    sf::Text m_player_hp_text;
-    sf::Text m_player_armor_text;
+    ProgressBar m_player_hp_progress_bar;
+    ProgressBar m_player_armor_progress_bar;
 
     // target stats
-    sf::Sprite m_target_stats_bg_sprite;
-    sf::Sprite m_target_hp_bar_sprite;
-    sf::Text m_target_hp_text;
+    ProgressBar m_target_hp_progress_bar;
 
     struct Skill
     {

@@ -58,6 +58,11 @@ int32_t Tmx::nextObjectId() const
     return m_next_object_id;
 }
 
+const std::map<std::string, std::string> &Tmx::properties() const
+{
+    return m_properties;
+}
+
 const std::vector<Tmx::Tileset> &Tmx::tilesets() const
 {
     return m_tilesets;
@@ -73,38 +78,61 @@ const std::vector<Tmx::ObjectGroup> &Tmx::objectGroups() const
     return m_object_groups;
 }
 
+const std::vector<Tmx::Group> &Tmx::groups() const
+{
+    return m_groups;
+}
+
 bool Tmx::loadFromFile(const std::string &filename)
 {
     clear();
-    tinyxml2::XMLDocument xml;
-    auto result = xml.LoadFile(filename.c_str());
-    if (result != tinyxml2::XML_SUCCESS)
+
+    pugi::xml_document doc;
+    pugi::xml_parse_result result = doc.load_file(filename.c_str());
+
+    if (!result)
     {
-        spdlog::warn("Tmx loading error: {0}", int32_t(result));
+        spdlog::warn("Tmx loading error: {}: {}", filename, result.description());
+        return false;
     }
-    auto load_xml_result = loadXml(xml);
-    if (!load_xml_result.first)
+
+    try
     {
-        spdlog::warn("Tmx loading error: {0}", load_xml_result.second);
+        loadXml(doc);
+        return true;
     }
-    return load_xml_result.first;
+    catch (const std::exception &e)
+    {
+        clear();
+        spdlog::warn("Tmx loading error: {}: {}", filename, e.what());
+        return false;
+    }
 }
 
 bool Tmx::loadFromMemory(const void *data, size_t size)
 {
     clear();
-    tinyxml2::XMLDocument xml;
-    auto result = xml.Parse((const char *)(data), size);
-    if (result != tinyxml2::XML_SUCCESS)
+
+    pugi::xml_document doc;
+    pugi::xml_parse_result result = doc.load_buffer(data, size);
+
+    if (!result)
     {
-        spdlog::warn("Tmx loading error: {0}", int32_t(result));
+        spdlog::warn("Tmx loading error: {}", result.description());
+        return false;
     }
-    auto load_xml_result = loadXml(xml);
-    if (!load_xml_result.first)
+
+    try
     {
-        spdlog::warn("Tmx loading error: {0}", load_xml_result.second);
+        loadXml(doc);
+        return true;
     }
-    return load_xml_result.first;
+    catch (const std::exception &e)
+    {
+        clear();
+        spdlog::warn("Tmx loading error: {}", e.what());
+        return false;
+    }
 }
 
 bool Tmx::loadFromStream(sf::InputStream &stream)
@@ -124,18 +152,26 @@ bool Tmx::loadFromStream(sf::InputStream &stream)
         std::memcpy(&data.data()[old_data_size], &block[0], readed_block_size);
     }
 
-    tinyxml2::XMLDocument xml;
-    auto result = xml.Parse((const char *)(data.data()), data.size());
-    if (result != tinyxml2::XML_SUCCESS)
+    pugi::xml_document doc;
+    pugi::xml_parse_result result = doc.load_buffer((const char *)(data.data()), data.size());
+
+    if (!result)
     {
-        spdlog::warn("Tmx loading error: {0}", int32_t(result));
+        spdlog::warn("Tmx loading error: {}", result.description());
+        return false;
     }
-    auto load_xml_result = loadXml(xml);
-    if (!load_xml_result.first)
+
+    try
     {
-        spdlog::warn("Tmx loading error: {0}", load_xml_result.second);
+        loadXml(doc);
+        return true;
     }
-    return load_xml_result.first;
+    catch (const std::exception &e)
+    {
+        clear();
+        spdlog::warn("Tmx loading error: {}", e.what());
+        return false;
+    }
 }
 
 void Tmx::clear()
@@ -149,202 +185,148 @@ void Tmx::clear()
     m_infinite = 0;
     m_next_layer_id = 0;
     m_next_object_id = 0;
+    m_properties.clear();
     m_tilesets.clear();
     m_layers.clear();
+    m_object_groups.clear();
+    m_groups.clear();
 }
 
-std::pair<bool, std::string> Tmx::loadXml(const tinyxml2::XMLDocument &xml)
+void Tmx::loadXml(const pugi::xml_document &xml)
 {
-    auto map_alement = xml.FirstChildElement("map");
-    if (!map_alement)
-    {
-        return std::make_pair(false, "\"map\" element not found!");
-    }
+    pugi::xml_node map_node = xml.child("map");
+    if (map_node.empty())
+        throw Exception{"Node \"map\" not found"};
 
-    std::string version;
-    std::string tiled_version;
-    Orientation orientation = ORTHOGONAL;
-    RenderOrder render_order = RIGHT_DOWN;
-    sf::Vector2i size;
-    sf::Vector2i tile_size;
-    int32_t infinite = 0;
-    int32_t next_layer_id = 0;
-    int32_t next_object_id = 0;
-    std::vector<Tileset> tilesets;
-    std::vector<Layer> layers;
-    std::vector<ObjectGroup> object_groups;
+    if (!map_node.attribute("version").empty())
+        m_version = map_node.attribute("version").as_string();
 
-    if (map_alement->Attribute("version"))
-        version = map_alement->Attribute("version");
+    if (!map_node.attribute("tiledversion").empty())
+        m_tiled_version = map_node.attribute("tiledversion").as_string();
 
-    if (map_alement->Attribute("tiledversion"))
-        version = map_alement->Attribute("tiledversion");
-
-    if (map_alement->Attribute("orientation"))
+    if (!map_node.attribute("orientation").empty())
     {
         static std::map<std::string, Orientation> orientations = {{"orthogonal", ORTHOGONAL}};
-        auto orientation_found = orientations.find(map_alement->Attribute("orientation"));
+        auto orientation_found = orientations.find(map_node.attribute("orientation").as_string());
         if (orientation_found != orientations.end())
-            orientation = orientation_found->second;
+            m_orientation = orientation_found->second;
     }
 
-    if (map_alement->Attribute("renderorder"))
+    if (!map_node.attribute("renderorder").empty())
     {
         static std::map<std::string, RenderOrder> render_orders = {{"right-down", RIGHT_DOWN}};
-        auto render_order_found = render_orders.find(map_alement->Attribute("renderorder"));
+        auto render_order_found = render_orders.find(map_node.attribute("renderorder").as_string());
         if (render_order_found != render_orders.end())
-            render_order = render_order_found->second;
+            m_render_order = render_order_found->second;
     }
 
-    if (!map_alement->Attribute("width"))
-        return std::make_pair(false, "\"width\" attribute for \"map\" element not found!");
-    size.x = map_alement->IntAttribute("width");
+    if (map_node.attribute("width").empty())
+        throw Exception{"\"width\" attribute for \"map\" element not found"};
+    m_size.x = map_node.attribute("width").as_int();
 
-    if (!map_alement->Attribute("height"))
-        return std::make_pair(false, "\"height\" attribute for \"map\" element not found!");
-    size.y = map_alement->IntAttribute("height");
+    if (map_node.attribute("height").empty())
+        throw Exception{"\"height\" attribute for \"map\" element not found"};
+    m_size.y = map_node.attribute("height").as_int();
 
-    if (!map_alement->Attribute("tilewidth"))
-        return std::make_pair(false, "\"tilewidth\" attribute for \"map\" element not found!");
-    tile_size.x = map_alement->IntAttribute("tilewidth");
+    if (map_node.attribute("tilewidth").empty())
+        throw Exception{"\"tilewidth\" attribute for \"map\" element not found"};
+    m_tile_size.x = map_node.attribute("tilewidth").as_int();
 
-    if (!map_alement->Attribute("tileheight"))
-        return std::make_pair(false, "\"tileheight\" attribute for \"map\" element not found!");
-    tile_size.y = map_alement->IntAttribute("tileheight");
+    if (map_node.attribute("tileheight").empty())
+        throw Exception{"\"tileheight\" attribute for \"map\" element not found"};
+    m_tile_size.y = map_node.attribute("tileheight").as_int();
 
-    if (!map_alement->Attribute("infinite"))
-        return std::make_pair(false, "\"infinite\" attribute for \"map\" element not found!");
-    infinite = map_alement->IntAttribute("infinite");
+    if (!map_node.attribute("infinite").empty())
+        m_infinite = map_node.attribute("infinite").as_int();
 
-    if (!map_alement->Attribute("nextlayerid"))
-        return std::make_pair(false, "\"nextlayerid\" attribute for \"map\" element not found!");
-    next_layer_id = map_alement->IntAttribute("nextlayerid");
+    if (!map_node.attribute("nextlayerid").empty())
+        m_next_layer_id = map_node.attribute("nextlayerid").as_int();
 
-    if (!map_alement->Attribute("nextobjectid"))
-        return std::make_pair(false, "\"nextobjectid\" attribute for \"map\" element not found!");
-    next_object_id = map_alement->IntAttribute("nextobjectid");
+    if (!map_node.attribute("nextobjectid").empty())
+        m_next_object_id = map_node.attribute("nextobjectid").as_int();
 
-    // Tilesets
-    auto tileset_element = map_alement->FirstChildElement("tileset");
-    while (tileset_element)
+    m_properties = loadProperties(map_node);
+
+    m_tilesets = loadTilesets(map_node);
+    m_layers = loadLayers(map_node);
+    m_object_groups = loadObjectGroups(map_node);
+    m_groups = loadGroups(map_node);
+}
+
+std::vector<Tmx::Tileset> Tmx::loadTilesets(const pugi::xml_node &node)
+{
+    std::vector<Tileset> tilesets;
+
+    pugi::xpath_node_set tileset_nodes = node.select_nodes("tileset");
+    for (pugi::xpath_node tileset_xpath_node : tileset_nodes)
     {
+        pugi::xml_node tileset_node = tileset_xpath_node.node();
+
         Tileset tileset;
 
-        if (!tileset_element->Attribute("firstgid"))
-            return std::make_pair(
-                false, "\"firstgid\" attribute for \"tileset\" element not found!");
-        tileset.first_gid = tileset_element->IntAttribute("firstgid");
+        if (!tileset_node.attribute("name").empty())
+            tileset.name = tileset_node.attribute("name").as_string();
 
-        if (tileset_element->Attribute("name"))
-            tileset.name = tileset_element->Attribute("name");
+        if (tileset_node.attribute("firstgid").empty())
+            throw Exception{"\"firstgid\" attribute for \"tileset\" element not found"};
+        tileset.first_gid = tileset_node.attribute("firstgid").as_int();
 
-        if (!tileset_element->Attribute("tilewidth"))
-            return std::make_pair(
-                false, "\"tilewidth\" attribute for \"tileset\" element not found!");
-        tileset.tile_size.x = tileset_element->IntAttribute("tilewidth");
+        if (tileset_node.attribute("tilewidth").empty())
+            throw Exception{"\"tilewidth\" attribute for \"tileset\" element not found"};
+        tileset.tile_size.x = tileset_node.attribute("tilewidth").as_int();
 
-        if (!tileset_element->Attribute("tileheight"))
-            return std::make_pair(
-                false, "\"tileheight\" attribute for \"tileset\" element not found!");
-        tileset.tile_size.x = tileset_element->IntAttribute("tileheight");
+        if (tileset_node.attribute("tileheight").empty())
+            throw Exception{"\"tileheight\" attribute for \"tileset\" element not found"};
+        tileset.tile_size.y = tileset_node.attribute("tileheight").as_int();
 
-        if (!tileset_element->Attribute("tilecount"))
-            return std::make_pair(
-                false, "\"tilecount\" attribute for \"tileset\" element not found!");
-        tileset.tile_count = tileset_element->IntAttribute("tilecount");
+        if (tileset_node.attribute("tilecount").empty())
+            throw Exception{"\"tilecount\" attribute for \"tileset\" element not found"};
+        tileset.tile_count = tileset_node.attribute("tilecount").as_int();
 
-        if (!tileset_element->Attribute("columns"))
-            return std::make_pair(
-                false, "\"columns\" attribute for \"tileset\" element not found!");
-        tileset.columns = tileset_element->IntAttribute("columns");
+        if (tileset_node.attribute("columns").empty())
+            throw Exception{"\"columns\" attribute for \"tileset\" element not found"};
+        tileset.columns = tileset_node.attribute("columns").as_int();
 
-        auto properties_element = tileset_element->FirstChildElement("properties");
-        if (properties_element)
-        {
-            auto property_element = properties_element->FirstChildElement("property");
-            while (property_element)
-            {
-                std::string proprty_name;
-                if (!property_element->Attribute("name"))
-                    return std::make_pair(
-                        false, "\"name\" attribute for \"property\" element not found!");
-                proprty_name = property_element->Attribute("name");
-
-                std::string property_value;
-                if (!property_element->Attribute("value"))
-                    return std::make_pair(
-                        false, "\"value\" attribute for \"property\" element not found!");
-                property_value = property_element->Attribute("value");
-
-                tileset.properties.emplace(proprty_name, property_value);
-
-                property_element = property_element->NextSiblingElement("property");
-            }
-        }
-
-        //        auto image_element = tileset_element->FirstChildElement("image");
-        //        if (!image_element)
-        //            return std::make_pair(false, "\"image\" element for \"tileset\" element not found!");
-
-        //        if (!image_element->Attribute("source"))
-        //            return std::make_pair(false, "\"source\" attribute for \"image\" element not found!");
-        //        tileset.image = Game::resource<sf::Texture>(image_element->Attribute("source"));
+        tileset.properties = loadProperties(tileset_node);
 
         tilesets.push_back(tileset);
-
-        tileset_element = tileset_element->NextSiblingElement("tileset");
     }
 
-    // Layers
-    auto layer_element = map_alement->FirstChildElement("layer");
-    while (layer_element)
+    return tilesets;
+}
+
+std::vector<Tmx::Layer> Tmx::loadLayers(const pugi::xml_node &node)
+{
+    std::vector<Layer> layers;
+
+    pugi::xpath_node_set layers_nodes = node.select_nodes("layer");
+    for (pugi::xpath_node layer_xpath_node : layers_nodes)
     {
+        pugi::xml_node layer_node = layer_xpath_node.node();
+
         Layer layer;
 
-        if (!layer_element->Attribute("id"))
-            return std::make_pair(false, "\"id\" attribute for \"layer\" element not found!");
-        layer.id = layer_element->IntAttribute("id");
+        if (layer_node.attribute("id").empty())
+            throw Exception{"\"id\" attribute for \"layer\" element not found"};
+        layer.id = layer_node.attribute("id").as_int();
 
-        if (layer_element->Attribute("name"))
-            layer.name = layer_element->Attribute("name");
+        if (!layer_node.attribute("name").empty())
+            layer.name = layer_node.attribute("name").as_string();
 
-        if (!layer_element->Attribute("width"))
-            return std::make_pair(false, "\"width\" attribute for \"layer\" element not found!");
-        layer.size.x = layer_element->IntAttribute("width");
+        if (layer_node.attribute("width").empty())
+            throw Exception{"\"width\" attribute for \"layer\" element not found"};
+        layer.size.x = layer_node.attribute("width").as_int();
 
-        if (!layer_element->Attribute("height"))
-            return std::make_pair(false, "\"height\" attribute for \"layer\" element not found!");
-        layer.size.y = layer_element->IntAttribute("height");
+        if (layer_node.attribute("height").empty())
+            throw Exception{"\"height\" attribute for \"layer\" element not found"};
+        layer.size.y = layer_node.attribute("height").as_int();
 
-        auto properties_element = layer_element->FirstChildElement("properties");
-        if (properties_element)
-        {
-            auto property_element = properties_element->FirstChildElement("property");
-            while (property_element)
-            {
-                std::string proprty_name;
-                if (!property_element->Attribute("name"))
-                    return std::make_pair(
-                        false, "\"name\" attribute for \"property\" element not found!");
-                proprty_name = property_element->Attribute("name");
+        layer.properties = loadProperties(layer_node);
 
-                std::string property_value;
-                if (!property_element->Attribute("value"))
-                    return std::make_pair(
-                        false, "\"value\" attribute for \"property\" element not found!");
-                property_value = property_element->Attribute("value");
+        if (layer_node.child("data").empty())
+            throw Exception{"\"data\" attribute for \"layer\" element not found"};
 
-                layer.properties.emplace(proprty_name, property_value);
-
-                property_element = property_element->NextSiblingElement("property");
-            }
-        }
-
-        auto data_element = layer_element->FirstChildElement("data");
-        if (!data_element)
-            return std::make_pair(false, "\"data\" element for \"layer\" element not found!");
-
-        std::string data_str = data_element->GetText();
+        std::string data_str = layer_node.child_value("data");
         std::vector<std::string> data_strs = string::split(data_str, ',');
 
         int32_t x = 0;
@@ -360,137 +342,170 @@ std::pair<bool, std::string> Tmx::loadXml(const tinyxml2::XMLDocument &xml)
             {
                 ++y;
                 x = 0;
-                layer.tiles.push_back(std::vector<int32_t>());
-                layer.tiles.back().resize(layer.size.x, 0);
+                if (y < layer.size.y)
+                {
+                    layer.tiles.push_back(std::vector<int32_t>());
+                    layer.tiles.back().resize(layer.size.x, 0);
+                }
             }
         }
 
         layers.push_back(layer);
-
-        layer_element = layer_element->NextSiblingElement("layer");
     }
 
-    // Object groups
-    auto objectgroup_element = map_alement->FirstChildElement("objectgroup");
-    while (objectgroup_element)
+    return layers;
+}
+
+std::vector<Tmx::ObjectGroup> Tmx::loadObjectGroups(const pugi::xml_node &node)
+{
+    std::vector<ObjectGroup> object_groups;
+
+    pugi::xpath_node_set object_group_nodes = node.select_nodes("objectgroup");
+    for (pugi::xpath_node object_group_xpath_node : object_group_nodes)
     {
+        pugi::xml_node object_group_node = object_group_xpath_node.node();
+
         ObjectGroup object_group;
 
-        if (!objectgroup_element->Attribute("id"))
-            return std::make_pair(false, "\"id\" attribute for \"objectgroup\" element not found!");
-        object_group.id = objectgroup_element->IntAttribute("id");
+        if (object_group_node.attribute("id").empty())
+            throw Exception{"\"id\" attribute for \"objectgroup\" element not found"};
+        object_group.id = object_group_node.attribute("id").as_int();
 
-        if (objectgroup_element->Attribute("name"))
-            object_group.name = objectgroup_element->Attribute("name");
+        if (!object_group_node.attribute("name").empty())
+            object_group.name = object_group_node.attribute("name").as_string();
 
-        auto object_element = objectgroup_element->FirstChildElement("object");
-        while (object_element)
+        pugi::xpath_node_set object_nodes = object_group_node.select_nodes("object");
+        for (pugi::xpath_node object_xpath_node : object_nodes)
         {
-            Object object;
+            pugi::xml_node object_node = object_xpath_node.node();
 
+            Object object;
             object.tile_gid = -1;
             object.type = Object::RECT;
 
-            if (!object_element->Attribute("id"))
-                return std::make_pair(false, "\"id\" attribute for \"object\" element not found!");
-            object.id = object_element->IntAttribute("id");
+            if (object_node.attribute("id").empty())
+                throw Exception{"\"id\" attribute for \"object\" element not found"};
+            object.id = object_node.attribute("id").as_int();
 
-            if (object_element->Attribute("name"))
-                object.name = object_element->Attribute("name");
+            if (!object_node.attribute("name").empty())
+                object.name = object_node.attribute("name").as_string();
 
-            if (!object_element->Attribute("x"))
-                return std::make_pair(false, "\"x\" attribute for \"object\" element not found!");
-            object.rect.left = object_element->IntAttribute("x");
+            if (object_node.attribute("x").empty())
+                throw Exception{"\"x\" attribute for \"object\" element not found"};
+            object.rect.left = object_node.attribute("x").as_int();
 
-            if (!object_element->Attribute("y"))
-                return std::make_pair(false, "\"y\" attribute for \"object\" element not found!");
-            object.rect.top = object_element->IntAttribute("y");
+            if (object_node.attribute("y").empty())
+                throw Exception{"\"y\" attribute for \"object\" element not found"};
+            object.rect.top = object_node.attribute("y").as_int();
 
-            if (object_element->Attribute("width"))
-                object.rect.width = object_element->IntAttribute("width");
+            if (!object_node.attribute("width").empty())
+                object.rect.width = object_node.attribute("width").as_int();
 
-            if (object_element->Attribute("height"))
-                object.rect.height = object_element->IntAttribute("height");
+            if (!object_node.attribute("height").empty())
+                object.rect.height = object_node.attribute("height").as_int();
 
-            if (object_element->Attribute("type"))
-                object.type_string = object_element->Attribute("type");
+            if (!object_node.attribute("type").empty())
+                object.type_string = object_node.attribute("type").as_string();
 
-            if (object_element->Attribute("gid"))
+            if (!object_node.attribute("gid").empty())
             {
-                object.tile_gid = object_element->IntAttribute("gid");
+                object.tile_gid = object_node.attribute("gid").as_int();
                 object.type = Object::TILE;
             }
-            else if (object_element->FirstChildElement("point"))
+            else if (!object_node.child("point").empty())
             {
                 object.type = Object::POINT;
             }
-            else if (object_element->FirstChildElement("ellipse"))
+            else if (!object_node.child("ellipse").empty())
             {
                 object.type = Object::ELLIPSE;
             }
-            else if (object_element->FirstChildElement("polygon"))
+            else if (!object_node.child("polygon").empty())
             {
-                auto polygon_element = object_element->FirstChildElement("polygon");
-                std::string points_string = polygon_element->Attribute("points");
+                std::string points_string
+                    = object_node.child("polygon").attribute("points").as_string();
                 std::vector<std::string> points = string::split(points_string, ' ');
 
                 for (const auto &point_string : points)
                 {
                     std::vector<std::string> point = string::split(point_string, ',');
                     if (point.size() < 2)
-                        return std::make_pair(false, "invalid \"points\" for \"polygon\" element!");
+                        throw Exception{"invalid \"points\" for \"polygon\" element"};
                     object.polygon_points.push_back({std::stoi(point[0]), std::stoi(point[1])});
                 }
 
                 object.type = Object::POLYGON;
             }
-            else if (object_element->FirstChildElement("text"))
+            else if (!object_node.child("text").empty())
             {
-                auto text_element = object_element->FirstChildElement("text");
-                if (text_element->Attribute("wrap"))
-                    object.text_wrap = text_element->IntAttribute("wrap");
-                object.text = text_element->GetText();
+                if (!object_node.child("text").attribute("wrap").empty())
+                    object.text_wrap = object_node.child("text").attribute("wrap").as_int();
+                object.text = object_node.child_value("text");
                 object.type = Object::TEXT;
             }
 
-            std::sort(
-                object_group.objects.begin(),
-                object_group.objects.end(),
-                [](const auto &a, const auto &b) { return a.id < b.id; });
-
             object_group.objects.push_back(object);
-
-            object_element = object_element->NextSiblingElement("object");
         }
 
-        object_groups.push_back(std::move(object_group));
-
-        objectgroup_element = objectgroup_element->NextSiblingElement("objectgroup");
+        object_groups.push_back(object_group);
     }
 
-    //    std::sort(tilesets.begin(), tilesets.end(), [](const auto &a, const auto &b) {
-    //        return a.first_gid < b.first_gid;
-    //    });
-    //    std::sort(
-    //        layers.begin(), layers.end(), [](const auto &a, const auto &b) { return a.id < b.id; });
-    //    std::sort(object_groups.begin(), object_groups.end(), [](const auto &a, const auto &b) {
-    //        return a.id < b.id;
-    //    });
+    return object_groups;
+}
 
-    m_version = version;
-    m_tiled_version = tiled_version;
-    m_orientation = orientation;
-    m_render_order = render_order;
-    m_size = size;
-    m_tile_size = tile_size;
-    m_infinite = infinite;
-    m_next_layer_id = next_layer_id;
-    m_next_object_id = next_object_id;
-    m_tilesets = tilesets;
-    m_layers = layers;
-    m_object_groups = object_groups;
+std::vector<Tmx::Group> Tmx::loadGroups(const pugi::xml_node &node)
+{
+    std::vector<Group> groups;
 
-    return std::make_pair(true, std::string());
+    pugi::xpath_node_set group_nodes = node.select_nodes("group");
+    for (pugi::xpath_node group_xpath_node : group_nodes)
+    {
+        pugi::xml_node group_node = group_xpath_node.node();
+
+        Group group;
+
+        if (group_node.attribute("id").empty())
+            throw Exception{"\"id\" attribute for \"group\" element not found"};
+        group.id = group_node.attribute("id").as_int();
+
+        if (!group_node.attribute("name").empty())
+            group.name = group_node.attribute("name").as_string();
+
+        group.properties = loadProperties(group_node);
+
+        group.layers = loadLayers(group_node);
+        group.object_groups = loadObjectGroups(group_node);
+        group.groups = loadGroups(group_node);
+
+        groups.push_back(group);
+    }
+
+    return groups;
+}
+
+std::map<std::string, std::string> Tmx::loadProperties(const pugi::xml_node &node)
+{
+    std::map<std::string, std::string> properties;
+
+    pugi::xpath_node_set property_nodes = node.select_nodes("properties/property");
+    for (pugi::xpath_node propery_xpath_node : property_nodes)
+    {
+        pugi::xml_node property_node = propery_xpath_node.node();
+
+        std::string proprty_name;
+        if (property_node.attribute("name").empty())
+            throw Exception{"\"name\" attribute for \"property\" element not found"};
+        proprty_name = property_node.attribute("name").as_string();
+
+        std::string property_value;
+        if (property_node.attribute("value").empty())
+            throw Exception{"\"value\" attribute for \"property\" element not found"};
+        property_value = property_node.attribute("value").as_string();
+
+        properties.emplace(proprty_name, property_value);
+    }
+
+    return properties;
 }
 
 } // namespace fck

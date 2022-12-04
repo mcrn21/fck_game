@@ -84,6 +84,12 @@ sf::Vector2<T> mult(const sf::Vector2<T> &v1, const sf::Vector2<T> &v2)
     return {v1.x * v2.x, v1.y * v2.y};
 }
 
+template<typename T>
+sf::Vector2<T> div(const sf::Vector2<T> &v1, const sf::Vector2<T> &v2)
+{
+    return {v1.x / v2.x, v1.y / v2.y};
+}
+
 sf::Vector2i tomlArrayToVector2i(toml::array *array);
 sf::Vector2f tomlArrayToVector2f(toml::array *array);
 

@@ -45,7 +45,7 @@ void BaseAttackDamage::update(double delta_time)
 
         StateComponent &state_component = entity().component<StateComponent>();
         if (!(entity_state::ATTACK & state_component.state))
-            EntityUtils::setEntityState(entity(), entity_state::DAMAGED);
+            entity::set_state.emit(entity(), entity_state::DAMAGED);
 
         m_first_update = false;
     }
@@ -54,18 +54,16 @@ void BaseAttackDamage::update(double delta_time)
 
     if (elapsed() >= m_rebounce_interval.first && elapsed() <= m_rebounce_interval.second)
     {
+        VelocityComponent &velocity_component = entity().component<VelocityComponent>();
         velocity_component.velocity = m_rebound_velocity;
         return;
     }
 
     velocity_component.velocity = {};
 
-    if (isReady())
-    {
-        StateComponent &state_component = entity().component<StateComponent>();
-        if (!(entity_state::ATTACK & state_component.state))
-            EntityUtils::setEntityState(entity(), entity_state::IDLE);
-    }
+    StateComponent &state_component = entity().component<StateComponent>();
+    if (!(entity_state::ATTACK & state_component.state))
+        entity::set_state.emit(entity(), entity_state::IDLE);
 }
 
 } // namespace fck

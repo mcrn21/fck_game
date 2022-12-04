@@ -126,20 +126,20 @@ void TargetFollowSystem::update(double delta_time)
         if (old_state != target_follow_component.state)
         {
             if (velocity_component.velocity.x != 0 || velocity_component.velocity.y != 0)
-                EntityUtils::setEntityState(entity, entity_state::MOVE);
+                entity::set_state.emit(entity, entity_state::MOVE);
             else
-                EntityUtils::setEntityState(entity, entity_state::IDLE);
+                entity::set_state.emit(entity, entity_state::IDLE);
         }
 
         if (target_follow_component.state == TargetFollowComponent::FOLLOW)
         {
             if (target_transform_component.transform.getPosition().x
                 > transform_component.transform.getPosition().x)
-                EntityUtils::setEntityDirection(entity, entity_state::RIGHT);
+                entity::set_direction.emit(entity, entity_state::RIGHT);
             else if (
                 target_transform_component.transform.getPosition().x
                 < transform_component.transform.getPosition().x)
-                EntityUtils::setEntityDirection(entity, entity_state::LEFT);
+                entity::set_direction.emit(entity, entity_state::LEFT);
         }
     }
 }

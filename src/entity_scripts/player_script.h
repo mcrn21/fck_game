@@ -26,9 +26,6 @@ private:
     float m_look_distance;
     sf::FloatRect m_around_bounds;
     sf::FloatRect m_look_at_bounds;
-
-    std::list<Entity> m_around_entities;
-    std::list<Entity> m_look_at_entities;
 };
 
 } // namespace fck

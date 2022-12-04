@@ -23,7 +23,7 @@ void MovementSystem::update(double delta_time)
         if (vector2::isValid(velocity_component.velocity))
         {
             sf::Vector2f result_velocity = velocity_component.velocity * float(delta_time);
-            EntityUtils::moveEntity(entity, result_velocity);
+            entity::move.emit(entity, result_velocity);
         }
     }
 }

@@ -53,15 +53,22 @@ private:
 public: // slots
     void onActionActivated(keyboard_action::Action action);
 
-    void onEntityMoved(const Entity &entity, const sf::Vector2f &offset);
-
-    void onEntityStateChanged(const Entity &entity, entity_state::State old_state);
-    void onEntityDirectionChanged(const Entity &entity, entity_state::Direction old_direction);
-
-    void onEntityTargetChanged(const Entity &entity, const Entity &target);
-
-    void onEntityHealthChanged(const Entity &entity, float old_health);
-    void onEntityArmorChanged(const Entity &entity, float old_armor);
+    // transform
+    void entityMove(const Entity &entity, const sf::Vector2f &offset);
+    void entitySetPosition(const Entity &entity, const sf::Vector2f &position);
+    void entitySetParent(const Entity &entity, const Entity &parent);
+    // state
+    void entitySetState(const Entity &entity, entity_state::State state);
+    void entitySetDirection(const Entity &entity, entity_state::Direction direction);
+    // taregt
+    void entitySetTarget(const Entity &entity, const Entity &target);
+    // marker
+    void entitySetMarker(const Entity &entity, const Entity &marker);
+    // stats
+    void entitySetHealth(const Entity &entity, float health);
+    void entitySetArmor(const Entity &entity, float armor);
+    // destroy
+    void entityDestroy(const Entity &entity);
 
 private:
     sf::RenderTexture m_scene_render_texture;
