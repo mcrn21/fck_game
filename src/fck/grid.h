@@ -26,6 +26,8 @@ public:
     T *cell(const sf::Vector2i &coord);
     T *cellByPosition(const sf::Vector2f &position);
 
+    sf::Vector2i transformPosition(const sf::Vector2f &position) const;
+
     void resize(const sf::Vector2i &size);
     void clear();
 
@@ -95,6 +97,12 @@ T *Grid<T>::cellByPosition(const sf::Vector2f &position)
     int32_t y = position.x / m_cell_size.y;
 
     return cell({x, y});
+}
+
+template<typename T>
+sf::Vector2i Grid<T>::transformPosition(const sf::Vector2f &position) const
+{
+    return {int32_t(position.x / m_cell_size.x), int32_t(position.y / m_cell_size.y)};
 }
 
 template<typename T>

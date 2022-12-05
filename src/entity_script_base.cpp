@@ -20,4 +20,9 @@ void EntityScriptBase::onEntityDirectionChanged(
 {
 }
 
+void EntityScriptBase::onEntityCollided(const Entity &entity, const Entity &other)
+{
+
+}
+
 } // namespace fck

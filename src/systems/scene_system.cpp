@@ -45,18 +45,6 @@ sf::IntRect gridBoundsBySceneBounds(
     return grid_bounds;
 }
 
-sf::IntRect gridPositionByPosition(const sf::Vector2f &position, const sf::Vector2i &cell_size)
-{
-    sf::IntRect grid_bounds;
-
-    grid_bounds.left = position.x / cell_size.x;
-    grid_bounds.top = position.y / cell_size.y;
-    grid_bounds.width = 1;
-    grid_bounds.height = 1;
-
-    return grid_bounds;
-}
-
 void updateCellWeight(PathFinder *path_finder, const sf::IntRect &bounds, bool reduce)
 {
     for (int32_t i = 0; i < bounds.height; ++i)
@@ -70,7 +58,11 @@ void updateCellWeight(PathFinder *path_finder, const sf::IntRect &bounds, bool r
                 if (!reduce)
                     ++cell_info->weight;
                 else
+                {
                     --cell_info->weight;
+                    if (cell_info->weight < 0)
+                        cell_info->weight = 0;
+                }
             }
         }
     }
@@ -86,60 +78,61 @@ void SceneSystem::moveEntity(const Entity &entity, const sf::Vector2f &offset)
     SceneComponent &scene_component = entity.component<SceneComponent>();
     TransformComponent &transform_component = entity.component<TransformComponent>();
 
+    sf::FloatRect old_scene_global_bounds = scene_component.global_bounds;
     scene_component.global_bounds
         = transform_component.transform.getTransform().transformRect(scene_component.local_bounds);
 
     if (scene_component.tree_id > -1)
-    {
         m_tree->moveProxy(scene_component.tree_id, scene_component.global_bounds, offset);
-    }
 
-    if (scene_component.wall)
+    if (scene_component.path_finder_wall)
     {
-        updateCellWeight(m_path_finder, scene_component.path_finder_bounds, true);
-
-        scene_component.path_finder_bounds = gridBoundsBySceneBounds(
-            scene_component.global_bounds, m_path_finder->grid().cellSize());
-
-        updateCellWeight(m_path_finder, scene_component.path_finder_bounds, false);
-    }
-    else
-    {
-        scene_component.path_finder_bounds = gridPositionByPosition(
-            transform_component.transform.getPosition(), m_path_finder->grid().cellSize());
+        updateCellWeight(m_path_finder, sf::IntRect{old_scene_global_bounds}, true);
+        updateCellWeight(
+            m_path_finder,
+            gridBoundsBySceneBounds(
+                scene_component.global_bounds, m_path_finder->grid().cellSize()),
+            false);
     }
 }
 
 void SceneSystem::onEntityAdded(Entity &entity)
 {
+    TransformComponent &transform_component = entity.component<TransformComponent>();
     SceneComponent &scene_component = entity.component<SceneComponent>();
+
+    scene_component.global_bounds
+        = transform_component.transform.getTransform().transformRect(scene_component.local_bounds);
+
     scene_component.tree_id = m_tree->createProxy(scene_component.global_bounds, entity);
     scene_component.tree = m_tree;
 
     scene_component.path_finder = m_path_finder;
 
-    if (scene_component.wall)
+    if (scene_component.path_finder_wall)
     {
-        scene_component.path_finder_bounds = gridBoundsBySceneBounds(
-            scene_component.global_bounds, m_path_finder->grid().cellSize());
-
-        updateCellWeight(m_path_finder, scene_component.path_finder_bounds, false);
-    }
-    else
-    {
-        TransformComponent &transform_component = entity.component<TransformComponent>();
-        scene_component.path_finder_bounds = gridPositionByPosition(
-            transform_component.transform.getPosition(), m_path_finder->grid().cellSize());
+        updateCellWeight(
+            m_path_finder,
+            gridBoundsBySceneBounds(
+                scene_component.global_bounds, m_path_finder->grid().cellSize()),
+            false);
     }
 }
 
 void SceneSystem::onEntityRemoved(Entity &entity)
 {
     SceneComponent &scene_component = entity.component<SceneComponent>();
+
     m_tree->destroyProxy(scene_component.tree_id);
 
-    if (scene_component.wall)
-        updateCellWeight(m_path_finder, scene_component.path_finder_bounds, true);
+    if (scene_component.path_finder_wall)
+    {
+        updateCellWeight(
+            m_path_finder,
+            gridBoundsBySceneBounds(
+                scene_component.global_bounds, m_path_finder->grid().cellSize()),
+            true);
+    }
 }
 
 } // namespace fck

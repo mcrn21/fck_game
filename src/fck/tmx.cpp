@@ -374,6 +374,8 @@ std::vector<Tmx::ObjectGroup> Tmx::loadObjectGroups(const pugi::xml_node &node)
         if (!object_group_node.attribute("name").empty())
             object_group.name = object_group_node.attribute("name").as_string();
 
+        object_group.properties = loadProperties(object_group_node);
+
         pugi::xpath_node_set object_nodes = object_group_node.select_nodes("object");
         for (pugi::xpath_node object_xpath_node : object_nodes)
         {
@@ -443,6 +445,8 @@ std::vector<Tmx::ObjectGroup> Tmx::loadObjectGroups(const pugi::xml_node &node)
                 object.text = object_node.child_value("text");
                 object.type = Object::TEXT;
             }
+
+            object.properties = loadProperties(object_node);
 
             object_group.objects.push_back(object);
         }

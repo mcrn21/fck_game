@@ -9,7 +9,7 @@
 namespace fck
 {
 
-class RenderSystem : public System<DrawableComponent>
+class RenderSystem : public System<DrawableComponent, TransformComponent>
 {
 public:
     RenderSystem(b2::DynamicTree<Entity> *tree);

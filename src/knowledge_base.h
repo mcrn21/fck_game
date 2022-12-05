@@ -242,9 +242,6 @@ struct KnowledgeBase::DrawableItem<Sprite, SpriteAnimation> : DrawableItemBase
         if (table->contains("texture_rect"))
             texture_rect = rect::tomlArrayToIntRect(table->at("texture_rect").as_array());
 
-        if (table->contains("content_bounds"))
-            content_bounds = rect::tomlArrayToFloatRect(table->at("content_bounds").as_array());
-
         if (table->contains("animations") && table->at("animations").is_table())
         {
             toml::table *abimations_table = table->at("animations").as_table();
@@ -274,7 +271,6 @@ struct KnowledgeBase::DrawableItem<Sprite, SpriteAnimation> : DrawableItemBase
         std::pair<Sprite *, SpriteAnimation *> sprite = {nullptr, nullptr};
 
         sprite.first = new Sprite{texture, texture_rect};
-        sprite.first->setContentBounds(content_bounds);
 
         if (!animations.empty())
         {
@@ -304,7 +300,6 @@ struct KnowledgeBase::DrawableItem<Sprite, SpriteAnimation> : DrawableItemBase
     std::string name;
     sf::Texture *texture = nullptr;
     sf::IntRect texture_rect;
-    sf::FloatRect content_bounds;
     std::unordered_map<std::string, Animation> animations;
 };
 

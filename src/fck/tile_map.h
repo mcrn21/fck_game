@@ -19,6 +19,8 @@ class ResourceCache;
 class TileMap : public Drawable
 {
 public:
+    static TileMap *createFromTmx(Tmx *tmx, const std::string &layer_name, const std::string &group_name = std::string());
+
     static std::vector<TileMap *> createFromTmx(Tmx *tmx, int32_t layer_id = -1);
 
     TileMap();
@@ -28,6 +30,8 @@ public:
         const sf::Vector2i &tile_size,
         const std::vector<std::vector<int32_t>> &tiles = std::vector<std::vector<int32_t>>());
     ~TileMap() = default;
+
+    drawable_type::Type type() const;
 
     sf::Texture *texture() const;
     void setTexture(sf::Texture *texture, const sf::Vector2i &tile_size = sf::Vector2i());
@@ -45,11 +49,10 @@ public:
     void setTiles(const std::vector<std::vector<int32_t>> &tiles);
 
     sf::FloatRect localBounds() const;
-    sf::FloatRect contentBounds() const;
-    sf::Vector2f center() const;
+    sf::FloatRect globalBounds() const;
 
 protected:
-    void draw(sf::RenderTarget &target, const sf::RenderStates &states);
+    void draw(sf::RenderTarget &target, const sf::RenderStates &states) const;
 
 private:
     void updatePositions();

@@ -93,6 +93,8 @@ sf::Vector2<T> div(const sf::Vector2<T> &v1, const sf::Vector2<T> &v2)
 sf::Vector2i tomlArrayToVector2i(toml::array *array);
 sf::Vector2f tomlArrayToVector2f(toml::array *array);
 
+sf::Vector2f stringToVector2f(const std::string &str, char del);
+
 } // namespace vector2
 
 namespace rect
@@ -112,7 +114,7 @@ sf::Rect<T> extends(const sf::Rect<T> &rect, const sf::Vector2<T> e)
 template<typename T>
 sf::Rect<T> setCenter(const sf::Rect<T> &rect, const sf::Vector2<T> center)
 {
-    sf::Rect<T> new_rect;
+    sf::Rect<T> new_rect = rect;
     new_rect.left = center.x - rect.width / 2;
     new_rect.top = center.y - rect.height / 2;
     return new_rect;

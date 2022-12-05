@@ -6,6 +6,8 @@
 #include <functional>
 #include <utility>
 
+#include <spdlog/spdlog.h>
+
 namespace fck
 {
 
@@ -17,7 +19,7 @@ public:
     ~Signal() = default;
 
     template<typename T, typename Func>
-    [[maybe_unused]] Id connect(T *obj, Func &&func)
+    [[maybe_unused]] Id connect(T *obj, Func func)
     {
         auto f = [obj, func](Args... args) { (obj->*func)(std::forward<Args>(args)...); };
         Id id = m_id_storage.create();

@@ -3,6 +3,7 @@
 
 #include "fck_common.h"
 #include "gui_base.h"
+#include "level.h"
 
 #include "systems/systems.h"
 
@@ -69,6 +70,8 @@ public: // slots
     void entitySetArmor(const Entity &entity, float armor);
     // destroy
     void entityDestroy(const Entity &entity);
+    // collided
+    void entityCollided(const Entity &entity, const Entity &other);
 
 private:
     sf::RenderTexture m_scene_render_texture;
@@ -93,6 +96,7 @@ private:
 
     PathFinder m_path_finder;
 
+    std::unique_ptr<Level> m_level;
     Entity m_player_entity;
 
     RenderSystem m_render_system;

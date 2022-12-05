@@ -62,22 +62,6 @@ void drawSceneTreeAABB(
     target.draw(rectangle, states);
 }
 
-void drawDrawableContentBounds(
-    const Entity &entity, sf::RenderTarget &target, const sf::RenderStates &states)
-{
-    if (!entity.hasComponent<DrawableComponent>())
-        return;
-
-    DrawableComponent &drawable_component = entity.component<DrawableComponent>();
-
-    sf::RectangleShape rectangle(drawable_component.global_content_bounds.getSize());
-    rectangle.setFillColor(sf::Color::Transparent);
-    rectangle.setOutlineColor(sf::Color::White);
-    rectangle.setOutlineThickness(1);
-    rectangle.setPosition(drawable_component.global_content_bounds.getPosition());
-    target.draw(rectangle, states);
-}
-
 void drawSceneBounds(const Entity &entity, sf::RenderTarget &target, const sf::RenderStates &states)
 {
     if (!entity.hasComponent<SceneComponent>())
@@ -123,20 +107,25 @@ void drawPathFinderCellsBounds(
     sf::RenderTarget &target,
     const sf::RenderStates &states)
 {
-    if (!entity.hasComponent<SceneComponent>())
+    if (!entity.hasComponent<SceneComponent>() || !entity.hasComponent<TransformComponent>())
         return;
 
     SceneComponent &scene_component = entity.component<SceneComponent>();
+    TransformComponent &transform_component = entity.component<TransformComponent>();
 
-    sf::RectangleShape rectangle(sf::Vector2f(
-        scene_component.path_finder_bounds.width * cell_size.x,
-        scene_component.path_finder_bounds.height * cell_size.y));
+    if (scene_component.path_finder_wall)
+        return;
+
+    sf::RectangleShape rectangle(sf::Vector2f(cell_size.x, cell_size.y));
     rectangle.setFillColor(sf::Color::Transparent);
     rectangle.setOutlineColor(sf::Color::Cyan);
     rectangle.setOutlineThickness(0.5f);
-    rectangle.setPosition(sf::Vector2f(
-        scene_component.path_finder_bounds.left * cell_size.x,
-        scene_component.path_finder_bounds.top * cell_size.y));
+
+    sf::Vector2i path_finder_pos = scene_component.path_finder->grid().transformPosition(
+        transform_component.transform.getPosition());
+
+    rectangle.setPosition(
+        sf::Vector2f(path_finder_pos.x * cell_size.x, path_finder_pos.y * cell_size.y));
 
     target.draw(rectangle, states);
 }

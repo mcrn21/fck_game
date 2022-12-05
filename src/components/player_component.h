@@ -13,6 +13,7 @@ namespace fck
 struct PlayerComponent
 {
     bool need_change_target = false;
+    bool view_hard_set_position = false;
 };
 
 template<>

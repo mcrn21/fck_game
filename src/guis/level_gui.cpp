@@ -85,10 +85,12 @@ void LevelGui::resize(const sf::Vector2f &size)
         {
             float space = i == 0 ? 0.0f : 4.0f * m_stats_scale.x;
             m_skills[m_skills.size() - 1 - i].sprite.setPosition(
-                m_size - m_border_offset - sf::Vector2f{skill_icon_size.x + space, 0} * float(i));
+                m_size - m_border_offset
+                - sf::Vector2f{skill_icon_size.x * m_stats_scale.x + space, 0} * float(i));
+            m_skills[m_skills.size() - 1 - i].sprite.setScale(m_stats_scale);
             m_skills[m_skills.size() - 1 - i].key_text.setPosition(
                 m_size - m_border_offset
-                - sf::Vector2f{(skill_icon_size.x + space) * float(i), 4.0f});
+                - sf::Vector2f{(skill_icon_size.x * m_stats_scale.x + space) * float(i), 4.0f});
         }
     }
 
@@ -154,7 +156,8 @@ void LevelGui::updatePlayerSkills()
             s.key_text.setOutlineColor(sf::Color::Black);
             s.key_text.setOutlineThickness(1.0f);
             s.key_text.setOrigin(
-                {s.key_text.getLocalBounds().width / 2 + s.sprite.getLocalBounds().width / 2,
+                {s.key_text.getLocalBounds().width / 2
+                     + s.sprite.getLocalBounds().width * m_stats_scale.x / 2,
                  0.0f});
 
             m_skills.push_back(s);

@@ -31,13 +31,10 @@ public:
     void setColor(const sf::Color &color);
 
     sf::FloatRect localBounds() const;
+    sf::FloatRect globalBounds() const;
 
-    void setContentBounds(const sf::FloatRect &content_bounds);
-    sf::FloatRect contentBounds() const;
-
-    sf::Vector2f center() const;
-
-    void draw(sf::RenderTarget &target, const sf::RenderStates &states);
+protected:
+    void draw(sf::RenderTarget &target, const sf::RenderStates &states) const;
 
 private:
     void updatePositions();
@@ -47,8 +44,6 @@ private:
     sf::VertexArray m_vertices; //!< Vertices defining the sprite's geometry
     sf::Texture *m_texture; //!< Texture of the sprite
     sf::IntRect m_texture_rect; //!< Rectangle defining the area of the source texture to display
-
-    sf::FloatRect m_content_bounds;
 };
 
 } // namespace fck

@@ -4,6 +4,71 @@
 namespace fck
 {
 
+TileMap *TileMap::createFromTmx(
+    Tmx *tmx, const std::string &layer_name, const std::string &group_name)
+{
+    auto create_layer = [tmx](const Tmx::Layer *layer) -> TileMap * {
+        auto texture_found = layer->properties.find("texture");
+        if (texture_found == layer->properties.end())
+            return nullptr;
+
+        std::string texture_name = texture_found->second;
+        sf::Texture *texture = ResourceCache::resource<sf::Texture>(texture_name);
+
+        if (!texture)
+            return nullptr;
+
+        sf::Vector2i map_size = tmx->size();
+        sf::Vector2i tile_size = tmx->tileSize();
+
+        int32_t first_gid = 1;
+        for (const Tmx::Tileset &tileset : tmx->tilesets())
+        {
+            if (tileset.name == texture_name)
+            {
+                first_gid = tileset.first_gid;
+                break;
+            }
+        }
+
+        std::vector<std::vector<int32_t>> tiles(map_size.y, std::vector<int32_t>(map_size.x));
+        for (int32_t i = 0; i < map_size.y; ++i)
+        {
+            for (int32_t j = 0; j < map_size.x; ++j)
+            {
+                tiles[i][j] = layer->tiles[j][i] - first_gid;
+            }
+        }
+
+        return new TileMap{texture, map_size, tile_size, tiles};
+    };
+
+    if (group_name.empty())
+    {
+        for (const auto &layer : tmx->layers())
+        {
+            if (layer.name == layer_name)
+                return create_layer(&layer);
+        }
+    }
+    else
+    {
+        for (const auto &group : tmx->groups())
+        {
+            if (group.name == group_name)
+            {
+                for (const auto &layer : group.layers)
+                {
+                    if (layer.name == layer_name)
+                        return create_layer(&layer);
+                }
+            }
+        }
+    }
+
+    return nullptr;
+}
+
 std::vector<TileMap *> TileMap::createFromTmx(Tmx *tmx, int32_t layer_id)
 {
     std::vector<TileMap *> tilemaps;
@@ -70,6 +135,11 @@ TileMap::TileMap(
     m_tiles.resize(m_map_size.y, std::vector<int32_t>(m_map_size.x));
     updatePositions();
     updateTexCoords();
+}
+
+drawable_type::Type TileMap::type() const
+{
+    return drawable_type::TILE_MAP;
 }
 
 sf::Texture *TileMap::texture() const
@@ -152,26 +222,18 @@ sf::FloatRect TileMap::localBounds() const
     return m_vertices.getBounds();
 }
 
-sf::FloatRect TileMap::contentBounds() const
+sf::FloatRect TileMap::globalBounds() const
 {
-    return m_vertices.getBounds();
+    return getTransform().transformRect(m_vertices.getBounds());
 }
 
-sf::Vector2f TileMap::center() const
+void TileMap::draw(sf::RenderTarget &target, const sf::RenderStates &states) const
 {
-    sf::FloatRect rect = localBounds();
-    return {rect.width / 2, rect.height / 2};
-}
-
-void TileMap::draw(sf::RenderTarget &target, const sf::RenderStates &states)
-{
-    if (!isVisible())
-        return;
-
     if (m_texture)
     {
         sf::RenderStates new_state = states;
         new_state.texture = m_texture;
+        new_state.transform *= getTransform();
         target.draw(m_vertices, new_state);
     }
 }

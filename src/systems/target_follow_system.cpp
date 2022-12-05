@@ -51,11 +51,9 @@ void TargetFollowSystem::update(double delta_time)
 
         TransformComponent &target_transform_component
             = target_component.target.component<TransformComponent>();
-        SceneComponent &target_scene_component
-            = target_component.target.component<SceneComponent>();
 
-        PathFinder::Cell *target_cell
-            = m_path_finder->grid().cell(target_scene_component.path_finder_bounds.getPosition());
+        PathFinder::Cell *target_cell = m_path_finder->grid().cellByPosition(
+            target_transform_component.transform.getPosition());
 
         if (target_cell && target_cell->weight == 0)
         {
@@ -73,8 +71,10 @@ void TargetFollowSystem::update(double delta_time)
                 && dist < target_follow_component.max_distance)
             {
                 target_follow_component.path = m_path_finder->findPath(
-                    scene_component.path_finder_bounds.getPosition(),
-                    target_scene_component.path_finder_bounds.getPosition());
+                    m_path_finder->grid().transformPosition(
+                        transform_component.transform.getPosition()),
+                    m_path_finder->grid().transformPosition(
+                        target_transform_component.transform.getPosition()));
 
                 if (!target_follow_component.path.empty())
                 {

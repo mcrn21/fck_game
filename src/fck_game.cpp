@@ -51,7 +51,6 @@ FckGame::FckGame()
         std::vector<int32_t>{
             sf::Event::Resized,
             sf::Event::Closed,
-            event_type::KEYBOARD_ACTION,
             event_type::EXIT_GAME,
             event_type::NEW_GAME,
             event_type::RETURN_TO_GAME,
@@ -93,6 +92,8 @@ FckGame::FckGame()
     entity::set_armor.connect(this, &FckGame::entitySetArmor);
     // destroy
     entity::destroy.connect(this, &FckGame::entityDestroy);
+    // collided
+    entity::collided.connect(this, &FckGame::entityCollided);
 }
 
 void FckGame::init()
@@ -234,23 +235,20 @@ void FckGame::draw(const sf::Time &elapsed)
                 TransformComponent &transform_component = entity.component<TransformComponent>();
                 bool transparented = false;
 
-                if (player_drawable_component
-                    && player_drawable_component->global_content_bounds.width > 0
-                    && player_drawable_component->global_content_bounds.height > 0
-                    && drawable_component.global_content_bounds.width > 0
-                    && drawable_component.global_content_bounds.height > 0
-                    && player_drawable_component->global_content_bounds
-                           .findIntersection(drawable_component.global_content_bounds)
-                           .has_value()
-                    && drawable_component.z_order > player_drawable_component->z_order)
-                    transparented = true;
-
-                //                sf::Sprite shadow(*ResourceCache::resource<sf::Texture>("kyoshi_shadow"));
-                //                shadow.setOrigin(sf::Vector2f(
-                //                    shadow.getTexture()->getSize().x / 2, shadow.getTexture()->getSize().y / 2));
-                //                shadow.setPosition(transform_component.transform.getPosition());
-                //                shadow.setScale({2.0f, 2.0f});
-                //                m_scene_render_texture.draw(shadow);
+                if (player_drawable_component)
+                {
+                    auto intersects = drawable_component.global_bounds.findIntersection(
+                        player_drawable_component->global_bounds);
+                    if (intersects.has_value()
+                        && drawable_component.z_order > player_drawable_component->z_order)
+                    {
+                        if (intersects->width
+                                > player_drawable_component->global_bounds.width * 0.9f
+                            && intersects->height
+                                > player_drawable_component->global_bounds.height * 0.9f)
+                            transparented = true;
+                    }
+                }
 
                 if (transparented)
                     drawable_component.drawable->setColor(sf::Color(255, 255, 255, 150));
@@ -261,10 +259,10 @@ void FckGame::draw(const sf::Time &elapsed)
                 if (entity.hasComponent<ShadowComponent>())
                 {
                     ShadowComponent &shadow_component = entity.component<ShadowComponent>();
-                    m_scene_render_texture.draw(shadow_component.shadow);
+                    m_scene_render_texture.draw(shadow_component.shadow, render_states);
                 }
 
-                drawable_component.drawable->draw(m_scene_render_texture, render_states);
+                m_scene_render_texture.draw(*drawable_component.drawable, render_states);
 
                 if (transparented)
                     drawable_component.drawable->setColor(sf::Color(255, 255, 255, 255));
@@ -284,7 +282,6 @@ void FckGame::draw(const sf::Time &elapsed)
 
                 debug_draw::drawDrawableBounds(entity, m_scene_render_texture);
                 //                debug_draw::drawSceneTreeAABB(entity, m_scene_render_texture);
-                debug_draw::drawDrawableContentBounds(entity, m_scene_render_texture);
                 debug_draw::drawSceneBounds(entity, m_scene_render_texture);
                 debug_draw::drawVelocity(entity, m_scene_render_texture);
                 debug_draw::drawPathFinderCellsBounds(
@@ -540,8 +537,12 @@ void FckGame::newGame()
     loading_new_game_tasks->setTasks(
         {[this]() { setState(game_state::LOADING); },
          [this, loading_new_game_tasks]() {
-             m_path_finder.grid().setCellSize({32, 32});
-             m_path_finder.grid().resize({1000, 1000});
+             std::unique_ptr<Level> level
+                 = std::make_unique<Level>(&m_world, &m_scene_tree, &m_path_finder);
+             level->loadFromFile("resources/levels/level1.tmx");
+             m_level = std::move(level);
+
+             m_level->enableRoom("room_1");
 
              m_player_entity = KnowledgeBase::createPlayer(
                  "kyoshi", &m_world); //m_entity_db.createPlayer(&m_world);
@@ -557,28 +558,28 @@ void FckGame::newGame()
              m_player_entity.enable();
 
              /////////////////////////////////
-             Entity k1 = KnowledgeBase::createEntity(
-                 "kyoshi_2", &m_world); //m_entity_db.createEntity("kyoshi_2", &m_world);
-             k1.component<TransformComponent>().transform.setPosition({100.0f, 100.0f});
-             //             k1.component<VelocityComponent>().velocity = {20.0f, 20.0f};
+             //             Entity k1 = KnowledgeBase::createEntity(
+             //                 "kyoshi_2", &m_world); //m_entity_db.createEntity("kyoshi_2", &m_world);
+             //             k1.component<TransformComponent>().transform.setPosition({100.0f, 100.0f});
+             //             //             k1.component<VelocityComponent>().velocity = {20.0f, 20.0f};
 
-             //             k1.component<SceneComponent>().wall = true;
+             //             //             k1.component<SceneComponent>().wall = true;
 
-             TargetComponent &k1_target_component = k1.component<TargetComponent>();
-             //k1_target_component.target = m_player_entity;
+             //             TargetComponent &k1_target_component = k1.component<TargetComponent>();
+             //             //k1_target_component.target = m_player_entity;
 
-             TargetFollowComponent &k1_target_foolow_component
-                 = k1.component<TargetFollowComponent>();
-             k1_target_foolow_component.follow = true;
-             k1_target_foolow_component.min_distance = 32.0f;
-             k1_target_foolow_component.max_distance = 200.0f;
+             //             TargetFollowComponent &k1_target_foolow_component
+             //                 = k1.component<TargetFollowComponent>();
+             //             k1_target_foolow_component.follow = true;
+             //             k1_target_foolow_component.min_distance = 32.0f;
+             //             k1_target_foolow_component.max_distance = 200.0f;
 
-             entityMove(k1, sf::Vector2f{});
+             //             entityMove(k1, sf::Vector2f{});
 
-             ScriptComponent &k1_script_component = k1.addComponent<ScriptComponent>();
-             k1_script_component.entity_script.reset(new KyoshiScript());
+             //             ScriptComponent &k1_script_component = k1.addComponent<ScriptComponent>();
+             //             k1_script_component.entity_script.reset(new KyoshiScript());
 
-             k1.enable();
+             //             k1.enable();
 
              Entity k2 = KnowledgeBase::createEntity(
                  "kyoshi_2", &m_world); //m_entity_db.createEntity("kyoshi_2", &m_world);
@@ -598,89 +599,6 @@ void FckGame::newGame()
 
              k2.enable();
 
-             /////////////////////////////////
-             //             barrel.component<TransformComponent>().setPosition({100.0f, 50.0f});
-
-             //             for (const auto &group : tmx.objectGroups())
-             //             {
-             //                 for (const Tmx::Object &object : group.objects)
-             //                 {
-             //                     if (object.type == Tmx::Object::RECT)
-             //                     {
-             //                         Entity entity =m_world.createEntity();
-             //                         SceneComponent &scene_component = entity.addComponent<SceneComponent>();
-             //                         CollisionComponent &collision_component
-             //                             = entity.addComponent<CollisionComponent>();
-             //                         scene_component.bounds = sf::FloatRect(object.rect);
-             //                         collision_component.aabb = sf::FloatRect(object.rect);
-             //                         entity.enable();
-             //                     }
-             //                 }
-             //             }
-
-             Tmx tmx2;
-             tmx2.loadFromFile("resources/test1.tmx");
-
-             auto tile_maps_2 = TileMap::createFromTmx(&tmx2);
-
-             int32_t z = 1;
-             for (TileMap *tile_map : tile_maps_2)
-             {
-
-                 if (tile_map)
-                 {
-                     Entity entity = m_world.createEntity();
-
-                     TransformComponent &transform_component
-                         = entity.addComponent<TransformComponent>();
-
-                     DrawableComponent &drawable_component
-                         = entity.addComponent<DrawableComponent>();
-                     drawable_component.drawable = std::unique_ptr<TileMap>(tile_map);
-                     //                     drawable_component.bounds =
-
-                     drawable_component.global_bounds = sf::FloatRect(
-                         transform_component.transform.getPosition(),
-                         tile_map->localBounds().getSize());
-                     drawable_component.z_order = z++;
-
-                     entity.enable();
-
-                     //                     break;
-                 }
-             }
-
-             for (const auto &group : tmx2.objectGroups())
-             {
-                 for (const Tmx::Object &object : group.objects)
-                 {
-                     if (object.type == Tmx::Object::RECT)
-                     {
-                         Entity entity = m_world.createEntity();
-
-                         TransformComponent &transform_component
-                             = entity.addComponent<TransformComponent>();
-                         transform_component.transform.setPosition(
-                             sf::Vector2f(object.rect.getPosition()));
-
-                         SceneComponent &scene_component = entity.addComponent<SceneComponent>();
-                         scene_component.local_bounds = sf::FloatRect(object.rect);
-                         scene_component.local_bounds.left = 0;
-                         scene_component.local_bounds.top = 0;
-                         scene_component.wall = true;
-
-                         CollisionComponent &collision_component
-                             = entity.addComponent<CollisionComponent>();
-
-                         collision_component.type = collision_type::STATIC;
-
-                         entityMove(entity, sf::Vector2f{});
-
-                         entity.enable();
-                     }
-                 }
-             }
-
              setState(game_state::LEVEL);
 
              loading_new_game_tasks->deleteLater();
@@ -693,6 +611,7 @@ void FckGame::returnToMainMenu()
     TaskSequence *return_to_main_menu_tasks = new TaskSequence();
     return_to_main_menu_tasks->setTasks(
         {[this]() { setState(game_state::LOADING); },
+         [this]() { m_level.reset(); },
          [this]() { m_world.destroyAllEntities(); },
          [this]() { m_path_finder.grid().clear(); },
          [this]() { m_visible_entities.clear(); },
@@ -778,12 +697,6 @@ void FckGame::entityMove(const Entity &entity, const sf::Vector2f &offset)
 
     if (entity.hasComponent<LookAroundComponent>())
         m_look_around_system.updateBounds(entity);
-
-    if (entity.hasComponent<ShadowComponent>())
-    {
-        ShadowComponent &shadow_component = entity.component<ShadowComponent>();
-        shadow_component.shadow.setPosition(transform_component.transform.getPosition());
-    }
 }
 
 void FckGame::entitySetPosition(const Entity &entity, const sf::Vector2f &position)
@@ -864,6 +777,13 @@ void FckGame::entitySetState(const Entity &entity, entity_state::State state)
             sound_component.sound.stop();
         }
     }
+
+    if (entity.hasComponent<ScriptComponent>())
+    {
+        ScriptComponent &script_component = entity.component<ScriptComponent>();
+        if (script_component.entity_script)
+            script_component.entity_script->onEntityStateChanged(entity, state);
+    }
 }
 
 void FckGame::entitySetDirection(const Entity &entity, entity_state::Direction direction)
@@ -878,11 +798,21 @@ void FckGame::entitySetDirection(const Entity &entity, entity_state::Direction d
     if (entity.hasComponent<TransformComponent>())
     {
         TransformComponent &transform_component = entity.component<TransformComponent>();
-        transform_component.transform.setScale({float(state_component.direction) * 1.5f, 1.5f});
+        transform_component.transform.setScale(
+            {float(state_component.direction)
+                 * std::abs(transform_component.transform.getScale().x),
+             transform_component.transform.getScale().y});
     }
 
     if (entity.hasComponent<LookAroundComponent>())
         m_look_around_system.updateBounds(entity);
+
+    if (entity.hasComponent<ScriptComponent>())
+    {
+        ScriptComponent &script_component = entity.component<ScriptComponent>();
+        if (script_component.entity_script)
+            script_component.entity_script->onEntityDirectionChanged(entity, direction);
+    }
 }
 
 void FckGame::entitySetTarget(const Entity &entity, const Entity &target)
@@ -1027,6 +957,23 @@ void FckGame::entityDestroy(const Entity &entity)
         entitySetMarker(entity, Entity{});
 
     m_world.destroyEntity(entity);
+}
+
+void FckGame::entityCollided(const Entity &entity, const Entity &other)
+{
+    if (entity.hasComponent<ScriptComponent>())
+    {
+        ScriptComponent &script_component = entity.component<ScriptComponent>();
+        if (script_component.entity_script)
+            script_component.entity_script->onEntityCollided(entity, other);
+    }
+
+    if (other.hasComponent<ScriptComponent>())
+    {
+        ScriptComponent &script_component = other.component<ScriptComponent>();
+        if (script_component.entity_script)
+            script_component.entity_script->onEntityCollided(other, entity);
+    }
 }
 
 } // namespace fck

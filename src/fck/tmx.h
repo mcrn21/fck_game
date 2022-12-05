@@ -67,6 +67,7 @@ public:
         std::vector<sf::Vector2i> polygon_points;
         int32_t text_wrap;
         std::string text;
+        std::map<std::string, std::string> properties;
     };
 
     struct ObjectGroup
@@ -74,6 +75,7 @@ public:
         int32_t id;
         std::string name;
         std::vector<Object> objects;
+        std::map<std::string, std::string> properties;
     };
 
     struct Group

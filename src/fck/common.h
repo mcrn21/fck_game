@@ -20,7 +20,8 @@ namespace drawable_type
 enum Type
 {
     NO_TYPE,
-    SPRITE
+    SPRITE,
+    TILE_MAP
 };
 
 std::string toString(Type type);

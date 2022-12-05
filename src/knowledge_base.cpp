@@ -60,22 +60,15 @@ Entity KnowledgeBase::createEntity(const std::string &entity_name, World *world)
 
     auto entities_found = instance().m_entities.find(entity_name);
     if (entities_found == instance().m_entities.end())
+    {
+        spdlog::warn("Entity not found: {}", entity_name);
         return Entity{};
+    }
 
     Entity entity = world->createEntity();
 
     for (const auto &it : entities_found->second->components)
         it->create(entity);
-
-    // notify
-    if (entity.hasComponent<TransformComponent>())
-        entity::move.emit(entity, sf::Vector2f{});
-
-    if (entity.hasComponent<StateComponent>())
-    {
-        entity::set_state.emit(entity, entity_state::IDLE);
-        entity::set_direction.emit(entity, entity_state::RIGHT);
-    }
 
     return entity;
 }

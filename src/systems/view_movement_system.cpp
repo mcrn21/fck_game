@@ -18,8 +18,18 @@ void ViewMovementSystem::setView(sf::View *newView)
 
 void ViewMovementSystem::update(double delta_time)
 {
-    each<TransformComponent>(
-        [this, delta_time](Entity &entity, TransformComponent &transform_component) {
+    for (Entity &entity : entities())
+    {
+        TransformComponent &transform_component = entity.component<TransformComponent>();
+        PlayerComponent &player_component = entity.component<PlayerComponent>();
+
+        if (player_component.view_hard_set_position)
+        {
+            m_view->setCenter(transform_component.transform.getPosition());
+            player_component.view_hard_set_position = false;
+        }
+        else
+        {
             sf::Vector2f view_position = m_view->getCenter();
             sf::Vector2f entity_position = transform_component.transform.getPosition();
 
@@ -32,7 +42,8 @@ void ViewMovementSystem::update(double delta_time)
 
             if (dist > 2)
                 m_view->move(velocity);
-        });
+        }
+    }
 }
 
 } // namespace fck

@@ -26,9 +26,7 @@ struct SceneComponent
     b2::DynamicTree<Entity> *tree = nullptr;
 
     // path finding
-    bool wall = false;
-    bool single_cell = false;
-    sf::IntRect path_finder_bounds;
+    bool path_finder_wall = false;
     PathFinder *path_finder = nullptr;
 };
 
@@ -44,6 +42,9 @@ struct KnowledgeBase::ComponentItem<SceneComponent> : ComponentItemBase
     {
         if (table->contains("local_bounds"))
             local_bounds = rect::tomlArrayToFloatRect(table->at("local_bounds").as_array());
+
+        if (table->contains("path_finder_wall"))
+            path_finder_wall = table->at("path_finder_wall").as_boolean()->get();
     }
 
     void create(Entity &entity)
@@ -52,9 +53,13 @@ struct KnowledgeBase::ComponentItem<SceneComponent> : ComponentItemBase
 
         component.local_bounds = local_bounds;
         component.global_bounds = local_bounds;
+
+        component.path_finder_wall = path_finder_wall;
     }
 
     sf::FloatRect local_bounds;
+
+    float path_finder_wall = false;
 };
 
 KNOWLEDGE_BASE_REGISTER_COMPONENT(SceneComponent);

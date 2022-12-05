@@ -158,31 +158,4 @@ Type fromString(const std::string &string)
 
 } // namespace entity_type
 
-namespace collision_type
-{
-
-std::string toString(Type type)
-{
-    static std::unordered_map<Type, std::string> strings
-        = {{Type::STATIC, "static"}, {Type::DYNAMIC, "dynamic"}};
-
-    auto strings_found = strings.find(type);
-    if (strings_found != strings.end())
-        return strings_found->second;
-    return "unknow";
-}
-
-Type fromString(const std::string &string)
-{
-    static std::unordered_map<std::string, Type> types
-        = {{"static", Type::STATIC}, {"dynamic", Type::DYNAMIC}};
-
-    auto types_found = types.find(string);
-    if (types_found != types.end())
-        return types_found->second;
-    return Type::NO_TYPE;
-}
-
-} // namespace collision_type
-
 } // namespace fck

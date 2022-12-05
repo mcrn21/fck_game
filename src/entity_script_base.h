@@ -24,8 +24,11 @@ public:
     virtual void update(const Entity &entity, double delta_time) = 0;
 
     virtual void onEntityMoved(const Entity &entity, const sf::Vector2f &offset);
+
     virtual void onEntityStateChanged(const Entity &entity, entity_state::State state);
     virtual void onEntityDirectionChanged(const Entity &entity, entity_state::Direction direction);
+
+    virtual void onEntityCollided(const Entity &entity, const Entity &other);
 };
 
 } // namespace fck

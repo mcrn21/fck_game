@@ -16,6 +16,8 @@ public:
 
     void update(const Entity &entity, double delta_time);
 
+    void onEntityCollided(const Entity &entity, const Entity &other);
+
 private:
     void updateTarget(const Entity &entity);
 

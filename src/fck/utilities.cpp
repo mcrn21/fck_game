@@ -100,6 +100,14 @@ sf::Vector2f tomlArrayToVector2f(toml::array *array)
     return vector;
 }
 
+sf::Vector2f stringToVector2f(const std::string &str, char del)
+{
+    std::vector<std::string> strs = string::split(str, del);
+    if (strs.size() < 2)
+        return sf::Vector2f();
+    return {std::stof(string::trimCopy(strs[0])), std::stof(string::trimCopy(strs[1]))};
+}
+
 } // namespace vector2
 
 namespace rect

@@ -23,11 +23,6 @@ void drawSceneTreeAABB(
     sf::RenderTarget &target,
     const sf::RenderStates &states = sf::RenderStates());
 
-void drawDrawableContentBounds(
-    const Entity &entity,
-    sf::RenderTarget &target,
-    const sf::RenderStates &states = sf::RenderStates());
-
 void drawSceneBounds(
     const Entity &entity,
     sf::RenderTarget &target,

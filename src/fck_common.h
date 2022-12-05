@@ -27,9 +27,6 @@ enum Type
     NEW_GAME,
     RETURN_TO_GAME,
     RETURN_TO_MAIN_MENU,
-
-    KEYBOARD_ACTION,
-
 };
 
 }
@@ -148,21 +145,6 @@ enum Type
 std::string toString(Type type);
 Type fromString(const std::string &string);
 } // namespace entity_type
-
-namespace collision_type
-{
-
-enum Type
-{
-    NO_TYPE,
-    STATIC,
-    DYNAMIC
-};
-
-std::string toString(Type type);
-Type fromString(const std::string &string);
-
-} // namespace collision_type
 
 } // namespace fck
 

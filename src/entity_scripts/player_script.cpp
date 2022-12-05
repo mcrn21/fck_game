@@ -21,6 +21,10 @@ void PlayerScript::update(const Entity &entity, double delta_time)
     updateTarget(entity);
 }
 
+void PlayerScript::onEntityCollided(const Entity &entity, const Entity &other)
+{
+}
+
 void PlayerScript::updateTarget(const Entity &entity)
 {
     PlayerComponent &player_component = entity.component<PlayerComponent>();
@@ -35,6 +39,7 @@ void PlayerScript::updateTarget(const Entity &entity)
                 = looked_entity.component<StateComponent>();
             if (looked_entity_state_component.state != entity_state::DEATH)
             {
+                spdlog::debug("Set target {}", looked_entity.id().index());
                 entity::set_target.emit(entity, looked_entity);
                 break;
             }
@@ -64,8 +69,11 @@ void PlayerScript::updateTarget(const Entity &entity)
         else if (player_component.need_change_target)
         {
             player_component.need_change_target = false;
-            auto current_target_it = look_at_entities_found;
 
+            if (look_around_component.look_at_entities.size() == 1)
+                return;
+
+            auto current_target_it = look_at_entities_found;
             while (true)
             {
                 ++look_at_entities_found;
@@ -84,6 +92,7 @@ void PlayerScript::updateTarget(const Entity &entity)
 
                 if (looked_entity_state_component.state != entity_state::DEATH)
                 {
+                    spdlog::debug("Change target {}", looked_entity.id().index());
                     entity::set_target.emit(entity, looked_entity);
                     break;
                 }

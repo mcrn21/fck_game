@@ -73,31 +73,18 @@ sf::FloatRect Sprite::localBounds() const
     return m_vertices.getBounds();
 }
 
-void Sprite::setContentBounds(const sf::FloatRect &content_bounds)
+sf::FloatRect Sprite::globalBounds() const
 {
-    m_content_bounds = content_bounds;
+    return getTransform().transformRect(m_vertices.getBounds());
 }
 
-sf::FloatRect Sprite::contentBounds() const
+void Sprite::draw(sf::RenderTarget &target, const sf::RenderStates &states) const
 {
-    return m_content_bounds;
-}
-
-sf::Vector2f Sprite::center() const
-{
-    sf::FloatRect rect = localBounds();
-    return {rect.width / 2, rect.height / 2};
-}
-
-void Sprite::draw(sf::RenderTarget &target, const sf::RenderStates &states)
-{
-    if (!isVisible())
-        return;
-
     if (m_texture)
     {
         sf::RenderStates new_state = states;
         new_state.texture = m_texture;
+        new_state.transform *= getTransform();
         target.draw(m_vertices, new_state);
     }
 }

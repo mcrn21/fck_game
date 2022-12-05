@@ -27,6 +27,9 @@ struct KnowledgeBase::ComponentItem<ShadowComponent> : ComponentItemBase
     {
         if (table->contains("texture"))
             texture = table->at("texture").as_string()->get();
+
+        if (table->contains("scale"))
+            scale = vector2::tomlArrayToVector2f(table->at("scale").as_array());
     }
 
     void create(Entity &entity)
@@ -38,10 +41,13 @@ struct KnowledgeBase::ComponentItem<ShadowComponent> : ComponentItemBase
         {
             component.shadow.setTexture(*tex, true);
             component.shadow.setOrigin(component.shadow.getLocalBounds().getSize() / 2.0f);
+            component.shadow.setScale(scale);
         }
     }
 
     std::string texture;
+
+    sf::Vector2f scale = {1.0f, 1.0f};
 };
 
 KNOWLEDGE_BASE_REGISTER_COMPONENT(ShadowComponent);

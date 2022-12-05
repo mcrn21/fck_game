@@ -4,12 +4,14 @@
 #include "../fck_common.h"
 #include "../knowledge_base.h"
 
+#include <vector>
+
 namespace fck
 {
 
 struct CollisionComponent
 {
-    collision_type::Type type = collision_type::DYNAMIC;
+    bool wall = false;
 };
 
 template<>
@@ -22,18 +24,18 @@ struct KnowledgeBase::ComponentItem<CollisionComponent> : ComponentItemBase
 
     void init(toml::table *table)
     {
-        if (table->contains("type"))
-            type = collision_type::fromString(table->at("type").as_string()->get());
+        if (table->contains("wall"))
+            wall = table->at("wall").as_boolean()->get();
     }
 
     void create(Entity &entity)
     {
         CollisionComponent &component = entity.addComponent<CollisionComponent>();
 
-        component.type = type;
+        component.wall = wall;
     }
 
-    collision_type::Type type = collision_type::DYNAMIC;
+    bool wall = false;
 };
 
 KNOWLEDGE_BASE_REGISTER_COMPONENT(CollisionComponent);

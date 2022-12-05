@@ -40,6 +40,7 @@ void CollisionSystem::update(double delta_time)
         SceneComponent &scene_component = entity.component<SceneComponent>();
         VelocityComponent &velocity_component = entity.component<VelocityComponent>();
         TransformComponent &transform_component = entity.component<TransformComponent>();
+        CollisionComponent &collision_component = entity.component<CollisionComponent>();
 
         if (!vector2::isValid(velocity_component.velocity))
             continue;
@@ -56,6 +57,8 @@ void CollisionSystem::update(double delta_time)
 
         sf::Vector2f position = rect::center(global_bounds);
         sf::Vector2f delta_position = transform_component.transform.getPosition() - position;
+
+        Entity prev_collided_entity;
 
         for (int32_t i = 0; i < 2; ++i)
         {
@@ -77,8 +80,11 @@ void CollisionSystem::update(double delta_time)
                     {
                         CollisionComponent &other_collision_component
                             = other.component<CollisionComponent>();
-                        if (other_collision_component.type == collision_type::DYNAMIC)
+                        if (!other_collision_component.wall)
+                        {
+                            entity::collided.emit(entity, other);
                             return true;
+                        }
 
                         sweep.setHit(hit);
                         sweep.entity = other;
@@ -89,6 +95,8 @@ void CollisionSystem::update(double delta_time)
 
             if (sweep.hit)
             {
+                entity::collided.emit(entity, sweep.entity);
+
                 position = sweep.hit->position + sweep.hit->normal;
 
                 if (sweep.hit->normal.x != 0)

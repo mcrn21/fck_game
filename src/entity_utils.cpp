@@ -19,5 +19,7 @@ Signal<const Entity &, float> entity::set_heath;
 Signal<const Entity &, float> entity::set_armor;
 // destroy
 Signal<const Entity &> entity::destroy;
+// collided
+Signal<const Entity &, const Entity &> entity::collided;
 
 } // namespace fck

@@ -29,6 +29,8 @@ struct entity
     static Signal<const Entity &, float> set_armor;
     // destroy
     static Signal<const Entity &> destroy;
+    // collided
+    static Signal<const Entity &, const Entity &> collided;
 };
 
 } // namespace fck

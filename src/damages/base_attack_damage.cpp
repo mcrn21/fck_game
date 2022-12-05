@@ -34,14 +34,14 @@ void BaseAttackDamage::update(double delta_time)
         StatsComponent &stats_component = entity().component<StatsComponent>();
         stats_component.damage = m_damage;
 
-        if (source().isValid())
-        {
-            if (entity().hasComponent<TargetComponent>())
-            {
-                TargetComponent &target_component = entity().component<TargetComponent>();
-                target_component.target = source();
-            }
-        }
+        //        if (source().isValid())
+        //        {
+        //            if (entity().hasComponent<TargetComponent>())
+        //            {
+        //                TargetComponent &target_component = entity().component<TargetComponent>();
+        //                target_component.target = source();
+        //            }
+        //        }
 
         StateComponent &state_component = entity().component<StateComponent>();
         if (!(entity_state::ATTACK & state_component.state))

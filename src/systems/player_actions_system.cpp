@@ -63,10 +63,6 @@ void PlayerActionsSystem::onActionActivated(keyboard_action::Action action)
 {
     for (Entity &entity : entities())
     {
-        StateComponent &state_component = entity.component<StateComponent>();
-        if (entity_state::NOT_AVALIBLE & state_component.state)
-            continue;
-
         if (action == keyboard_action::CHANGE_TARGET)
         {
             PlayerComponent &player_component = entity.component<PlayerComponent>();
