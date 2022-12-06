@@ -20,10 +20,28 @@ class Level
 public:
     struct Room
     {
+        enum Type
+        {
+            UNKNOW,
+            DEFAULT,
+            BOSS
+        };
+
         void enable();
         void disable();
 
         std::vector<Entity> entities;
+
+        Type type = DEFAULT;
+        bool opened = false;
+
+        struct Neighbors
+        {
+            std::string left;
+            std::string top;
+            std::string right;
+            std::string bottom;
+        } neighbors;
     };
 
     Level(World *world, b2::DynamicTree<Entity> *scene_tree, PathFinder *path_finder);
@@ -31,10 +49,16 @@ public:
 
     bool loadFromFile(const std::string &file_name);
 
-    void enableRoom(const std::string &room_name);
+    const Room *room(const std::string &room_name) const;
+    void enableRoom(const std::string &room_name, const sf::Vector2f &player_position);
+
+    std::vector<std::pair<sf::Vector2i, Room::Type>> roomsMinimap() const;
 
 private:
     void loadRoom(const Tmx::Group *room_group);
+
+public:
+    Signal<const std::string &> room_enabled;
 
 private:
     World *m_world;
@@ -45,6 +69,8 @@ private:
 
     Room *m_current_room;
     std::unordered_map<std::string, Room> m_rooms;
+
+    Entity m_player_entity;
 };
 
 } // namespace fck

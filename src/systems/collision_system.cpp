@@ -58,8 +58,7 @@ void CollisionSystem::update(double delta_time)
         sf::Vector2f position = rect::center(global_bounds);
         sf::Vector2f delta_position = transform_component.transform.getPosition() - position;
 
-        Entity prev_collided_entity;
-
+        Entity prev_not_wall_collided_entity;
         for (int32_t i = 0; i < 2; ++i)
         {
             Sweep sweep;
@@ -71,6 +70,9 @@ void CollisionSystem::update(double delta_time)
                     if (!other.hasComponent<CollisionComponent>())
                         return true;
 
+                    CollisionComponent &other_collision_component
+                        = other.component<CollisionComponent>();
+
                     collisions::AABB other_aabb{other.component<SceneComponent>().global_bounds};
                     other_aabb.half += scene_component.global_bounds.getSize() / 2.0f;
 
@@ -78,10 +80,12 @@ void CollisionSystem::update(double delta_time)
 
                     if (hit)
                     {
-                        CollisionComponent &other_collision_component
-                            = other.component<CollisionComponent>();
-                        if (!other_collision_component.wall)
+                        if (!other_collision_component.wall && hit->time != 0)
                         {
+                            if (prev_not_wall_collided_entity == other)
+                                return true;
+
+                            prev_not_wall_collided_entity = other;
                             entity::collided.emit(entity, other);
                             return true;
                         }

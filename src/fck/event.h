@@ -50,6 +50,19 @@ private:
     std::function<void()> m_callback;
 };
 
+class TasksEvent : public Event
+{
+public:
+    TasksEvent(const std::vector<std::function<bool()>> &callbacks, int32_t index);
+    ~TasksEvent() = default;
+
+    bool call();
+
+private:
+    std::vector<std::function<bool()>> m_callbacks;
+    int32_t m_index;
+};
+
 } // namespace fck
 
 #endif // EVENT_H

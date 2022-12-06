@@ -31,6 +31,7 @@ public:
     static void deleteLater(EventHandler *event_handler);
 
     static void runTask(const std::function<void()> &task);
+    static void runTasks(const std::vector<std::function<bool()>> &tasks);
 
     static void update(sf::Time elapsed);
 

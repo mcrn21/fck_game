@@ -5,6 +5,7 @@
 
 #include "../gui_base.h"
 #include "../knowledge_base.h"
+#include "../level.h"
 
 #include "../fck/entity.h"
 
@@ -23,6 +24,8 @@ public:
     void updatePlayerStats();
     void updatePlayerSkills();
     void updateTargetStats();
+
+    void updateRoomsMinimap(const std::vector<std::pair<sf::Vector2i, Level::Room::Type>> &rooms);
 
 private:
     void drawPlayerStats(sf::RenderTarget &target, const sf::RenderStates &states);
@@ -43,6 +46,10 @@ private:
     // player stats
     ProgressBar m_player_hp_progress_bar;
     ProgressBar m_player_armor_progress_bar;
+
+    std::unordered_map<Level::Room::Type, sf::IntRect> m_room_texture_rects;
+    Sprite m_minimap_sprite;
+    std::vector<std::pair<sf::Vector2i, Sprite>> m_room_minimap_sprites;
 
     // target stats
     ProgressBar m_target_hp_progress_bar;

@@ -44,4 +44,24 @@ void TaskEvent::call()
         m_callback();
 }
 
+TasksEvent::TasksEvent(const std::vector<std::function<bool()>> &callbacks, int32_t index)
+    : Event{event_type::TASKS}, m_callbacks{callbacks}, m_index{index}
+{
+}
+
+bool TasksEvent::call()
+{
+    if (m_callbacks.empty())
+        return false;
+
+    if (!m_callbacks[m_index]())
+        return false;
+
+    ++m_index;
+    if (m_index >= m_callbacks.size())
+        return false;
+
+    return true;
+}
+
 } // namespace fck

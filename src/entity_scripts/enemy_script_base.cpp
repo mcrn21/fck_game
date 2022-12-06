@@ -12,6 +12,19 @@ void EnemyScriptBase::update(const Entity &entity, double delta_time)
 {
     TargetFollowComponent &target_follow_component = entity.component<TargetFollowComponent>();
     TargetComponent &target_component = entity.component<TargetComponent>();
+    LookAroundComponent &look_around_component = entity.component<LookAroundComponent>();
+
+    //    if (!target_component.target.isValid())
+    //    {
+    //        for (const Entity &entity : look_around_component.look_at_entities)
+    //        {
+    //            if (entity.hasComponent<PlayerComponent>())
+    //            {
+    //                target_component.target = entity;
+    //                target_follow_component.follow = true;
+    //            }
+    //        }
+    //    }
 
     if (target_follow_component.state == TargetFollowComponent::RICHED)
     {

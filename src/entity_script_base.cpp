@@ -7,6 +7,21 @@ EntityScriptBase::EntityScriptBase()
 {
 }
 
+void EntityScriptBase::onEntityEnabled(const Entity &entity)
+{
+
+}
+
+void EntityScriptBase::onEntityDisabled(const Entity &entity)
+{
+
+}
+
+void EntityScriptBase::onEntityDestroyed(const Entity &entity)
+{
+
+}
+
 void EntityScriptBase::onEntityMoved(const Entity &entity, const sf::Vector2f &offset)
 {
 }

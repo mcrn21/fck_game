@@ -8,8 +8,8 @@ TileMap *TileMap::createFromTmx(
     Tmx *tmx, const std::string &layer_name, const std::string &group_name)
 {
     auto create_layer = [tmx](const Tmx::Layer *layer) -> TileMap * {
-        auto texture_found = layer->properties.find("texture");
-        if (texture_found == layer->properties.end())
+        auto texture_found = tmx->properties().find("texture");
+        if (texture_found == tmx->properties().end())
             return nullptr;
 
         std::string texture_name = texture_found->second;

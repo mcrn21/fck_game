@@ -11,7 +11,8 @@ namespace event_type
 {
 
 const int32_t TASK = 10300;
-const int32_t TASK_SEQUENCE = 10301;
+const int32_t TASKS = 10301;
+const int32_t TASK_SEQUENCE = 10302;
 
 } // namespace event_type
 

@@ -2,6 +2,7 @@
 
 #include "../components/components.h"
 
+#include "../fck/clipping.h"
 #include "../fck/resource_cache.h"
 #include "../fck/utilities.h"
 
@@ -46,6 +47,13 @@ LevelGui::LevelGui(const sf::Vector2f &size, const Entity &player_entity)
     m_player_armor_progress_bar.text().setScale(vector2::div({1.0f, 1.0f}, m_stats_scale));
     m_player_armor_progress_bar.text().setPosition({4.0f, -2.0f});
 
+    m_minimap_sprite.setTexture(ResourceCache::resource<sf::Texture>("ui"));
+    m_minimap_sprite.setTextureRect({{0, 40}, {32, 32}});
+    m_minimap_sprite.setScale(m_stats_scale);
+
+    m_room_texture_rects.emplace(Level::Room::UNKNOW, sf::IntRect{{51, 40}, {11, 11}});
+    m_room_texture_rects.emplace(Level::Room::DEFAULT, sf::IntRect{{40, 40}, {11, 11}});
+
     updatePlayerStats();
 
     // target
@@ -75,6 +83,19 @@ void LevelGui::resize(const sf::Vector2f &size)
     m_player_hp_progress_bar.setPosition(m_border_offset);
     m_player_armor_progress_bar.setPosition(
         m_border_offset + vector2::mult(sf::Vector2f{0.0f, 8.0f}, m_stats_scale));
+
+    m_minimap_sprite.setPosition(
+        m_border_offset + vector2::mult(sf::Vector2f{0.0f, 16.0f}, m_stats_scale));
+
+    sf::Vector2f minimap_sprite_global_center
+        = m_minimap_sprite.getPosition() + m_minimap_sprite.globalBounds().getSize() / 2.0f;
+    for (auto &room_sprite : m_room_minimap_sprites)
+    {
+        room_sprite.second.setPosition(
+            minimap_sprite_global_center
+            + vector2::mult(
+                room_sprite.second.globalBounds().getSize(), sf::Vector2f{room_sprite.first}));
+    }
 
     // skills
     if (!m_skills.empty())
@@ -186,10 +207,55 @@ void LevelGui::updateTargetStats()
         {m_target_hp_progress_bar.text().getLocalBounds().width, 0.0f});
 }
 
+void LevelGui::updateRoomsMinimap(
+    const std::vector<std::pair<sf::Vector2i, Level::Room::Type>> &rooms)
+{
+    m_room_minimap_sprites.clear();
+
+    sf::Vector2f position
+        = m_minimap_sprite.getPosition() + m_minimap_sprite.globalBounds().getSize() / 2.0f;
+
+    for (const auto &room : rooms)
+    {
+        Sprite room_sprite;
+        room_sprite.setTexture(ResourceCache::resource<sf::Texture>("ui"));
+        room_sprite.setTextureRect(m_room_texture_rects.at(room.second));
+        room_sprite.setOrigin(room_sprite.localBounds().getSize() / 2.0f);
+        room_sprite.setScale(m_stats_scale);
+        room_sprite.setPosition(
+            position
+            + vector2::mult(room_sprite.globalBounds().getSize(), sf::Vector2f{room.first}));
+
+        m_room_minimap_sprites.emplace_back(room.first, room_sprite);
+
+        if (room.first.x == 0 && room.first.y == 0)
+        {
+            Sprite highlight_sprite;
+            highlight_sprite.setTexture(ResourceCache::resource<sf::Texture>("ui"));
+            highlight_sprite.setTextureRect({{40, 62}, {11, 11}});
+            highlight_sprite.setOrigin(highlight_sprite.localBounds().getSize() / 2.0f);
+            highlight_sprite.setScale(m_stats_scale);
+            highlight_sprite.setPosition(position);
+            m_room_minimap_sprites.emplace_back(room.first, highlight_sprite);
+        }
+    }
+}
+
 void LevelGui::drawPlayerStats(sf::RenderTarget &target, const sf::RenderStates &states)
 {
     target.draw(m_player_hp_progress_bar);
     target.draw(m_player_armor_progress_bar);
+
+    target.draw(m_minimap_sprite);
+
+    Clipping clipping(
+        target,
+        states,
+        m_minimap_sprite.getPosition() + vector2::mult({2.0f, 2.0f}, m_stats_scale),
+        m_minimap_sprite.globalBounds().getSize() - vector2::mult({4.0f, 4.0f}, m_stats_scale));
+
+    for (const auto &room_sprite : m_room_minimap_sprites)
+        target.draw(room_sprite.second);
 }
 
 void LevelGui::drawPlayerSkills(sf::RenderTarget &target, const sf::RenderStates &states)

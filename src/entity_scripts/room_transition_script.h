@@ -24,6 +24,8 @@ public:
 
     void update(const Entity &entity, double delta_time);
 
+    void onEntityEnabled(const Entity &entity);
+
     void onEntityCollided(const Entity &entity, const Entity &other);
 
 private:
@@ -33,7 +35,7 @@ private:
     sf::Vector2f m_point;
 
     bool m_need_change_room;
-    Entity m_transition_entity;
+    bool m_used;
 };
 
 } // namespace fck

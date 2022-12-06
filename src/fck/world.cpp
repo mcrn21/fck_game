@@ -90,14 +90,22 @@ Entity World::entity(std::size_t index)
 
 void World::enableEntity(const Entity &entity)
 {
-    fck_assert(isValid(entity), "invalid entity tried to be activated");
+    if (!isValid(entity))
+    {
+        spdlog::warn("Enable invalid entity: id: {}", entity.id().index());
+        return;
+    }
 
     m_entity_cache.enabled.push_back(entity);
 }
 
 void World::disableEntity(const Entity &entity)
 {
-    fck_assert(isValid(entity), "invalid entity tried to be deactivated");
+    if (!isValid(entity))
+    {
+        spdlog::warn("Disable invalid entity: id: {}", entity.id().index());
+        return;
+    }
 
     m_entity_cache.disabled.push_back(entity);
 }
@@ -142,6 +150,8 @@ void World::refresh()
                 attribute.systems[system_index] = false;
             }
         }
+
+        entity_enabled.emit(entity);
     }
 
     // go through all the deactivated entities from last call to refresh
@@ -164,11 +174,15 @@ void World::refresh()
                 attribute.systems[system_index] = false;
             }
         }
+
+        entity_disabled.emit(entity);
     }
 
     // go through all the killed entities from last call to refresh
     for (auto &entity : m_entity_cache.destroyed)
     {
+        entity_destroyed.emit(entity);
+
         m_entity_cache.alive.erase(
             std::remove(m_entity_cache.alive.begin(), m_entity_cache.alive.end(), entity),
             m_entity_cache.alive.end());

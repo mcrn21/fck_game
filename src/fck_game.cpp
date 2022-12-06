@@ -11,6 +11,7 @@
 #include "guis/guis.h"
 #include "skills/skills.h"
 
+#include "fck/clipping.h"
 #include "fck/event_dispatcher.h"
 #include "fck/resource_cache.h"
 #include "fck/sprite.h"
@@ -76,22 +77,33 @@ FckGame::FckGame()
     m_world.addSystem(m_skills_system);
     m_world.addSystem(m_damage_sysytem);
 
+    // world
+    m_world.entity_enabled.connect(this, &FckGame::onWorldEntityEnabled);
+    m_world.entity_disabled.connect(this, &FckGame::onWorldEntityDisabled);
+    m_world.entity_destroyed.connect(this, &FckGame::onWorldEntityDestroyed);
+
     // transform
     entity::move.connect(this, &FckGame::entityMove);
     entity::set_position.connect(this, &FckGame::entitySetPosition);
     entity::set_parent.connect(this, &FckGame::entitySetParent);
+
     // state
     entity::set_state.connect(this, &FckGame::entitySetState);
     entity::set_direction.connect(this, &FckGame::entitySetDirection);
+
     // taregt
     entity::set_target.connect(this, &FckGame::entitySetTarget);
+
     // marker
     entity::set_marker.connect(this, &FckGame::entitySetMarker);
+
     // stats
     entity::set_heath.connect(this, &FckGame::entitySetHealth);
     entity::set_armor.connect(this, &FckGame::entitySetArmor);
+
     // destroy
     entity::destroy.connect(this, &FckGame::entityDestroy);
+
     // collided
     entity::collided.connect(this, &FckGame::entityCollided);
 }
@@ -400,6 +412,8 @@ void FckGame::event(Event *event)
 
         renderWindow().setView(m_render_window_view);
 
+        Clipping::setOriginalView(m_render_window_view);
+
         // Resize gui
         for (auto &gui : m_gui_list)
             gui->resize(m_render_window_view.getSize());
@@ -537,12 +551,11 @@ void FckGame::newGame()
     loading_new_game_tasks->setTasks(
         {[this]() { setState(game_state::LOADING); },
          [this, loading_new_game_tasks]() {
-             std::unique_ptr<Level> level
-                 = std::make_unique<Level>(&m_world, &m_scene_tree, &m_path_finder);
-             level->loadFromFile("resources/levels/level1.tmx");
-             m_level = std::move(level);
+             m_level = std::make_unique<Level>(&m_world, &m_scene_tree, &m_path_finder);
+             m_level->room_enabled.connect(this, &FckGame::onLevelRoomEnabled);
 
-             m_level->enableRoom("room_1");
+             m_level->loadFromFile("resources/levels/level1.tmx");
+             m_level->enableRoom("room_1", sf::Vector2f{200.0f, 200.0f});
 
              m_player_entity = KnowledgeBase::createPlayer(
                  "kyoshi", &m_world); //m_entity_db.createPlayer(&m_world);
@@ -556,48 +569,6 @@ void FckGame::newGame()
              entityMove(m_player_entity, sf::Vector2f{});
 
              m_player_entity.enable();
-
-             /////////////////////////////////
-             //             Entity k1 = KnowledgeBase::createEntity(
-             //                 "kyoshi_2", &m_world); //m_entity_db.createEntity("kyoshi_2", &m_world);
-             //             k1.component<TransformComponent>().transform.setPosition({100.0f, 100.0f});
-             //             //             k1.component<VelocityComponent>().velocity = {20.0f, 20.0f};
-
-             //             //             k1.component<SceneComponent>().wall = true;
-
-             //             TargetComponent &k1_target_component = k1.component<TargetComponent>();
-             //             //k1_target_component.target = m_player_entity;
-
-             //             TargetFollowComponent &k1_target_foolow_component
-             //                 = k1.component<TargetFollowComponent>();
-             //             k1_target_foolow_component.follow = true;
-             //             k1_target_foolow_component.min_distance = 32.0f;
-             //             k1_target_foolow_component.max_distance = 200.0f;
-
-             //             entityMove(k1, sf::Vector2f{});
-
-             //             ScriptComponent &k1_script_component = k1.addComponent<ScriptComponent>();
-             //             k1_script_component.entity_script.reset(new KyoshiScript());
-
-             //             k1.enable();
-
-             Entity k2 = KnowledgeBase::createEntity(
-                 "kyoshi_2", &m_world); //m_entity_db.createEntity("kyoshi_2", &m_world);
-             k2.component<TransformComponent>().transform.setPosition({100.0f, 150.0f});
-             //             k1.component<VelocityComponent>().velocity = {20.0f, 20.0f};
-
-             //             k2.component<SceneComponent>().wall = true;
-
-             TargetComponent &k2_target_component = k2.component<TargetComponent>();
-             k2_target_component.target = m_player_entity;
-
-             TargetFollowComponent &k2_target_foolow_component
-                 = k2.component<TargetFollowComponent>();
-             k2_target_foolow_component.follow = true;
-
-             entityMove(k2, sf::Vector2f{});
-
-             k2.enable();
 
              setState(game_state::LEVEL);
 
@@ -657,6 +628,36 @@ void FckGame::onActionActivated(keyboard_action::Action action)
 
     if (action == keyboard_action::BACK)
         setState(game_state::LEVEL_MENU);
+}
+
+void FckGame::onWorldEntityEnabled(const Entity &entity)
+{
+    if (entity.hasComponent<ScriptComponent>())
+    {
+        ScriptComponent &script_component = entity.component<ScriptComponent>();
+        if (script_component.entity_script)
+            script_component.entity_script->onEntityEnabled(entity);
+    }
+}
+
+void FckGame::onWorldEntityDisabled(const Entity &entity)
+{
+    if (entity.hasComponent<ScriptComponent>())
+    {
+        ScriptComponent &script_component = entity.component<ScriptComponent>();
+        if (script_component.entity_script)
+            script_component.entity_script->onEntityDisabled(entity);
+    }
+}
+
+void FckGame::onWorldEntityDestroyed(const Entity &entity)
+{
+    if (entity.hasComponent<ScriptComponent>())
+    {
+        ScriptComponent &script_component = entity.component<ScriptComponent>();
+        if (script_component.entity_script)
+            script_component.entity_script->onEntityDestroyed(entity);
+    }
 }
 
 void FckGame::entityMove(const Entity &entity, const sf::Vector2f &offset)
@@ -973,6 +974,15 @@ void FckGame::entityCollided(const Entity &entity, const Entity &other)
         ScriptComponent &script_component = other.component<ScriptComponent>();
         if (script_component.entity_script)
             script_component.entity_script->onEntityCollided(other, entity);
+    }
+}
+
+void FckGame::onLevelRoomEnabled(const std::string &room_name)
+{
+    if (m_state == game_state::LEVEL)
+    {
+        LevelGui *level_gui = static_cast<LevelGui *>(m_gui_list.back().get());
+        level_gui->updateRoomsMinimap(m_level->roomsMinimap());
     }
 }
 

@@ -4,6 +4,7 @@
 #include "component_storage.h"
 #include "entity.h"
 #include "id_storage.h"
+#include "sigslot.h"
 #include "system.h"
 
 #include <unordered_map>
@@ -65,6 +66,11 @@ private:
 
     void checkForResize(int32_t size);
     void resize(int32_t size);
+
+public:
+    Signal<const Entity &> entity_enabled;
+    Signal<const Entity &> entity_disabled;
+    Signal<const Entity &> entity_destroyed;
 
 private:
     struct SystemDeleter

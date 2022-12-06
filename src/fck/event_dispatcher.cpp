@@ -43,6 +43,11 @@ void EventDispatcher::runTask(const std::function<void()> &task)
     push(new TaskEvent{task});
 }
 
+void EventDispatcher::runTasks(const std::vector<std::function<bool()>> &tasks)
+{
+    push(new TasksEvent{tasks, 0});
+}
+
 void EventDispatcher::update(sf::Time elapsed)
 {
     instance()._update(elapsed);
@@ -93,6 +98,14 @@ void EventDispatcher::_update(sf::Time elapsed)
         {
             TaskEvent *task_event = static_cast<TaskEvent *>(event_detail.event.get());
             task_event->call();
+        }
+        else if (event_detail.event->type() == event_type::TASKS)
+        {
+            TasksEvent *task_event = static_cast<TasksEvent *>(event_detail.event.release());
+            if (task_event->call())
+                push(task_event);
+            else
+                delete task_event;
         }
         else
         {

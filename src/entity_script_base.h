@@ -23,6 +23,10 @@ public:
 
     virtual void update(const Entity &entity, double delta_time) = 0;
 
+    virtual void onEntityEnabled(const Entity &entity);
+    virtual void onEntityDisabled(const Entity &entity);
+    virtual void onEntityDestroyed(const Entity &entity);
+
     virtual void onEntityMoved(const Entity &entity, const sf::Vector2f &offset);
 
     virtual void onEntityStateChanged(const Entity &entity, entity_state::State state);

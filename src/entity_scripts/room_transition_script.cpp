@@ -9,7 +9,8 @@
 namespace fck
 {
 
-RoomTransitionScript::RoomTransitionScript(Level *level) : m_level{level}, m_need_change_room{false}
+RoomTransitionScript::RoomTransitionScript(Level *level)
+    : m_level{level}, m_need_change_room{false}, m_used{false}
 {
 }
 
@@ -37,15 +38,16 @@ void RoomTransitionScript::update(const Entity &entity, double delta_time)
 {
     if (m_need_change_room)
     {
-        m_level->enableRoom(m_room);
-        entity::set_position.emit(m_transition_entity, m_point);
-
-        PlayerComponent &player_component = m_transition_entity.component<PlayerComponent>();
-        player_component.view_hard_set_position = true;
-
+        spdlog::debug("Update move player");
+        m_level->enableRoom(m_room, m_point);
         m_need_change_room = false;
-        m_transition_entity = Entity{};
     }
+}
+
+void RoomTransitionScript::onEntityEnabled(const Entity &entity)
+{
+    spdlog::debug("Enable transition");
+    m_used = false;
 }
 
 void RoomTransitionScript::onEntityCollided(const Entity &entity, const Entity &other)
@@ -53,8 +55,12 @@ void RoomTransitionScript::onEntityCollided(const Entity &entity, const Entity &
     if (!other.isValid() || !other.hasComponent<PlayerComponent>())
         return;
 
-    m_need_change_room = true;
-    m_transition_entity = other;
+    if (!m_used)
+    {
+        spdlog::debug("Move player");
+        m_need_change_room = true;
+        m_used = true;
+    }
 }
 
 } // namespace fck
