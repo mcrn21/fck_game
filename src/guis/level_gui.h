@@ -1,7 +1,7 @@
 #ifndef LEVELGUI_H
 #define LEVELGUI_H
 
-#include "gui_elements.h"
+#include "gui_elements/gui_elements.h"
 
 #include "../gui_base.h"
 #include "../knowledge_base.h"
@@ -25,7 +25,10 @@ public:
     void updatePlayerSkills();
     void updateTargetStats();
 
-    void updateRoomsMinimap(const std::vector<std::pair<sf::Vector2i, Level::Room::Type>> &rooms);
+    void updateRoomsMap(
+        const Vector2D<Level::Room *> &rooms_map, const sf::Vector2i &current_room_coord);
+    void updateRoomOpened(const Vector2D<Level::Room *> &rooms_map, const sf::Vector2i &room_coord);
+    void updateCurrentRoomCoord(const sf::Vector2i &current_room_coord);
 
 private:
     void drawPlayerStats(sf::RenderTarget &target, const sf::RenderStates &states);
@@ -47,9 +50,7 @@ private:
     ProgressBar m_player_hp_progress_bar;
     ProgressBar m_player_armor_progress_bar;
 
-    std::unordered_map<Level::Room::Type, sf::IntRect> m_room_texture_rects;
-    Sprite m_minimap_sprite;
-    std::vector<std::pair<sf::Vector2i, Sprite>> m_room_minimap_sprites;
+    Minimap m_minimap;
 
     // target stats
     ProgressBar m_target_hp_progress_bar;

@@ -16,11 +16,8 @@ public:
     RoomTransitionScript(Level *level);
     ~RoomTransitionScript() = default;
 
-    const std::string room() const;
-    void setRoom(const std::string &room);
-
-    const sf::Vector2f &point() const;
-    void setPoint(const sf::Vector2f &point);
+    void setRoomCoord(const sf::Vector2i &room_coord);
+    void setTargetPosition(const sf::Vector2f &target_position);
 
     void update(const Entity &entity, double delta_time);
 
@@ -31,8 +28,8 @@ public:
 private:
     Level *m_level;
 
-    std::string m_room;
-    sf::Vector2f m_point;
+    sf::Vector2i m_room_coord;
+    sf::Vector2f m_target_position;
 
     bool m_need_change_room;
     bool m_used;

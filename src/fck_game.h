@@ -85,7 +85,8 @@ public: // slots
     void entityCollided(const Entity &entity, const Entity &other);
 
     // level
-    void onLevelRoomEnabled(const std::string &room_name);
+    void onLevelRoomOpened(const sf::Vector2i &room_coord);
+    void onLevelRoomEnabled(const sf::Vector2i &room_coord);
 
 private:
     sf::RenderTexture m_scene_render_texture;

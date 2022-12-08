@@ -14,24 +14,14 @@ RoomTransitionScript::RoomTransitionScript(Level *level)
 {
 }
 
-const std::string RoomTransitionScript::room() const
+void RoomTransitionScript::setRoomCoord(const sf::Vector2i &room_coord)
 {
-    return m_room;
+    m_room_coord = room_coord;
 }
 
-void RoomTransitionScript::setRoom(const std::string &room)
+void RoomTransitionScript::setTargetPosition(const sf::Vector2f &target_position)
 {
-    m_room = room;
-}
-
-const sf::Vector2f &RoomTransitionScript::point() const
-{
-    return m_point;
-}
-
-void RoomTransitionScript::setPoint(const sf::Vector2f &point)
-{
-    m_point = point;
+    m_target_position = target_position;
 }
 
 void RoomTransitionScript::update(const Entity &entity, double delta_time)
@@ -39,7 +29,7 @@ void RoomTransitionScript::update(const Entity &entity, double delta_time)
     if (m_need_change_room)
     {
         spdlog::debug("Update move player");
-        m_level->enableRoom(m_room, m_point);
+        m_level->enableRoom(m_room_coord, m_target_position);
         m_need_change_room = false;
     }
 }

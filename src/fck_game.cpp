@@ -333,60 +333,56 @@ void FckGame::setState(game_state::State state)
     game_state::State old_state = m_state;
     m_state = state;
 
-    EventDispatcher::runTask([this, old_state]() {
-        m_input_actions.action_activated.disconnect();
-        m_player_actions_system.setInputActions(nullptr);
+    m_input_actions.action_activated.disconnect();
+    m_player_actions_system.setInputActions(nullptr);
 
-        switch (m_state)
+    switch (m_state)
+    {
+    case game_state::FIRST_LOADING: {
+        m_gui_list.clear();
+        m_gui_list.push_back(std::make_unique<SplashscreenGui>(m_render_window_view.getSize()));
+        break;
+    }
+    case game_state::LOADING: {
+        m_gui_list.clear();
+        m_gui_list.push_back(std::make_unique<LoadingGui>(m_render_window_view.getSize()));
+
+        break;
+    }
+    case game_state::MAIN_MENU: {
+        m_gui_list.clear();
+        MainMenuGui *main_menu_gui = new MainMenuGui(m_render_window_view.getSize());
+        m_gui_list.push_back(std::unique_ptr<MainMenuGui>(main_menu_gui));
+
+        m_input_actions.action_activated.connect(main_menu_gui, &MainMenuGui::onActionActivated);
+
+        break;
+    }
+    case game_state::LEVEL: {
+        m_gui_list.pop_back();
+
+        if (old_state != game_state::LEVEL_MENU)
         {
-        case game_state::FIRST_LOADING: {
-            m_gui_list.clear();
-            m_gui_list.push_back(std::make_unique<SplashscreenGui>(m_render_window_view.getSize()));
-            break;
+            LevelGui *level_gui = new LevelGui(m_render_window_view.getSize(), m_player_entity);
+            m_gui_list.push_back(std::unique_ptr<LevelGui>(level_gui));
         }
-        case game_state::LOADING: {
-            m_gui_list.clear();
-            m_gui_list.push_back(std::make_unique<LoadingGui>(m_render_window_view.getSize()));
 
-            break;
-        }
-        case game_state::MAIN_MENU: {
-            m_gui_list.clear();
-            MainMenuGui *main_menu_gui = new MainMenuGui(m_render_window_view.getSize());
-            m_gui_list.push_back(std::unique_ptr<MainMenuGui>(main_menu_gui));
+        m_input_actions.action_activated.connect(this, &FckGame::onActionActivated);
+        m_player_actions_system.setInputActions(&m_input_actions);
 
-            m_input_actions.action_activated.connect(
-                main_menu_gui, &MainMenuGui::onActionActivated);
+        break;
+    }
+    case game_state::LEVEL_MENU: {
+        MainMenuGui *main_menu_gui = new MainMenuGui(m_render_window_view.getSize(), true);
+        m_gui_list.push_back(std::unique_ptr<MainMenuGui>(main_menu_gui));
 
-            break;
-        }
-        case game_state::LEVEL: {
-            m_gui_list.pop_back();
+        m_input_actions.action_activated.connect(main_menu_gui, &MainMenuGui::onActionActivated);
 
-            if (old_state != game_state::LEVEL_MENU)
-            {
-                LevelGui *level_gui = new LevelGui(m_render_window_view.getSize(), m_player_entity);
-                m_gui_list.push_back(std::unique_ptr<LevelGui>(level_gui));
-            }
-
-            m_input_actions.action_activated.connect(this, &FckGame::onActionActivated);
-            m_player_actions_system.setInputActions(&m_input_actions);
-
-            break;
-        }
-        case game_state::LEVEL_MENU: {
-            MainMenuGui *main_menu_gui = new MainMenuGui(m_render_window_view.getSize(), true);
-            m_gui_list.push_back(std::unique_ptr<MainMenuGui>(main_menu_gui));
-
-            m_input_actions.action_activated.connect(
-                main_menu_gui, &MainMenuGui::onActionActivated);
-
-            break;
-        }
-        default:
-            break;
-        }
-    });
+        break;
+    }
+    default:
+        break;
+    }
 }
 
 void FckGame::event(Event *event)
@@ -550,13 +546,18 @@ void FckGame::newGame()
     TaskSequence *loading_new_game_tasks = new TaskSequence();
     loading_new_game_tasks->setTasks(
         {[this]() { setState(game_state::LOADING); },
-         [this, loading_new_game_tasks]() {
+         [this]() {
              m_level = std::make_unique<Level>(&m_world, &m_scene_tree, &m_path_finder);
+             m_level->room_opened.connect(this, &FckGame::onLevelRoomOpened);
              m_level->room_enabled.connect(this, &FckGame::onLevelRoomEnabled);
-
-             m_level->loadFromFile("resources/levels/level1.tmx");
-             m_level->enableRoom("room_1", sf::Vector2f{200.0f, 200.0f});
-
+             m_level->loadFromFile("resources/levels/level2.tmx");
+         },
+         [this]() { m_level->generateRoomsMap(); },
+         [this]() { m_level->generateRoomsContent(); },
+         [this]() {
+             m_level->enableRoom(m_level->firstRoomCoord(), {256.0f, 256.0f});
+         },
+         [this]() {
              m_player_entity = KnowledgeBase::createPlayer(
                  "kyoshi", &m_world); //m_entity_db.createPlayer(&m_world);
              m_player_entity.component<TransformComponent>().transform.setPosition(
@@ -569,11 +570,14 @@ void FckGame::newGame()
              entityMove(m_player_entity, sf::Vector2f{});
 
              m_player_entity.enable();
-
-             setState(game_state::LEVEL);
-
+         },
+         [this]() { setState(game_state::LEVEL); },
+         [this, loading_new_game_tasks]() {
+             LevelGui *level_gui = static_cast<LevelGui *>(m_gui_list.back().get());
+             level_gui->updateRoomsMap(m_level->roomsMap(), m_level->currentRoomCoord());
              loading_new_game_tasks->deleteLater();
          }});
+
     loading_new_game_tasks->start();
 }
 
@@ -977,12 +981,21 @@ void FckGame::entityCollided(const Entity &entity, const Entity &other)
     }
 }
 
-void FckGame::onLevelRoomEnabled(const std::string &room_name)
+void FckGame::onLevelRoomOpened(const sf::Vector2i &room_coord)
 {
     if (m_state == game_state::LEVEL)
     {
         LevelGui *level_gui = static_cast<LevelGui *>(m_gui_list.back().get());
-        level_gui->updateRoomsMinimap(m_level->roomsMinimap());
+        level_gui->updateRoomOpened(m_level->roomsMap(), room_coord);
+    }
+}
+
+void FckGame::onLevelRoomEnabled(const sf::Vector2i &room_coord)
+{
+    if (m_state == game_state::LEVEL)
+    {
+        LevelGui *level_gui = static_cast<LevelGui *>(m_gui_list.back().get());
+        level_gui->updateCurrentRoomCoord(room_coord);
     }
 }
 

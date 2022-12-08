@@ -1,5 +1,5 @@
-#ifndef GUIELEMENTS_H
-#define GUIELEMENTS_H
+#ifndef PROGRESSBAR_H
+#define PROGRESSBAR_H
 
 #include <SFML/Graphics.hpp>
 
@@ -55,4 +55,4 @@ private:
 
 } // namespace fck
 
-#endif // GUIELEMENTS_H
+#endif // PROGRESSBAR_H

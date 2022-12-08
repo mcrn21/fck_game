@@ -1,7 +1,7 @@
 #ifndef LOADINGGUI_H
 #define LOADINGGUI_H
 
-#include "gui_elements.h"
+#include "gui_elements/gui_elements.h"
 
 #include "../gui_base.h"
 

@@ -113,9 +113,6 @@ void drawPathFinderCellsBounds(
     SceneComponent &scene_component = entity.component<SceneComponent>();
     TransformComponent &transform_component = entity.component<TransformComponent>();
 
-    if (scene_component.path_finder_wall)
-        return;
-
     sf::RectangleShape rectangle(sf::Vector2f(cell_size.x, cell_size.y));
     rectangle.setFillColor(sf::Color::Transparent);
     rectangle.setOutlineColor(sf::Color::Cyan);

@@ -37,6 +37,30 @@ private:
     std::string m_message;
 };
 
+struct BoolProxy
+{
+    BoolProxy(bool v) : value{v}
+    {
+    }
+
+    BoolProxy(const BoolProxy &other) : value{other.value}
+    {
+    }
+
+    BoolProxy &operator=(bool v)
+    {
+        value = v;
+        return *this;
+    }
+
+    operator bool()
+    {
+        return value == true;
+    }
+
+    bool value = false;
+};
+
 namespace string
 {
 
