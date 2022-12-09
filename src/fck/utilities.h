@@ -1,5 +1,5 @@
-#ifndef UTILITIES_H
-#define UTILITIES_H
+#ifndef UTILITIES_XEAGAIAZAYIW_H
+#define UTILITIES_XEAGAIAZAYIW_H
 
 #include "SFML/Graphics/Rect.hpp"
 #include "SFML/System/Vector2.hpp"
@@ -184,4 +184,4 @@ std::vector<std::string> tomlArrayToStringVector(toml::array *array);
 
 } // namespace fck
 
-#endif // UTILITIES_H
+#endif // UTILITIES_XEAGAIAZAYIW_H

@@ -1,6 +1,6 @@
-#ifndef SKILLS_H
-#define SKILLS_H
+#ifndef SKILLS_LTEVVMCKCTTU_H
+#define SKILLS_LTEVVMCKCTTU_H
 
-#include "base_attack_skill.h"
+#include "base_attack.h"
 
-#endif // SKILLS_H
+#endif // SKILLS_LTEVVMCKCTTU_H

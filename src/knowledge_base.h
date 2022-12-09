@@ -1,5 +1,5 @@
-#ifndef KNOWLEDGEBASE_H
-#define KNOWLEDGEBASE_H
+#ifndef KNOWLEDGEBASE_TFUTPCIFHOBA_H
+#define KNOWLEDGEBASE_TFUTPCIFHOBA_H
 
 #include "entity_script_base.h"
 #include "fck_common.h"
@@ -307,4 +307,4 @@ KNOWLEDGE_BASE_REGISTER_DRAWABLE(Sprite, SpriteAnimation);
 
 } // namespace fck
 
-#endif // KNOWLEDGEBASE_H
+#endif // KNOWLEDGEBASE_TFUTPCIFHOBA_H

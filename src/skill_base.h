@@ -1,5 +1,5 @@
-#ifndef SKILLBASE_H
-#define SKILLBASE_H
+#ifndef SKILLBASE_HZOZKXBOINCQ_H
+#define SKILLBASE_HZOZKXBOINCQ_H
 
 #include "fck/entity.h"
 
@@ -8,11 +8,14 @@
 namespace fck
 {
 
-class SkillsSystem;
+namespace system
+{
+class Skills;
+}
 
 class SkillBase
 {
-    friend class SkillsSystem;
+    friend class system::Skills;
 
 public:
     SkillBase(const std::string &name, double cooldown);
@@ -44,4 +47,4 @@ private:
 
 } // namespace fck
 
-#endif // SKILLBASE_H
+#endif // SKILLBASE_HZOZKXBOINCQ_H

@@ -1,5 +1,5 @@
-#ifndef B2DYNAMICTREE_H
-#define B2DYNAMICTREE_H
+#ifndef B2DYNAMICTREE_DAYPZRBBUQHC_H
+#define B2DYNAMICTREE_DAYPZRBBUQHC_H
 
 #include <SFML/Graphics/Rect.hpp>
 
@@ -874,4 +874,4 @@ int32_t DynamicTree<T>::computeHeight() const
 
 } // namespace fck::b2
 
-#endif // B2DYNAMICTREE_H
+#endif // B2DYNAMICTREE_DAYPZRBBUQHC_H

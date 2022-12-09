@@ -1,5 +1,5 @@
-#ifndef TMX_H
-#define TMX_H
+#ifndef TMX_GFHMXPAOLROZ_H
+#define TMX_GFHMXPAOLROZ_H
 
 #include <SFML/Graphics/Rect.hpp>
 #include <SFML/System/InputStream.hpp>
@@ -139,4 +139,4 @@ private:
 };
 } // namespace fck
 
-#endif // TMX_H
+#endif // TMX_GFHMXPAOLROZ_H

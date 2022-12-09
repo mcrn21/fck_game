@@ -1,5 +1,5 @@
-#ifndef SPRITE_H
-#define SPRITE_H
+#ifndef SPRITE_QVMGOXPOZILH_H
+#define SPRITE_QVMGOXPOZILH_H
 
 #include "drawable.h"
 
@@ -48,4 +48,4 @@ private:
 
 } // namespace fck
 
-#endif // SPRITE_H
+#endif // SPRITE_QVMGOXPOZILH_H

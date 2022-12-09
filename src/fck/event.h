@@ -1,5 +1,5 @@
-#ifndef EVENT_H
-#define EVENT_H
+#ifndef EVENT_IODHTGAOXWRM_H
+#define EVENT_IODHTGAOXWRM_H
 
 #include "common.h"
 
@@ -65,4 +65,4 @@ private:
 
 } // namespace fck
 
-#endif // EVENT_H
+#endif // EVENT_IODHTGAOXWRM_H

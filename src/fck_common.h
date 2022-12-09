@@ -1,5 +1,5 @@
-#ifndef FCK_COMMON_H
-#define FCK_COMMON_H
+#ifndef FCKCOMMON_EYDTOGULVZIV_H
+#define FCKCOMMON_EYDTOGULVZIV_H
 
 #include "fck/common.h"
 
@@ -148,4 +148,4 @@ Type fromString(const std::string &string);
 
 } // namespace fck
 
-#endif // FCK_COMMON_H
+#endif // FCKCOMMON_EYDTOGULVZIV_H

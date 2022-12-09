@@ -1,5 +1,5 @@
-#ifndef ENTITY_H
-#define ENTITY_H
+#ifndef ENTITY_IVVPWAPMUTXK_H
+#define ENTITY_IVVPWAPMUTXK_H
 
 #include "component.h"
 #include "id_storage.h"
@@ -86,4 +86,4 @@ bool Entity::hasComponent() const
 
 } // namespace fck
 
-#endif // ENTITY_H
+#endif // ENTITY_IVVPWAPMUTXK_H

@@ -1,5 +1,5 @@
-#ifndef INPUTACTION_H
-#define INPUTACTION_H
+#ifndef INPUTACTION_YWLRTOZTGQHA_H
+#define INPUTACTION_YWLRTOZTGQHA_H
 
 #include <SFML/Window/Keyboard.hpp>
 
@@ -39,4 +39,4 @@ public:
 
 } // namespace fck
 
-#endif // INPUTACTION_H
+#endif // INPUTACTION_YWLRTOZTGQHA_H

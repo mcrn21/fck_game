@@ -1,5 +1,5 @@
-#ifndef SIGSLOT_H
-#define SIGSLOT_H
+#ifndef SIGSLOT_YJRUCYUGXUTI_H
+#define SIGSLOT_YJRUCYUGXUTI_H
 
 #include "id_storage.h"
 
@@ -71,4 +71,4 @@ private:
 
 } // namespace fck
 
-#endif // SIGSLOT_H
+#endif // SIGSLOT_YJRUCYUGXUTI_H1

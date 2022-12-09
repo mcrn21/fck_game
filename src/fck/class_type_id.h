@@ -1,5 +1,5 @@
-#ifndef CLASSTYPEID_H
-#define CLASSTYPEID_H
+#ifndef CLASSTYPEID_UJPWZHTGLAZP_H
+#define CLASSTYPEID_UJPWZHTGLAZP_H
 
 #include <cstdint>
 
@@ -28,4 +28,4 @@ TypeId ClassTypeId<T>::m_next{0};
 
 } // namespace fck
 
-#endif // CLASSTYPEID_H
+#endif // CLASSTYPEID_UJPWZHTGLAZP_H

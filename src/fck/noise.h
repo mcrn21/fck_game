@@ -1,5 +1,5 @@
-#ifndef NOISE_H
-#define NOISE_H
+#ifndef NOISE_YIHYEIOAYKSK_H
+#define NOISE_YIHYEIOAYKSK_H
 
 #include <cstdint>
 #include <vector>
@@ -295,4 +295,4 @@ int32_t fastfloor(float f);
 
 } // namespace fck
 
-#endif // NOISE_H
+#endif // NOISE_YIHYEIOAYKSK_H

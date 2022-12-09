@@ -1,5 +1,5 @@
-#ifndef INPUTACTIONS_H
-#define INPUTACTIONS_H
+#ifndef INPUTACTIONS_GLASEISJUVEL_H
+#define INPUTACTIONS_GLASEISJUVEL_H
 
 #include "event_handler.h"
 #include "input_action.h"
@@ -136,4 +136,4 @@ void InputActionsMap<T>::event(Event *event)
 
 } // namespace fck
 
-#endif // INPUTACTIONS_H
+#endif // INPUTACTIONS_GLASEISJUVEL_H

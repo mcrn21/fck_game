@@ -1,5 +1,5 @@
-#ifndef BASE_GAME_H
-#define BASE_GAME_H
+#ifndef BASEGAME_KQWRMBUNCVJC_H
+#define BASEGAME_KQWRMBUNCVJC_H
 
 #include <imgui-SFML.h>
 #include <imgui.h>
@@ -36,4 +36,4 @@ private:
 
 } // namespace fck
 
-#endif // BASE_GAME_H
+#endif // BASEGAME_KQWRMBUNCVJC_H

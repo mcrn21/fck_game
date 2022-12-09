@@ -8,7 +8,7 @@
 #include "components/components.h"
 #include "damages/damages.h"
 #include "entity_scripts/entity_scripts.h"
-#include "guis/guis.h"
+#include "gui/gui.h"
 #include "skills/skills.h"
 
 #include "fck/clipping.h"
@@ -132,26 +132,26 @@ void FckGame::init()
          },
          [this]() { setState(game_state::LOADING); },
          [this, first_loading_tasks]() {
-             LoadingGui *loading_gui = static_cast<LoadingGui *>(m_gui_list.back().get());
+             gui::LoadingGui *loading_gui = static_cast<gui::LoadingGui *>(m_gui_list.back().get());
              loading_gui->setTotal(first_loading_tasks->tasks().size() - 4);
              loading_gui->increaseProgress();
              loadFonts();
          },
          [this]() {
-             static_cast<LoadingGui *>(m_gui_list.back().get())->increaseProgress();
+             static_cast<gui::LoadingGui *>(m_gui_list.back().get())->increaseProgress();
              loadTextures();
          },
          [this]() {
-             static_cast<LoadingGui *>(m_gui_list.back().get())->increaseProgress();
+             static_cast<gui::LoadingGui *>(m_gui_list.back().get())->increaseProgress();
              loadSounds();
          },
          [this]() {
-             static_cast<LoadingGui *>(m_gui_list.back().get())->increaseProgress();
+             static_cast<gui::LoadingGui *>(m_gui_list.back().get())->increaseProgress();
              auto settings = Settings::global();
              KnowledgeBase::loadDrawablesDirectory(settings->sprites_dir_name);
          },
          [this]() {
-             static_cast<LoadingGui *>(m_gui_list.back().get())->increaseProgress();
+             static_cast<gui::LoadingGui *>(m_gui_list.back().get())->increaseProgress();
              auto settings = Settings::global();
              KnowledgeBase::loadSkillsDirectory(settings->skills_dir_name);
          },
@@ -160,12 +160,12 @@ void FckGame::init()
              KnowledgeBase::loadEntityScriptsDirectory(settings->scripts_dir_name);
          },
          [this]() {
-             static_cast<LoadingGui *>(m_gui_list.back().get())->increaseProgress();
+             static_cast<gui::LoadingGui *>(m_gui_list.back().get())->increaseProgress();
              auto settings = Settings::global();
              KnowledgeBase::loadEntitiesDirectory(settings->entities_dir_name);
          },
          [this]() {
-             static_cast<LoadingGui *>(m_gui_list.back().get())->increaseProgress();
+             static_cast<gui::LoadingGui *>(m_gui_list.back().get())->increaseProgress();
              setupInputActions();
          },
          [this, first_loading_tasks]() {
@@ -216,8 +216,8 @@ void FckGame::update(const sf::Time &elapsed)
         });
 
         m_visible_entities.sort([](const Entity &a, const Entity &b) {
-            DrawableComponent &dca = a.component<DrawableComponent>();
-            DrawableComponent &dcb = b.component<DrawableComponent>();
+            component::Drawable &dca = a.component<component::Drawable>();
+            component::Drawable &dcb = b.component<component::Drawable>();
             return dca.z_order < dcb.z_order;
         });
     }
@@ -231,20 +231,21 @@ void FckGame::draw(const sf::Time &elapsed)
 
     if (m_state == game_state::LEVEL || m_state == game_state::LEVEL_MENU)
     {
-        DrawableComponent *player_drawable_component = nullptr;
+        component::Drawable *player_drawable_component = nullptr;
         std::optional<Entity> player_target_entity;
         if (m_player_entity.isValid())
         {
-            player_drawable_component = &m_player_entity.component<DrawableComponent>();
-            player_target_entity = m_player_entity.component<TargetComponent>().target;
+            player_drawable_component = &m_player_entity.component<component::Drawable>();
+            player_target_entity = m_player_entity.component<component::Target>().target;
         }
 
         for (Entity &entity : m_visible_entities)
         {
-            if (entity.hasComponent<DrawableComponent>())
+            if (entity.hasComponent<component::Drawable>())
             {
-                DrawableComponent &drawable_component = entity.component<DrawableComponent>();
-                TransformComponent &transform_component = entity.component<TransformComponent>();
+                component::Drawable &drawable_component = entity.component<component::Drawable>();
+                component::Transform &transform_component
+                    = entity.component<component::Transform>();
                 bool transparented = false;
 
                 if (player_drawable_component)
@@ -268,9 +269,9 @@ void FckGame::draw(const sf::Time &elapsed)
                 sf::RenderStates render_states;
                 render_states.transform *= transform_component.transform.getTransform();
 
-                if (entity.hasComponent<ShadowComponent>())
+                if (entity.hasComponent<component::Shadow>())
                 {
-                    ShadowComponent &shadow_component = entity.component<ShadowComponent>();
+                    component::Shadow &shadow_component = entity.component<component::Shadow>();
                     m_scene_render_texture.draw(shadow_component.shadow, render_states);
                 }
 
@@ -340,21 +341,23 @@ void FckGame::setState(game_state::State state)
     {
     case game_state::FIRST_LOADING: {
         m_gui_list.clear();
-        m_gui_list.push_back(std::make_unique<SplashscreenGui>(m_render_window_view.getSize()));
+        m_gui_list.push_back(
+            std::make_unique<gui::SplashscreenGui>(m_render_window_view.getSize()));
         break;
     }
     case game_state::LOADING: {
         m_gui_list.clear();
-        m_gui_list.push_back(std::make_unique<LoadingGui>(m_render_window_view.getSize()));
+        m_gui_list.push_back(std::make_unique<gui::LoadingGui>(m_render_window_view.getSize()));
 
         break;
     }
     case game_state::MAIN_MENU: {
         m_gui_list.clear();
-        MainMenuGui *main_menu_gui = new MainMenuGui(m_render_window_view.getSize());
-        m_gui_list.push_back(std::unique_ptr<MainMenuGui>(main_menu_gui));
+        gui::MainMenuGui *main_menu_gui = new gui::MainMenuGui(m_render_window_view.getSize());
+        m_gui_list.push_back(std::unique_ptr<gui::MainMenuGui>(main_menu_gui));
 
-        m_input_actions.action_activated.connect(main_menu_gui, &MainMenuGui::onActionActivated);
+        m_input_actions.action_activated.connect(
+            main_menu_gui, &gui::MainMenuGui::onActionActivated);
 
         break;
     }
@@ -363,8 +366,9 @@ void FckGame::setState(game_state::State state)
 
         if (old_state != game_state::LEVEL_MENU)
         {
-            LevelGui *level_gui = new LevelGui(m_render_window_view.getSize(), m_player_entity);
-            m_gui_list.push_back(std::unique_ptr<LevelGui>(level_gui));
+            gui::LevelGui *level_gui
+                = new gui::LevelGui(m_render_window_view.getSize(), m_player_entity);
+            m_gui_list.push_back(std::unique_ptr<gui::LevelGui>(level_gui));
         }
 
         m_input_actions.action_activated.connect(this, &FckGame::onActionActivated);
@@ -373,10 +377,12 @@ void FckGame::setState(game_state::State state)
         break;
     }
     case game_state::LEVEL_MENU: {
-        MainMenuGui *main_menu_gui = new MainMenuGui(m_render_window_view.getSize(), true);
-        m_gui_list.push_back(std::unique_ptr<MainMenuGui>(main_menu_gui));
+        gui::MainMenuGui *main_menu_gui
+            = new gui::MainMenuGui(m_render_window_view.getSize(), true);
+        m_gui_list.push_back(std::unique_ptr<gui::MainMenuGui>(main_menu_gui));
 
-        m_input_actions.action_activated.connect(main_menu_gui, &MainMenuGui::onActionActivated);
+        m_input_actions.action_activated.connect(
+            main_menu_gui, &gui::MainMenuGui::onActionActivated);
 
         break;
     }
@@ -560,12 +566,12 @@ void FckGame::newGame()
          [this]() {
              m_player_entity = KnowledgeBase::createPlayer(
                  "kyoshi", &m_world); //m_entity_db.createPlayer(&m_world);
-             m_player_entity.component<TransformComponent>().transform.setPosition(
+             m_player_entity.component<component::Transform>().transform.setPosition(
                  {200.0f, 200.0f});
 
-             ScriptComponent &player_entity_script_component
-                 = m_player_entity.addComponent<ScriptComponent>();
-             player_entity_script_component.entity_script.reset(new PlayerScript());
+             component::Script &player_entity_script_component
+                 = m_player_entity.addComponent<component::Script>();
+             player_entity_script_component.entity_script.reset(new entity_script::Player());
 
              entityMove(m_player_entity, sf::Vector2f{});
 
@@ -573,7 +579,7 @@ void FckGame::newGame()
          },
          [this]() { setState(game_state::LEVEL); },
          [this, loading_new_game_tasks]() {
-             LevelGui *level_gui = static_cast<LevelGui *>(m_gui_list.back().get());
+             gui::LevelGui *level_gui = static_cast<gui::LevelGui *>(m_gui_list.back().get());
              level_gui->updateRoomsMap(m_level->roomsMap(), m_level->currentRoomCoord());
              loading_new_game_tasks->deleteLater();
          }});
@@ -636,9 +642,9 @@ void FckGame::onActionActivated(keyboard_action::Action action)
 
 void FckGame::onWorldEntityEnabled(const Entity &entity)
 {
-    if (entity.hasComponent<ScriptComponent>())
+    if (entity.hasComponent<component::Script>())
     {
-        ScriptComponent &script_component = entity.component<ScriptComponent>();
+        component::Script &script_component = entity.component<component::Script>();
         if (script_component.entity_script)
             script_component.entity_script->onEntityEnabled(entity);
     }
@@ -646,9 +652,9 @@ void FckGame::onWorldEntityEnabled(const Entity &entity)
 
 void FckGame::onWorldEntityDisabled(const Entity &entity)
 {
-    if (entity.hasComponent<ScriptComponent>())
+    if (entity.hasComponent<component::Script>())
     {
-        ScriptComponent &script_component = entity.component<ScriptComponent>();
+        component::Script &script_component = entity.component<component::Script>();
         if (script_component.entity_script)
             script_component.entity_script->onEntityDisabled(entity);
     }
@@ -656,9 +662,9 @@ void FckGame::onWorldEntityDisabled(const Entity &entity)
 
 void FckGame::onWorldEntityDestroyed(const Entity &entity)
 {
-    if (entity.hasComponent<ScriptComponent>())
+    if (entity.hasComponent<component::Script>())
     {
-        ScriptComponent &script_component = entity.component<ScriptComponent>();
+        component::Script &script_component = entity.component<component::Script>();
         if (script_component.entity_script)
             script_component.entity_script->onEntityDestroyed(entity);
     }
@@ -666,7 +672,7 @@ void FckGame::onWorldEntityDestroyed(const Entity &entity)
 
 void FckGame::entityMove(const Entity &entity, const sf::Vector2f &offset)
 {
-    TransformComponent &transform_component = entity.component<TransformComponent>();
+    component::Transform &transform_component = entity.component<component::Transform>();
     transform_component.transform.move(offset);
 
     if (!transform_component.children.empty())
@@ -676,7 +682,8 @@ void FckGame::entityMove(const Entity &entity, const sf::Vector2f &offset)
         {
             if (it->isValid())
             {
-                TransformComponent &child_transform_component = it->component<TransformComponent>();
+                component::Transform &child_transform_component
+                    = it->component<component::Transform>();
                 entitySetPosition(*it, transform_component.transform.getPosition());
                 ++it;
             }
@@ -687,40 +694,40 @@ void FckGame::entityMove(const Entity &entity, const sf::Vector2f &offset)
         }
     }
 
-    if (entity.hasComponent<SceneComponent>())
+    if (entity.hasComponent<component::Scene>())
         m_scene_system.moveEntity(entity, offset);
 
-    if (entity.hasComponent<DrawableComponent>())
+    if (entity.hasComponent<component::Drawable>())
         m_render_system.moveEntity(entity, offset);
 
-    if (entity.hasComponent<ScriptComponent>())
+    if (entity.hasComponent<component::Script>())
     {
-        ScriptComponent &script_component = entity.component<ScriptComponent>();
+        component::Script &script_component = entity.component<component::Script>();
         if (script_component.entity_script)
             script_component.entity_script->onEntityMoved(entity, offset);
     }
 
-    if (entity.hasComponent<LookAroundComponent>())
+    if (entity.hasComponent<component::LookAround>())
         m_look_around_system.updateBounds(entity);
 }
 
 void FckGame::entitySetPosition(const Entity &entity, const sf::Vector2f &position)
 {
-    TransformComponent &transform_component = entity.component<TransformComponent>();
+    component::Transform &transform_component = entity.component<component::Transform>();
     entityMove(entity, position - transform_component.transform.getPosition());
 }
 
 void FckGame::entitySetParent(const Entity &entity, const Entity &parent)
 {
-    TransformComponent &transform_component = entity.component<TransformComponent>();
+    component::Transform &transform_component = entity.component<component::Transform>();
 
     if (transform_component.parent == parent)
         return;
 
     if (transform_component.parent.isValid())
     {
-        TransformComponent &parent_transform_component
-            = transform_component.parent.component<TransformComponent>();
+        component::Transform &parent_transform_component
+            = transform_component.parent.component<component::Transform>();
 
         parent_transform_component.children.erase(
             std::remove(
@@ -734,8 +741,8 @@ void FckGame::entitySetParent(const Entity &entity, const Entity &parent)
 
     if (transform_component.parent.isValid())
     {
-        TransformComponent &parent_transform_component
-            = transform_component.parent.component<TransformComponent>();
+        component::Transform &parent_transform_component
+            = transform_component.parent.component<component::Transform>();
         parent_transform_component.children.push_back(entity);
         entity::set_position.emit(entity, parent_transform_component.transform.getPosition());
     }
@@ -743,7 +750,7 @@ void FckGame::entitySetParent(const Entity &entity, const Entity &parent)
 
 void FckGame::entitySetState(const Entity &entity, entity_state::State state)
 {
-    StateComponent &state_component = entity.component<StateComponent>();
+    component::State &state_component = entity.component<component::State>();
 
     if (state_component.state == state)
         return;
@@ -751,27 +758,27 @@ void FckGame::entitySetState(const Entity &entity, entity_state::State state)
     state_component.state = state;
     std::string state_string = entity_state::stateToString(state_component.state);
 
-    if (state_component.state == entity_state::DEATH && entity.hasComponent<VelocityComponent>())
+    if (state_component.state == entity_state::DEATH && entity.hasComponent<component::Velocity>())
     {
-        VelocityComponent &velocity_component = entity.component<VelocityComponent>();
+        component::Velocity &velocity_component = entity.component<component::Velocity>();
         velocity_component.velocity = {};
     }
 
-    if (entity.hasComponent<DrawableAnimationComponent>())
+    if (entity.hasComponent<component::DrawableAnimation>())
     {
-        DrawableAnimationComponent &drawable_animation_component
-            = entity.component<DrawableAnimationComponent>();
+        component::DrawableAnimation &drawable_animation_component
+            = entity.component<component::DrawableAnimation>();
 
-        if (drawable_animation_component.drawable_animation)
+        if (drawable_animation_component.animation)
         {
-            drawable_animation_component.drawable_animation->setCurrentState(state_string);
-            drawable_animation_component.drawable_animation->start();
+            drawable_animation_component.animation->setCurrentState(state_string);
+            drawable_animation_component.animation->start();
         }
     }
 
-    if (entity.hasComponent<SoundComponent>())
+    if (entity.hasComponent<component::Sound>())
     {
-        SoundComponent &sound_component = entity.component<SoundComponent>();
+        component::Sound &sound_component = entity.component<component::Sound>();
 
         if (state_component.state == entity_state::MOVE)
         {
@@ -783,9 +790,9 @@ void FckGame::entitySetState(const Entity &entity, entity_state::State state)
         }
     }
 
-    if (entity.hasComponent<ScriptComponent>())
+    if (entity.hasComponent<component::Script>())
     {
-        ScriptComponent &script_component = entity.component<ScriptComponent>();
+        component::Script &script_component = entity.component<component::Script>();
         if (script_component.entity_script)
             script_component.entity_script->onEntityStateChanged(entity, state);
     }
@@ -793,28 +800,28 @@ void FckGame::entitySetState(const Entity &entity, entity_state::State state)
 
 void FckGame::entitySetDirection(const Entity &entity, entity_state::Direction direction)
 {
-    StateComponent &state_component = entity.component<StateComponent>();
+    component::State &state_component = entity.component<component::State>();
 
     if (state_component.direction == direction)
         return;
 
     state_component.direction = direction;
 
-    if (entity.hasComponent<TransformComponent>())
+    if (entity.hasComponent<component::Transform>())
     {
-        TransformComponent &transform_component = entity.component<TransformComponent>();
+        component::Transform &transform_component = entity.component<component::Transform>();
         transform_component.transform.setScale(
             {float(state_component.direction)
                  * std::abs(transform_component.transform.getScale().x),
              transform_component.transform.getScale().y});
     }
 
-    if (entity.hasComponent<LookAroundComponent>())
+    if (entity.hasComponent<component::LookAround>())
         m_look_around_system.updateBounds(entity);
 
-    if (entity.hasComponent<ScriptComponent>())
+    if (entity.hasComponent<component::Script>())
     {
-        ScriptComponent &script_component = entity.component<ScriptComponent>();
+        component::Script &script_component = entity.component<component::Script>();
         if (script_component.entity_script)
             script_component.entity_script->onEntityDirectionChanged(entity, direction);
     }
@@ -822,7 +829,7 @@ void FckGame::entitySetDirection(const Entity &entity, entity_state::Direction d
 
 void FckGame::entitySetTarget(const Entity &entity, const Entity &target)
 {
-    TargetComponent &target_component = entity.component<TargetComponent>();
+    component::Target &target_component = entity.component<component::Target>();
 
     if (target_component.target == target)
         return;
@@ -832,7 +839,7 @@ void FckGame::entitySetTarget(const Entity &entity, const Entity &target)
 
     if (old_target.isValid())
     {
-        TargetComponent &old_target_target_component = old_target.component<TargetComponent>();
+        component::Target &old_target_target_component = old_target.component<component::Target>();
 
         old_target_target_component.lookings.erase(
             std::remove(
@@ -844,8 +851,8 @@ void FckGame::entitySetTarget(const Entity &entity, const Entity &target)
 
     if (target_component.target.isValid())
     {
-        TargetComponent &target_target_component
-            = target_component.target.component<TargetComponent>();
+        component::Target &target_target_component
+            = target_component.target.component<component::Target>();
         target_target_component.lookings.push_back(entity);
     }
 
@@ -863,14 +870,14 @@ void FckGame::entitySetTarget(const Entity &entity, const Entity &target)
     // Update target stats gui
     if (entity == m_player_entity && m_state == game_state::LEVEL)
     {
-        LevelGui *level_gui = static_cast<LevelGui *>(m_gui_list.back().get());
+        gui::LevelGui *level_gui = static_cast<gui::LevelGui *>(m_gui_list.back().get());
         level_gui->updateTargetStats();
     }
 }
 
 void FckGame::entitySetMarker(const Entity &entity, const Entity &marker)
 {
-    MarkerComponent &marker_component = entity.component<MarkerComponent>();
+    component::Marker &marker_component = entity.component<component::Marker>();
 
     if (marker_component.marker == marker)
         return;
@@ -890,7 +897,7 @@ void FckGame::entitySetMarker(const Entity &entity, const Entity &marker)
 
 void FckGame::entitySetHealth(const Entity &entity, float health)
 {
-    StatsComponent &stats_component = entity.component<StatsComponent>();
+    component::Stats &stats_component = entity.component<component::Stats>();
 
     stats_component.health = health;
 
@@ -907,12 +914,12 @@ void FckGame::entitySetHealth(const Entity &entity, float health)
         {
             if (entity == m_player_entity)
             {
-                LevelGui *level_gui = static_cast<LevelGui *>(m_gui_list.back().get());
+                gui::LevelGui *level_gui = static_cast<gui::LevelGui *>(m_gui_list.back().get());
                 level_gui->updatePlayerStats();
             }
-            else if (entity == m_player_entity.component<TargetComponent>().target)
+            else if (entity == m_player_entity.component<component::Target>().target)
             {
-                LevelGui *level_gui = static_cast<LevelGui *>(m_gui_list.back().get());
+                gui::LevelGui *level_gui = static_cast<gui::LevelGui *>(m_gui_list.back().get());
                 level_gui->updateTargetStats();
             }
         }
@@ -921,7 +928,7 @@ void FckGame::entitySetHealth(const Entity &entity, float health)
 
 void FckGame::entitySetArmor(const Entity &entity, float armor)
 {
-    StatsComponent &stats_component = entity.component<StatsComponent>();
+    component::Stats &stats_component = entity.component<component::Stats>();
 
     stats_component.armor = armor;
 
@@ -938,12 +945,12 @@ void FckGame::entitySetArmor(const Entity &entity, float armor)
         {
             if (entity == m_player_entity)
             {
-                LevelGui *level_gui = static_cast<LevelGui *>(m_gui_list.back().get());
+                gui::LevelGui *level_gui = static_cast<gui::LevelGui *>(m_gui_list.back().get());
                 level_gui->updatePlayerStats();
             }
-            else if (entity == m_player_entity.component<TargetComponent>().target)
+            else if (entity == m_player_entity.component<component::Target>().target)
             {
-                LevelGui *level_gui = static_cast<LevelGui *>(m_gui_list.back().get());
+                gui::LevelGui *level_gui = static_cast<gui::LevelGui *>(m_gui_list.back().get());
                 level_gui->updateTargetStats();
             }
         }
@@ -952,13 +959,13 @@ void FckGame::entitySetArmor(const Entity &entity, float armor)
 
 void FckGame::entityDestroy(const Entity &entity)
 {
-    if (entity.hasComponent<TransformComponent>())
+    if (entity.hasComponent<component::Transform>())
         entitySetParent(entity, Entity{});
 
-    if (entity.hasComponent<TargetComponent>())
+    if (entity.hasComponent<component::Target>())
         entitySetTarget(entity, Entity{});
 
-    if (entity.hasComponent<MarkerComponent>())
+    if (entity.hasComponent<component::Marker>())
         entitySetMarker(entity, Entity{});
 
     m_world.destroyEntity(entity);
@@ -966,16 +973,16 @@ void FckGame::entityDestroy(const Entity &entity)
 
 void FckGame::entityCollided(const Entity &entity, const Entity &other)
 {
-    if (entity.hasComponent<ScriptComponent>())
+    if (entity.hasComponent<component::Script>())
     {
-        ScriptComponent &script_component = entity.component<ScriptComponent>();
+        component::Script &script_component = entity.component<component::Script>();
         if (script_component.entity_script)
             script_component.entity_script->onEntityCollided(entity, other);
     }
 
-    if (other.hasComponent<ScriptComponent>())
+    if (other.hasComponent<component::Script>())
     {
-        ScriptComponent &script_component = other.component<ScriptComponent>();
+        component::Script &script_component = other.component<component::Script>();
         if (script_component.entity_script)
             script_component.entity_script->onEntityCollided(other, entity);
     }
@@ -985,7 +992,7 @@ void FckGame::onLevelRoomOpened(const sf::Vector2i &room_coord)
 {
     if (m_state == game_state::LEVEL)
     {
-        LevelGui *level_gui = static_cast<LevelGui *>(m_gui_list.back().get());
+        gui::LevelGui *level_gui = static_cast<gui::LevelGui *>(m_gui_list.back().get());
         level_gui->updateRoomOpened(m_level->roomsMap(), room_coord);
     }
 }
@@ -994,7 +1001,7 @@ void FckGame::onLevelRoomEnabled(const sf::Vector2i &room_coord)
 {
     if (m_state == game_state::LEVEL)
     {
-        LevelGui *level_gui = static_cast<LevelGui *>(m_gui_list.back().get());
+        gui::LevelGui *level_gui = static_cast<gui::LevelGui *>(m_gui_list.back().get());
         level_gui->updateCurrentRoomCoord(room_coord);
     }
 }

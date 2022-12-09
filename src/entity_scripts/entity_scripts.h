@@ -1,9 +1,8 @@
-#ifndef ENTITY_SCRIPTS_H
-#define ENTITY_SCRIPTS_H
+#ifndef ENTITY_SCRIPTS_NXEAWHUEDHVR_H
+#define ENTITY_SCRIPTS_NXEAWHUEDHVR_H
 
-#include "enemy_script_base.h"
-#include "kyoshi_script.h"
-#include "player_script.h"
-#include "room_transition_script.h"
+#include "enemy_base.h"
+#include "player.h"
+#include "room_transition.h"
 
-#endif // ENTITY_SCRIPTS_H
+#endif // ENTITY_SCRIPTS_NXEAWHUEDHVR_H

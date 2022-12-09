@@ -1,5 +1,5 @@
-#ifndef IDSTORAGE_H
-#define IDSTORAGE_H
+#ifndef IDSTORAGE_QANJPHGWHNHN_H
+#define IDSTORAGE_QANJPHGWHNHN_H
 
 #include <spdlog/spdlog.h>
 
@@ -115,4 +115,4 @@ struct hash<::fck::Id>
 
 } // namespace std
 
-#endif // IDSTORAGE_H
+#endif // IDSTORAGE_QANJPHGWHNHN_H

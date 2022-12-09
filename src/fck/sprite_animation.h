@@ -1,5 +1,5 @@
-#ifndef SPRITEANIMATION_H
-#define SPRITEANIMATION_H
+#ifndef SPRITEANIMATION_LMXLBFHBSOLK_H
+#define SPRITEANIMATION_LMXLBFHBSOLK_H
 
 #include "drawable_animation.h"
 #include "sprite.h"
@@ -63,4 +63,4 @@ private:
 
 } // namespace fck
 
-#endif // SPRITEANIMATION_H
+#endif // SPRITEANIMATION_LMXLBFHBSOLK_H

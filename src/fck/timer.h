@@ -1,5 +1,5 @@
-#ifndef TIMER_H
-#define TIMER_H
+#ifndef TIMER_YDRHJQXBRNGG_H
+#define TIMER_YDRHJQXBRNGG_H
 
 #include <SFML/System/Time.hpp>
 
@@ -40,4 +40,4 @@ private:
 
 } // namespace fck
 
-#endif // TIMER_H
+#endif // TIMER_YDRHJQXBRNGG_H

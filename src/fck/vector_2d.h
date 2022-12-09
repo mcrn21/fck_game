@@ -1,5 +1,5 @@
-#ifndef VECTOR_2D_H
-#define VECTOR_2D_H
+#ifndef VECTOR2D_XNCEXRZOGQYL_H
+#define VECTOR2D_XNCEXRZOGQYL_H
 
 #include <SFML/System/Vector2.hpp>
 
@@ -82,4 +82,4 @@ private:
 
 } // namespace fck
 
-#endif // VECTOR_2D_H
+#endif // VECTOR2D_XNCEXRZOGQYL_H

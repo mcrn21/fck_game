@@ -1,5 +1,5 @@
-#ifndef COMPONENT_H
-#define COMPONENT_H
+#ifndef COMPONENT_VRNBCMXRKQFI_H
+#define COMPONENT_VRNBCMXRKQFI_H
 
 #include "class_type_id.h"
 
@@ -57,4 +57,4 @@ ComponentsFilter ComponentsFilter::create()
 
 } // namespace fck
 
-#endif // COMPONENT_H
+#endif // COMPONENT_VRNBCMXRKQFI_H

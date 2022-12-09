@@ -1,5 +1,5 @@
-#ifndef FCKGAME_H
-#define FCKGAME_H
+#ifndef FCKGAME_LHJLOJYRDNWT_H
+#define FCKGAME_LHJLOJYRDNWT_H
 
 #include "fck_common.h"
 #include "gui_base.h"
@@ -114,23 +114,23 @@ private:
     std::unique_ptr<Level> m_level;
     Entity m_player_entity;
 
-    RenderSystem m_render_system;
-    PlayerActionsSystem m_player_actions_system;
-    MovementSystem m_movement_system;
-    ViewMovementSystem m_view_movement_system;
-    DrawableAnimationSystem m_drawable_animation_system;
-    CollisionSystem m_collision_system;
-    SceneSystem m_scene_system;
-    ScriptSystem m_script_system;
-    TargetFollowSystem m_target_follow_system;
-    LookAroundSystem m_look_around_system;
-    StatsSystem m_stats_system;
-    SkillsSystem m_skills_system;
-    DamageSystem m_damage_sysytem;
+    system::Render m_render_system;
+    system::PlayerActions m_player_actions_system;
+    system::Movement m_movement_system;
+    system::ViewMovement m_view_movement_system;
+    system::DrawableAnimation m_drawable_animation_system;
+    system::Collision m_collision_system;
+    system::Scene m_scene_system;
+    system::Script m_script_system;
+    system::TargetFollow m_target_follow_system;
+    system::LookAround m_look_around_system;
+    system::Stats m_stats_system;
+    system::Skills m_skills_system;
+    system::Damage m_damage_sysytem;
 
     bool m_render_debug;
 };
 
 } // namespace fck
 
-#endif // FCKGAME_H
+#endif // FCKGAME_LHJLOJYRDNWT_H

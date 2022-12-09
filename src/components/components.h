@@ -1,24 +1,24 @@
-#ifndef COMPONENTS_H
-#define COMPONENTS_H
+#ifndef COMPONENTS_QCNBORXCAKAM_H
+#define COMPONENTS_QCNBORXCAKAM_H
 
-#include "collision_component.h"
-#include "damage_component.h"
-#include "drawable_animation_component.h"
-#include "drawable_component.h"
-#include "look_around_component.h"
-#include "marker_component.h"
-#include "player_component.h"
-#include "scene_component.h"
-#include "script_component.h"
-#include "shadow_component.h"
-#include "skills_component.h"
-#include "sound_component.h"
-#include "state_component.h"
-#include "stats_component.h"
-#include "target_component.h"
-#include "target_follow_component.h"
-#include "transform_component.h"
-#include "type_component.h"
-#include "velocity_component.h"
+#include "collision.h"
+#include "damage.h"
+#include "drawable.h"
+#include "drawable_animation.h"
+#include "look_around.h"
+#include "marker.h"
+#include "player.h"
+#include "scene.h"
+#include "script.h"
+#include "shadow.h"
+#include "skills.h"
+#include "sound.h"
+#include "state.h"
+#include "stats.h"
+#include "target.h"
+#include "target_follow.h"
+#include "transform.h"
+#include "type.h"
+#include "velocity.h"
 
-#endif // COMPONENTS_H
+#endif // COMPONENTS_QCNBORXCAKAM_H

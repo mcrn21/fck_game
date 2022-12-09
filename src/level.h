@@ -1,5 +1,5 @@
-#ifndef LEVEL_H
-#define LEVEL_H
+#ifndef LEVEL_ZKKSOSIXHXVE_H
+#define LEVEL_ZKKSOSIXHXVE_H
 
 #include "fck/a_star.h"
 #include "fck/b2_dynamic_tree.h"
@@ -116,4 +116,4 @@ private:
 
 } // namespace fck
 
-#endif // LEVEL_H
+#endif // LEVEL_ZKKSOSIXHXVE_H

@@ -1,5 +1,5 @@
-#ifndef COMPONENTSTORAGE_H
-#define COMPONENTSTORAGE_H
+#ifndef COMPONENTSTORAGE_PLZCNBTEUGYS_H
+#define COMPONENTSTORAGE_PLZCNBTEUGYS_H
 
 #include "component.h"
 #include "entity.h"
@@ -58,4 +58,4 @@ private:
 
 } // namespace fck
 
-#endif // COMPONENTSTORAGE_H
+#endif // COMPONENTSTORAGE_PLZCNBTEUGYS_H

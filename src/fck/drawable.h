@@ -1,5 +1,5 @@
-#ifndef DRAWABLE_H
-#define DRAWABLE_H
+#ifndef DRAWABLE_FIVYUHNDIKNR_H
+#define DRAWABLE_FIVYUHNDIKNR_H
 
 #include "common.h"
 
@@ -25,4 +25,4 @@ public:
 
 } // namespace fck
 
-#endif // DRAWABLE_H
+#endif // DRAWABLE_FIVYUHNDIKNR_H

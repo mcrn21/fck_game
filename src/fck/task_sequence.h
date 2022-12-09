@@ -1,5 +1,5 @@
-#ifndef TASKSEQUENCE_H
-#define TASKSEQUENCE_H
+#ifndef TASKSEQUENCE_CGQHJSRTWYFM_H
+#define TASKSEQUENCE_CGQHJSRTWYFM_H
 
 #include "common.h"
 #include "event_handler.h"
@@ -34,4 +34,4 @@ private:
 
 } // namespace fck
 
-#endif // TASKSEQUENCE_H
+#endif // TASKSEQUENCE_CGQHJSRTWYFM_H

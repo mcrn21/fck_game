@@ -1,5 +1,5 @@
-#ifndef DRAWABLEANIMATION_H
-#define DRAWABLEANIMATION_H
+#ifndef DRAWABLEANIMATION_VGVIBFQLTYYQ_H
+#define DRAWABLEANIMATION_VGVIBFQLTYYQ_H
 
 #include "common.h"
 
@@ -28,4 +28,4 @@ public:
 
 } // namespace fck
 
-#endif // DRAWABLEANIMATION_H
+#endif // DRAWABLEANIMATION_VGVIBFQLTYYQ_H

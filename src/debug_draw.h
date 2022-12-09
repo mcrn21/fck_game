@@ -1,5 +1,5 @@
-#ifndef DEBUGDRAW_H
-#define DEBUGDRAW_H
+#ifndef DEBUGDRAW_QZSBRIQHICVO_H
+#define DEBUGDRAW_QZSBRIQHICVO_H
 
 #include "fck/entity.h"
 
@@ -57,4 +57,4 @@ void drawLookAroundLookBound(
 
 } // namespace fck::debug_draw
 
-#endif // DEBUGDRAW_H
+#endif // DEBUGDRAW_QZSBRIQHICVO_H

@@ -1,5 +1,5 @@
-#ifndef A_STAR_H
-#define A_STAR_H
+#ifndef A_STAR_FTXEOUQWCTXW_H
+#define A_STAR_FTXEOUQWCTXW_H
 
 #include "grid.h"
 
@@ -66,4 +66,4 @@ private:
 
 } // namespace fck
 
-#endif // A_STAR_H
+#endif // A_STAR_FTXEOUQWCTXW_H

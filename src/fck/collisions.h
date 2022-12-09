@@ -1,5 +1,5 @@
-#ifndef COLLISIONS_H
-#define COLLISIONS_H
+#ifndef COLLISIONS_DJNNLQSSJOWH_H
+#define COLLISIONS_DJNNLQSSJOWH_H
 
 #include "SFML/Graphics/Rect.hpp"
 #include "SFML/System/Vector2.hpp"
@@ -42,4 +42,4 @@ struct AABB
 
 } // namespace fck::collisions
 
-#endif // COLLISIONS_H
+#endif // COLLISIONS_DJNNLQSSJOWH_H

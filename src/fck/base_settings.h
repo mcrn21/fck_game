@@ -1,5 +1,5 @@
-#ifndef BASE_SETTINGS_H
-#define BASE_SETTINGS_H
+#ifndef BASESETTINGS_DGSVWIEYDMLH_H
+#define BASESETTINGS_DGSVWIEYDMLH_H
 
 #include <memory>
 #include <string>
@@ -58,4 +58,4 @@ private:
 
 } // namespace fck
 
-#endif // BASE_SETTINGS_H
+#endif // BASESETTINGS_DGSVWIEYDMLH_H

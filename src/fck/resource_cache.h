@@ -1,5 +1,5 @@
-#ifndef RESOURCECACHE_H
-#define RESOURCECACHE_H
+#ifndef RESOURCECACHE_OESCAHAQDXNW_H
+#define RESOURCECACHE_OESCAHAQDXNW_H
 
 #include <spdlog/spdlog.h>
 
@@ -101,7 +101,7 @@ T *ResourceCache::loadFromFile(const std::string &resource_name, Args &&...args)
     Cache<T> *c = instance().cache<T>();
     c->data.emplace(resource_name, std::move(res));
 
-    spdlog::debug("Load resource: \"{0}\"", resource_name);
+    spdlog::info("Load resource: \"{0}\"", resource_name);
 
     return res_ptr;
 }
@@ -121,7 +121,7 @@ T *ResourceCache::loadFromMemory(const std::string &resource_name, Args &&...arg
     Cache<T> *c = instance().cache<T>();
     c->data.emplace(resource_name, std::move(res));
 
-    spdlog::debug("Load resource: \"{0}\"", resource_name);
+    spdlog::info("Load resource: \"{0}\"", resource_name);
 
     return res_ptr;
 }
@@ -141,7 +141,7 @@ T *ResourceCache::loadFromStream(const std::string &resource_name, Args &&...arg
     Cache<T> *c = instance().cache<T>();
     c->data.emplace(resource_name, std::move(res));
 
-    spdlog::debug("Load resource: \"{0\"}", resource_name);
+    spdlog::info("Load resource: \"{0\"}", resource_name);
 
     return res_ptr;
 }
@@ -166,4 +166,4 @@ ResourceCache::Cache<T> *ResourceCache::cache(bool need_create)
 
 } // namespace fck
 
-#endif // RESOURCECACHE_H
+#endif // RESOURCECACHE_OESCAHAQDXNW_H

@@ -1,5 +1,5 @@
-#ifndef WORLD_H
-#define WORLD_H
+#ifndef WORLD_SJTWXYDCLHBB_H
+#define WORLD_SJTWXYDCLHBB_H
 
 #include "component_storage.h"
 #include "entity.h"
@@ -169,4 +169,4 @@ bool World::systemExist(const T &system) const
 
 } // namespace fck
 
-#endif // WORLD_H
+#endif // WORLD_SJTWXYDCLHBB_H

@@ -1,5 +1,5 @@
-#ifndef CLIPPING_H
-#define CLIPPING_H
+#ifndef CLIPPING_FKCVFHPECNXT_H
+#define CLIPPING_FKCVFHPECNXT_H
 
 #include <SFML/Graphics.hpp>
 
@@ -30,4 +30,4 @@ private:
 
 } // namespace fck
 
-#endif // CLIPPING_H
+#endif // CLIPPING_FKCVFHPECNXT_H

@@ -1,5 +1,5 @@
-#ifndef GUIBASE_H
-#define GUIBASE_H
+#ifndef GUIBASE_RMDPTERCJQWN_H
+#define GUIBASE_RMDPTERCJQWN_H
 
 #include "fck_common.h"
 
@@ -27,4 +27,4 @@ public:
 
 } // namespace fck
 
-#endif // GUIBASE_H
+#endif // GUIBASE_RMDPTERCJQWN_H

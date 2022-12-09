@@ -1,5 +1,5 @@
-#ifndef SETTINGS_H
-#define SETTINGS_H
+#ifndef SETTINGS_YSZGPDCGTBNI_H
+#define SETTINGS_YSZGPDCGTBNI_H
 
 #include "fck/base_settings.h"
 
@@ -38,4 +38,4 @@ public:
 
 } // namespace fck
 
-#endif // SETTINGS_H
+#endif // SETTINGS_YSZGPDCGTBNI_H

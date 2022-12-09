@@ -1,5 +1,5 @@
-#ifndef TILEMAP_H
-#define TILEMAP_H
+#ifndef TILEMAP_MJXAZIMCABMI_H
+#define TILEMAP_MJXAZIMCABMI_H
 
 #include "drawable.h"
 #include "tmx.h"
@@ -19,7 +19,8 @@ class ResourceCache;
 class TileMap : public Drawable
 {
 public:
-    static TileMap *createFromTmx(Tmx *tmx, const std::string &layer_name, const std::string &group_name = std::string());
+    static TileMap *createFromTmx(
+        Tmx *tmx, const std::string &layer_name, const std::string &group_name = std::string());
 
     static std::vector<TileMap *> createFromTmx(Tmx *tmx, int32_t layer_id = -1);
 
@@ -70,4 +71,4 @@ private:
 
 } // namespace fck
 
-#endif // TILEMAP_H
+#endif // TILEMAP_MJXAZIMCABMI_H

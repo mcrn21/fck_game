@@ -1,18 +1,18 @@
-#ifndef SYSTEMS_H
-#define SYSTEMS_H
+#ifndef SYSTEMS_XXUMQMOBDUCG_H
+#define SYSTEMS_XXUMQMOBDUCG_H
 
-#include "collision_system.h"
-#include "damage_system.h"
-#include "drawable_animation_system.h"
-#include "look_around_system.h"
-#include "movement_system.h"
-#include "player_actions_system.h"
-#include "render_system.h"
-#include "scene_system.h"
-#include "script_system.h"
-#include "skills_system.h"
-#include "stats_system.h"
-#include "target_follow_system.h"
-#include "view_movement_system.h"
+#include "collision.h"
+#include "damage.h"
+#include "drawable_animation.h"
+#include "look_around.h"
+#include "movement.h"
+#include "player_actions.h"
+#include "render.h"
+#include "scene.h"
+#include "script.h"
+#include "skills.h"
+#include "stats.h"
+#include "target_follow.h"
+#include "view_movement.h"
 
-#endif // SYSTEMS_H
+#endif // SYSTEMS_XXUMQMOBDUCG_H

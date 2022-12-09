@@ -1,5 +1,5 @@
-#ifndef ENTITYSCRIPTBASE_H
-#define ENTITYSCRIPTBASE_H
+#ifndef ENTITYSCRIPTBASE_UUTWRWOLVHFO_H
+#define ENTITYSCRIPTBASE_UUTWRWOLVHFO_H
 
 #include "fck_common.h"
 
@@ -37,4 +37,4 @@ public:
 
 } // namespace fck
 
-#endif // ENTITYSCRIPTBASE_H
+#endif // ENTITYSCRIPTBASE_UUTWRWOLVHFO_H

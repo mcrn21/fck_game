@@ -222,14 +222,16 @@ void Level::generateRoomsContent()
             {
                 Entity entity = m_world->createEntity();
 
-                TransformComponent &transform_component = entity.addComponent<TransformComponent>();
+                component::Transform &transform_component
+                    = entity.addComponent<component::Transform>();
 
-                SceneComponent &scene_component = entity.addComponent<SceneComponent>();
+                component::Scene &scene_component = entity.addComponent<component::Scene>();
                 scene_component.local_bounds
                     = {{0.0f, 0.0f},
                        sf::Vector2f{vector2::mult(m_level_tmx->size(), m_level_tmx->tileSize())}};
 
-                DrawableComponent &drawable_component = entity.addComponent<DrawableComponent>();
+                component::Drawable &drawable_component
+                    = entity.addComponent<component::Drawable>();
                 TileMap *tile_map
                     = TileMap::createFromTmx(m_level_tmx.get(), m_level_tmx->layers()[j].name);
                 drawable_component.drawable.reset(tile_map);
@@ -294,7 +296,7 @@ void Level::enableRoom(const sf::Vector2i &coord, const sf::Vector2f &target_pos
         m_scene_tree->querry(bounds, [this](int32_t proxy_id) {
             Entity entity = m_scene_tree->userData(proxy_id);
 
-            if (!entity.hasComponent<PlayerComponent>())
+            if (!entity.hasComponent<component::Player>())
                 m_rooms_cache.entities.data(m_current_room_coord)->push_back(entity);
             else
                 m_player_entity = entity;
@@ -311,7 +313,8 @@ void Level::enableRoom(const sf::Vector2i &coord, const sf::Vector2f &target_pos
              if (m_player_entity.isValid())
              {
                  entity::set_position.emit(m_player_entity, target_position);
-                 PlayerComponent &player_component = m_player_entity.component<PlayerComponent>();
+                 component::Player &player_component
+                     = m_player_entity.component<component::Player>();
                  player_component.view_hard_set_position = true;
              }
 
@@ -386,17 +389,18 @@ Entity Level::createRoomTransition(Room::Side side, const sf::Vector2i &room_coo
 
     Entity entity = m_world->createEntity();
 
-    TransformComponent &transform_component = entity.addComponent<TransformComponent>();
+    component::Transform &transform_component = entity.addComponent<component::Transform>();
     transform_component.transform.setPosition(room_transtion_bounds[side].getPosition());
 
-    SceneComponent &scene_component = entity.addComponent<SceneComponent>();
+    component::Scene &scene_component = entity.addComponent<component::Scene>();
     scene_component.local_bounds = sf::FloatRect{{0, 0}, room_transtion_bounds[side].getSize()};
     scene_component.path_finder_wall = true;
 
-    CollisionComponent &collision_component = entity.addComponent<CollisionComponent>();
-    ScriptComponent &script_component = entity.addComponent<ScriptComponent>();
+    component::Collision &collision_component = entity.addComponent<component::Collision>();
+    component::Script &script_component = entity.addComponent<component::Script>();
 
-    RoomTransitionScript *room_transition_script = new RoomTransitionScript{this};
+    entity_script::RoomTransition *room_transition_script
+        = new entity_script::RoomTransition{this};
 
     sf::Vector2i target_room_coord = room_coord + neighbor_rooms[side];
     room_transition_script->setRoomCoord(target_room_coord);

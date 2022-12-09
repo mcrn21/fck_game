@@ -1,5 +1,5 @@
-#ifndef COMMON_H
-#define COMMON_H
+#ifndef COMMON_OZWWVWGYBOZG_H
+#define COMMON_OZWWVWGYBOZG_H
 
 #include <cstdint>
 #include <string>
@@ -43,4 +43,4 @@ Type fromString(const std::string &string);
 
 } // namespace fck
 
-#endif // COMMON_H
+#endif // COMMON_OZWWVWGYBOZG_H

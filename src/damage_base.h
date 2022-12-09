@@ -1,16 +1,19 @@
-#ifndef DAMAGEBASE_H
-#define DAMAGEBASE_H
+#ifndef DAMAGEBASE_DUUBUFOBCSYD_H
+#define DAMAGEBASE_DUUBUFOBCSYD_H
 
 #include "fck/entity.h"
 
 namespace fck
 {
 
-class DamageSystem;
+namespace system
+{
+class Damage;
+}
 
 class DamageBase
 {
-    friend class DamageSystem;
+    friend class system::Damage;
 
 public:
     DamageBase(const Entity &entity, double interval, const Entity &source = Entity{});
@@ -39,4 +42,4 @@ private:
 
 } // namespace fck
 
-#endif // DAMAGEBASE_H
+#endif // DAMAGEBASE_DUUBUFOBCSYD_H

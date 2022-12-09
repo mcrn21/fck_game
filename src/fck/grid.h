@@ -1,5 +1,5 @@
-#ifndef GRID_H
-#define GRID_H
+#ifndef GRID_HJVHAPZWPEND_H
+#define GRID_HJVHAPZWPEND_H
 
 #include <SFML/System/Vector2.hpp>
 
@@ -130,4 +130,4 @@ void Grid<T>::clear()
 
 } // namespace fck
 
-#endif // GRID_H
+#endif // GRID_HJVHAPZWPEND_H

@@ -1,5 +1,5 @@
-#ifndef EVENTDISPATCHER_H
-#define EVENTDISPATCHER_H
+#ifndef EVENTDISPATCHER_RKIYECJUGSPN_H
+#define EVENTDISPATCHER_RKIYECJUGSPN_H
 
 #include "event.h"
 #include "event_handler.h"
@@ -70,4 +70,4 @@ private:
 
 } // namespace fck
 
-#endif // EVENTDISPATCHER_H
+#endif // EVENTDISPATCHER_RKIYECJUGSPN_H

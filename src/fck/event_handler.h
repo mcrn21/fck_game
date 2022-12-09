@@ -1,5 +1,5 @@
-#ifndef EVENTHANDLER_H
-#define EVENTHANDLER_H
+#ifndef EVENTHANDLER_JRNTUTUBPKZE_H
+#define EVENTHANDLER_JRNTUTUBPKZE_H
 
 #include "event.h"
 
@@ -38,4 +38,4 @@ private:
 
 } // namespace fck
 
-#endif // EVENTHANDLER_H
+#endif // EVENTHANDLER_JRNTUTUBPKZE_H

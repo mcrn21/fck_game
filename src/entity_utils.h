@@ -1,5 +1,5 @@
-#ifndef ENTITYUTILS_H
-#define ENTITYUTILS_H
+#ifndef ENTITYUTILS_RSJIGMNUAIGD_H
+#define ENTITYUTILS_RSJIGMNUAIGD_H
 
 #include "components/components.h"
 
@@ -35,4 +35,4 @@ struct entity
 
 } // namespace fck
 
-#endif // ENTITYUTILS_H
+#endif // ENTITYUTILS_RSJIGMNUAIGD_H

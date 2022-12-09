@@ -1,5 +1,5 @@
-#ifndef SYSTEM_H
-#define SYSTEM_H
+#ifndef SYSTEM_MQDYZLTQPLIE_H
+#define SYSTEM_MQDYZLTQPLIE_H
 
 #include "component.h"
 #include "entity.h"
@@ -91,4 +91,4 @@ TypeId systemTypeId()
 
 } // namespace fck
 
-#endif // SYSTEM_H
+#endif // SYSTEM_MQDYZLTQPLIE_H
