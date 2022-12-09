@@ -33,13 +33,15 @@ public:
 
         enum Type
         {
+            UNKNOW,
             DEFAULT,
-            BOSS
+            BOSS,
+            TRADER
         };
 
         int32_t neighbors = 0;
         Type type = DEFAULT;
-        bool opened = false;
+        bool open = false;
     };
 
     Level(World *world, b2::DynamicTree<Entity> *scene_tree, PathFinder *path_finder);
@@ -60,8 +62,8 @@ private:
     Entity createRoomTransition(Room::Side side, const sf::Vector2i &room_coord);
 
 public:
-    Signal<const sf::Vector2i &> room_enabled;
     Signal<const sf::Vector2i &> room_opened;
+    Signal<const sf::Vector2i &> room_enabled;
 
 private:
     World *m_world;

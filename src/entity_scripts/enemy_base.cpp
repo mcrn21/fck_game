@@ -15,17 +15,17 @@ void EnemyBase::update(const Entity &entity, double delta_time)
     component::Target &target_component = entity.component<component::Target>();
     component::LookAround &look_around_component = entity.component<component::LookAround>();
 
-    //    if (!target_component.target.isValid())
-    //    {
-    //        for (const Entity &entity : look_around_component.look_at_entities)
-    //        {
-    //            if (entity.hasComponent<PlayerComponent>())
-    //            {
-    //                target_component.target = entity;
-    //                target_follow_component.follow = true;
-    //            }
-    //        }
-    //    }
+    if (!target_component.target.isValid())
+    {
+        for (const Entity &entity : look_around_component.look_at_entities)
+        {
+            if (entity.hasComponent<component::Player>())
+            {
+                target_component.target = entity;
+                target_follow_component.follow = true;
+            }
+        }
+    }
 
     if (target_follow_component.state == component::TargetFollow::RICHED)
     {

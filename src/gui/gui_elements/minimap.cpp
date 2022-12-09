@@ -6,60 +6,72 @@
 namespace fck::gui
 {
 
-Minimap::Minimap()
+Minimap::Minimap() : Frame{}
 {
 }
 
-sf::Texture *Minimap::texture() const
+Minimap::Minimap(
+    sf::Texture &texture,
+    const sf::IntRect &frame_texture_rect,
+    const std::unordered_map<int32_t, sf::IntRect> &room_texture_rects,
+    const std::unordered_map<Level::Room::Type, sf::IntRect> &room_type_texture_rects,
+    const sf::IntRect &current_room_texture_rect)
+    : Frame{texture, frame_texture_rect},
+      m_room_texture_rects{room_texture_rects},
+      m_room_type_texture_rects{room_type_texture_rects},
+      m_current_room_texture_rect{current_room_texture_rect}
 {
-    return m_texture;
+    updateCurrentRoomPositions();
+    updateCurrentRoomTexCoords();
 }
 
-void Minimap::setTexture(sf::Texture &texture)
+const Vector2D<Level::Room *> *Minimap::getRoomsMap() const
 {
-    m_texture = &texture;
+    return m_rooms_map;
 }
 
-const sf::IntRect &Minimap::backgroundTextureRect() const
+void Minimap::setRoomsMap(const Vector2D<Level::Room *> &rooms_map)
 {
-    return m_background_texture_rect;
+    m_rooms_map = &rooms_map;
+
+    updateRoomsPositions();
+    updateRoomsTexCoords();
 }
 
 void Minimap::draw(sf::RenderTarget &target, const sf::RenderStates &states) const
 {
-    if (m_texture)
-    {
-        sf::RenderStates new_state = states;
-        new_state.texture = m_texture;
-        new_state.transform *= getTransform();
-        target.draw(m_background_vertices, 4, sf::TriangleStrip, new_state);
+    Frame::draw(target, states);
 
+    if (getTexture())
+    {
         {
-            sf::RenderStates rooms_state = new_state;
+            sf::RenderStates rooms_state = states;
+            rooms_state.texture = getTexture();
+            rooms_state.transform *= getTransform();
+
             Clipping clipping(
                 target,
                 rooms_state,
                 {2.0f, 2.0f},
-                localBounds().getSize() - sf::Vector2f{4.0f, 4.0f});
+                getLocalBounds().getSize() - sf::Vector2f{4.0f, 5.0f});
 
             rooms_state.transform.translate(m_rooms_vertices_offset);
             target.draw(m_rooms_vertices, rooms_state);
             target.draw(m_room_types_vertices, rooms_state);
         }
 
-        sf::RenderStates current_room_state = new_state;
-        current_room_state.transform.translate(m_current_room_offset);
+        sf::RenderStates current_room_state = states;
+        current_room_state.texture = getTexture();
+        current_room_state.transform *= getTransform();
+        current_room_state.transform.translate(
+            getLocalBounds().getSize() / 2.0f
+            - sf::Vector2f{m_current_room_texture_rect.getSize()} / 2.0f);
         target.draw(m_current_room_vertices, 4, sf::TriangleStrip, current_room_state);
 
-        target.draw(m_text, new_state);
+        sf::RenderStates text_state = states;
+        text_state.transform *= getTransform();
+        target.draw(m_text, text_state);
     }
-}
-
-void Minimap::setBackgroundTextureRect(const sf::IntRect &background_texture_rect)
-{
-    m_background_texture_rect = background_texture_rect;
-    updateBackgroundPositions();
-    updateBackgroundTexCoords();
 }
 
 const std::unordered_map<int32_t, sf::IntRect> &Minimap::roomTextureRects() const
@@ -71,16 +83,9 @@ void Minimap::setRoomTextureRects(
     const std::unordered_map<int32_t, sf::IntRect> &room_texture_rects)
 {
     m_room_texture_rects = room_texture_rects;
-}
 
-const sf::IntRect &Minimap::roomUnopenedTextureRect() const
-{
-    return m_room_unopened_texture_rect;
-}
-
-void Minimap::setRoomUnopenedTextureRect(const sf::IntRect &room_unopened_texture_rect)
-{
-    m_room_unopened_texture_rect = room_unopened_texture_rect;
+    updateRoomsPositions();
+    updateRoomsTexCoords();
 }
 
 const std::unordered_map<Level::Room::Type, sf::IntRect> &Minimap::roomTypeTextureRects() const
@@ -92,6 +97,9 @@ void Minimap::setRoomTypeTextureRects(
     const std::unordered_map<Level::Room::Type, sf::IntRect> &room_type_texture_rects)
 {
     m_room_type_texture_rects = room_type_texture_rects;
+
+    updateRoomsPositions();
+    updateRoomsTexCoords();
 }
 
 const sf::IntRect &Minimap::currentRoomTextureRect() const
@@ -105,12 +113,6 @@ void Minimap::setCurrentRoomTextureRect(const sf::IntRect &current_room_texture_
 
     updateCurrentRoomPositions();
     updateCurrentRoomTexCoords();
-
-    m_current_room_offset
-        = {float(m_background_texture_rect.width) / 2.0f
-               - float(m_current_room_texture_rect.width) / 2.0f,
-           float(m_background_texture_rect.height) / 2.0f
-               - float(m_current_room_texture_rect.height) / 2.0f};
 }
 
 sf::Text &Minimap::text()
@@ -118,28 +120,46 @@ sf::Text &Minimap::text()
     return m_text;
 }
 
-void Minimap::updateRooms(const Vector2D<Level::Room *> &rooms_map)
+void Minimap::setRoomOpened(const sf::Vector2i &room_coord)
+{
+    if (!m_rooms_map || m_room_texture_rects.empty() || m_room_type_texture_rects.empty())
+        return;
+
+    int32_t index = room_coord.y * m_rooms_map->size2D().x + room_coord.x;
+    updateRoomTypeTexCoords(index);
+}
+
+void Minimap::setCurrentRoom(const sf::Vector2i &room_coord)
+{
+    if (!m_rooms_map || m_room_texture_rects.empty() || m_room_type_texture_rects.empty())
+        return;
+
+    sf::Vector2i room_size = m_room_texture_rects.begin()->second.getSize();
+    m_rooms_vertices_offset = getLocalBounds().getSize() / 2.0f - sf::Vector2f(room_size) / 2.0f;
+    m_rooms_vertices_offset -= sf::Vector2f{vector2::mult(room_size, room_coord)};
+}
+
+void Minimap::updateRoomsPositions()
 {
     m_rooms_vertices.clear();
     m_room_types_vertices.clear();
 
-    if (m_room_texture_rects.empty())
+    if (!m_rooms_map || m_room_texture_rects.empty() || m_room_type_texture_rects.empty())
         return;
 
     sf::Vector2i room_size = m_room_texture_rects.begin()->second.getSize();
 
     m_rooms_vertices.setPrimitiveType(sf::Triangles);
-    m_rooms_vertices.resize(rooms_map.size() * 6);
+    m_rooms_vertices.resize(m_rooms_map->size() * 6);
 
     m_room_types_vertices.setPrimitiveType(sf::Triangles);
-    m_room_types_vertices.resize(rooms_map.size() * 6);
+    m_room_types_vertices.resize(m_rooms_map->size() * 6);
 
-    for (int32_t i = 0; i < rooms_map.size(); ++i)
+    for (int32_t i = 0; i < m_rooms_map->size(); ++i)
     {
-        sf::Vector2i coord = rooms_map.transformIndex(i);
+        sf::Vector2i coord = m_rooms_map->transformIndex(i);
 
         sf::Vertex *room_quad = &m_rooms_vertices[i * 6];
-
         room_quad[0].position = sf::Vector2f(coord.x * room_size.x, coord.y * room_size.y);
         room_quad[1].position = sf::Vector2f((coord.x + 1) * room_size.x, coord.y * room_size.y);
         room_quad[2].position = sf::Vector2f(coord.x * room_size.x, (coord.y + 1) * room_size.y);
@@ -148,34 +168,7 @@ void Minimap::updateRooms(const Vector2D<Level::Room *> &rooms_map)
         room_quad[5].position
             = sf::Vector2f((coord.x + 1) * room_size.x, (coord.y + 1) * room_size.y);
 
-        if (rooms_map.at(i))
-        {
-            const sf::IntRect &room_texture_rect = m_room_texture_rects[rooms_map.at(i)->neighbors];
-
-            float left = float(room_texture_rect.left);
-            float right = left + room_texture_rect.width;
-            float top = float(room_texture_rect.top);
-            float bottom = top + room_texture_rect.height;
-
-            room_quad[0].texCoords = sf::Vector2f(left, top);
-            room_quad[1].texCoords = sf::Vector2f(right, top);
-            room_quad[2].texCoords = sf::Vector2f(left, bottom);
-            room_quad[3].texCoords = sf::Vector2f(right, top);
-            room_quad[4].texCoords = sf::Vector2f(left, bottom);
-            room_quad[5].texCoords = sf::Vector2f(right, bottom);
-        }
-        else
-        {
-            room_quad[0].texCoords = sf::Vector2f(0, 0);
-            room_quad[1].texCoords = sf::Vector2f(0, 0);
-            room_quad[2].texCoords = sf::Vector2f(0, 0);
-            room_quad[3].texCoords = sf::Vector2f(0, 0);
-            room_quad[4].texCoords = sf::Vector2f(0, 0);
-            room_quad[5].texCoords = sf::Vector2f(0, 0);
-        }
-
         sf::Vertex *room_type_quad = &m_room_types_vertices[i * 6];
-
         room_type_quad[0].position = sf::Vector2f(coord.x * room_size.x, coord.y * room_size.y);
         room_type_quad[1].position
             = sf::Vector2f((coord.x + 1) * room_size.x, coord.y * room_size.y);
@@ -187,60 +180,50 @@ void Minimap::updateRooms(const Vector2D<Level::Room *> &rooms_map)
             = sf::Vector2f(coord.x * room_size.x, (coord.y + 1) * room_size.y);
         room_type_quad[5].position
             = sf::Vector2f((coord.x + 1) * room_size.x, (coord.y + 1) * room_size.y);
+    }
+}
 
-        if (rooms_map.at(i))
+void Minimap::updateRoomsTexCoords()
+{
+    if (!m_rooms_map || m_room_texture_rects.empty() || m_room_type_texture_rects.empty())
+        return;
+
+    for (int32_t i = 0; i < m_rooms_map->size(); ++i)
+    {
+        if (m_rooms_map->at(i))
         {
-            const sf::IntRect &room_type_texture_rect = rooms_map.at(i)->opened
-                ? m_room_type_texture_rects[rooms_map.at(i)->type]
-                : m_room_unopened_texture_rect;
-
-            float left = float(room_type_texture_rect.left);
-            float right = left + room_type_texture_rect.width;
-            float top = float(room_type_texture_rect.top);
-            float bottom = top + room_type_texture_rect.height;
-
-            room_type_quad[0].texCoords = sf::Vector2f(left, top);
-            room_type_quad[1].texCoords = sf::Vector2f(right, top);
-            room_type_quad[2].texCoords = sf::Vector2f(left, bottom);
-            room_type_quad[3].texCoords = sf::Vector2f(right, top);
-            room_type_quad[4].texCoords = sf::Vector2f(left, bottom);
-            room_type_quad[5].texCoords = sf::Vector2f(right, bottom);
-        }
-        else
-        {
-            room_type_quad[0].texCoords = sf::Vector2f(0, 0);
-            room_type_quad[1].texCoords = sf::Vector2f(0, 0);
-            room_type_quad[2].texCoords = sf::Vector2f(0, 0);
-            room_type_quad[3].texCoords = sf::Vector2f(0, 0);
-            room_type_quad[4].texCoords = sf::Vector2f(0, 0);
-            room_type_quad[5].texCoords = sf::Vector2f(0, 0);
+            updateRoomTexCoords(i);
+            updateRoomTypeTexCoords(i);
         }
     }
 }
 
-void Minimap::setCurrentRoom(const sf::Vector2i &room_coord)
+void Minimap::updateRoomTexCoords(int32_t index)
 {
-    if (m_rooms_vertices.getVertexCount() == 0)
-        return;
-    sf::Vector2i room_size = m_room_texture_rects.begin()->second.getSize();
-    m_rooms_vertices_offset
-        = sf::Vector2f{m_background_texture_rect.getSize()} / 2.0f - sf::Vector2f(room_size) / 2.0f;
-    m_rooms_vertices_offset -= sf::Vector2f{vector2::mult(room_size, room_coord)};
+    sf::Vertex *room_quad = &m_rooms_vertices[index * 6];
+
+    const sf::IntRect &room_texture_rect = m_room_texture_rects[m_rooms_map->at(index)->neighbors];
+
+    float left = float(room_texture_rect.left);
+    float right = left + room_texture_rect.width;
+    float top = float(room_texture_rect.top);
+    float bottom = top + room_texture_rect.height;
+
+    room_quad[0].texCoords = sf::Vector2f(left, top);
+    room_quad[1].texCoords = sf::Vector2f(right, top);
+    room_quad[2].texCoords = sf::Vector2f(left, bottom);
+    room_quad[3].texCoords = sf::Vector2f(right, top);
+    room_quad[4].texCoords = sf::Vector2f(left, bottom);
+    room_quad[5].texCoords = sf::Vector2f(right, bottom);
 }
 
-void Minimap::setRoomOpened(
-    const Vector2D<Level::Room *> &rooms_map, const sf::Vector2i &room_coord)
+void Minimap::updateRoomTypeTexCoords(int32_t index)
 {
-    if (m_room_types_vertices.getVertexCount() == 0)
-        return;
-
-    int32_t index = room_coord.y * rooms_map.size2D().x + room_coord.x;
-
     sf::Vertex *room_type_quad = &m_room_types_vertices[index * 6];
 
-    const sf::IntRect &room_type_texture_rect = rooms_map.at(index)->opened
-        ? m_room_type_texture_rects[rooms_map.at(index)->type]
-        : m_room_unopened_texture_rect;
+    const sf::IntRect &room_type_texture_rect = m_rooms_map->at(index)->open
+        ? m_room_type_texture_rects[m_rooms_map->at(index)->type]
+        : m_room_type_texture_rects[Level::Room::UNKNOW];
 
     float left = float(room_type_texture_rect.left);
     float right = left + room_type_texture_rect.width;
@@ -253,41 +236,6 @@ void Minimap::setRoomOpened(
     room_type_quad[3].texCoords = sf::Vector2f(right, top);
     room_type_quad[4].texCoords = sf::Vector2f(left, bottom);
     room_type_quad[5].texCoords = sf::Vector2f(right, bottom);
-}
-
-sf::FloatRect Minimap::localBounds() const
-{
-    auto width = static_cast<float>(std::abs(m_background_texture_rect.width));
-    auto height = static_cast<float>(std::abs(m_background_texture_rect.height));
-
-    return sf::FloatRect({0.f, 0.f}, {width, height});
-}
-
-sf::FloatRect Minimap::globalBounds() const
-{
-    return getTransform().transformRect(localBounds());
-}
-
-void Minimap::updateBackgroundPositions()
-{
-    m_background_vertices[0].position = sf::Vector2f(0, 0);
-    m_background_vertices[1].position = sf::Vector2f(0, m_background_texture_rect.height);
-    m_background_vertices[2].position = sf::Vector2f(m_background_texture_rect.width, 0);
-    m_background_vertices[3].position
-        = sf::Vector2f(m_background_texture_rect.width, m_background_texture_rect.height);
-}
-
-void Minimap::updateBackgroundTexCoords()
-{
-    float left = static_cast<float>(m_background_texture_rect.left);
-    float right = left + m_background_texture_rect.width;
-    float top = static_cast<float>(m_background_texture_rect.top);
-    float bottom = top + m_background_texture_rect.height;
-
-    m_background_vertices[0].texCoords = sf::Vector2f(left, top);
-    m_background_vertices[1].texCoords = sf::Vector2f(left, bottom);
-    m_background_vertices[2].texCoords = sf::Vector2f(right, top);
-    m_background_vertices[3].texCoords = sf::Vector2f(right, bottom);
 }
 
 void Minimap::updateCurrentRoomPositions()

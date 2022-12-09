@@ -8,15 +8,21 @@
 namespace fck::gui
 {
 
+class ProgressBar;
+class Minimap;
+
 class Frame : public sf::Drawable, public sf::Transformable
 {
+    friend class ProgressBar;
+    friend class Minimap;
+
 public:
     Frame();
     Frame(sf::Texture &texture, const sf::IntRect &frame_texture_rect);
     ~Frame() = default;
 
     sf::Texture *getTexture() const;
-    void setTexture(sf::Texture &texture);
+    virtual void setTexture(sf::Texture &texture);
 
     const sf::Vector2f &getFrameSize() const;
     void setFrameSize(const sf::Vector2f &frame_size);

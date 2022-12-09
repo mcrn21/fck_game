@@ -561,13 +561,7 @@ void FckGame::newGame()
          [this]() { m_level->generateRoomsMap(); },
          [this]() { m_level->generateRoomsContent(); },
          [this]() {
-             m_level->enableRoom(m_level->firstRoomCoord(), {256.0f, 256.0f});
-         },
-         [this]() {
-             m_player_entity = KnowledgeBase::createPlayer(
-                 "kyoshi", &m_world); //m_entity_db.createPlayer(&m_world);
-             m_player_entity.component<component::Transform>().transform.setPosition(
-                 {200.0f, 200.0f});
+             m_player_entity = KnowledgeBase::createPlayer("kyoshi", &m_world);
 
              component::Script &player_entity_script_component
                  = m_player_entity.addComponent<component::Script>();
@@ -575,12 +569,20 @@ void FckGame::newGame()
 
              entityMove(m_player_entity, sf::Vector2f{});
 
+             Entity kyoshi_2 = KnowledgeBase::createEntity(
+                 "kyoshi_2", &m_world); //m_entity_db.createPlayer(&m_world);
+             entityMove(kyoshi_2, {400.0f, 400.0f});
+             entitySetState(kyoshi_2, entity_state::IDLE);
+             entitySetDirection(kyoshi_2, entity_state::RIGHT);
+             kyoshi_2.enable();
+
              m_player_entity.enable();
          },
          [this]() { setState(game_state::LEVEL); },
          [this, loading_new_game_tasks]() {
              gui::LevelGui *level_gui = static_cast<gui::LevelGui *>(m_gui_list.back().get());
-             level_gui->updateRoomsMap(m_level->roomsMap(), m_level->currentRoomCoord());
+             level_gui->setRoomsMap(m_level->roomsMap());
+             m_level->enableRoom(m_level->firstRoomCoord(), {256.0f, 256.0f});
              loading_new_game_tasks->deleteLater();
          }});
 
@@ -752,8 +754,8 @@ void FckGame::entitySetState(const Entity &entity, entity_state::State state)
 {
     component::State &state_component = entity.component<component::State>();
 
-    if (state_component.state == state)
-        return;
+    //    if (state_component.state == state)
+    //        return;
 
     state_component.state = state;
     std::string state_string = entity_state::stateToString(state_component.state);
@@ -802,8 +804,8 @@ void FckGame::entitySetDirection(const Entity &entity, entity_state::Direction d
 {
     component::State &state_component = entity.component<component::State>();
 
-    if (state_component.direction == direction)
-        return;
+    //    if (state_component.direction == direction)
+    //        return;
 
     state_component.direction = direction;
 
@@ -993,7 +995,7 @@ void FckGame::onLevelRoomOpened(const sf::Vector2i &room_coord)
     if (m_state == game_state::LEVEL)
     {
         gui::LevelGui *level_gui = static_cast<gui::LevelGui *>(m_gui_list.back().get());
-        level_gui->updateRoomOpened(m_level->roomsMap(), room_coord);
+        level_gui->setRoomOpended(room_coord);
     }
 }
 
@@ -1002,7 +1004,7 @@ void FckGame::onLevelRoomEnabled(const sf::Vector2i &room_coord)
     if (m_state == game_state::LEVEL)
     {
         gui::LevelGui *level_gui = static_cast<gui::LevelGui *>(m_gui_list.back().get());
-        level_gui->updateCurrentRoomCoord(room_coord);
+        level_gui->setCurrentRoom(room_coord);
     }
 }
 

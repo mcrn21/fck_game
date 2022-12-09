@@ -326,9 +326,9 @@ void Level::enableRoom(const sf::Vector2i &coord, const sf::Vector2f &target_pos
                  m_rooms_cache.enableRoom(coord);
                  m_current_room_coord = coord;
 
-                 if (!m_rooms_cache.map.data(coord)->opened)
+                 if (!m_rooms_cache.map.data(coord)->open)
                  {
-                     m_rooms_cache.map.data(coord)->opened = true;
+                     m_rooms_cache.map.data(coord)->open = true;
                      room_opened.emit(coord);
                  }
 
@@ -399,8 +399,7 @@ Entity Level::createRoomTransition(Room::Side side, const sf::Vector2i &room_coo
     component::Collision &collision_component = entity.addComponent<component::Collision>();
     component::Script &script_component = entity.addComponent<component::Script>();
 
-    entity_script::RoomTransition *room_transition_script
-        = new entity_script::RoomTransition{this};
+    entity_script::RoomTransition *room_transition_script = new entity_script::RoomTransition{this};
 
     sf::Vector2i target_room_coord = room_coord + neighbor_rooms[side];
     room_transition_script->setRoomCoord(target_room_coord);

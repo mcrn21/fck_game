@@ -25,10 +25,9 @@ public:
     void updatePlayerSkills();
     void updateTargetStats();
 
-    void updateRoomsMap(
-        const Vector2D<Level::Room *> &rooms_map, const sf::Vector2i &current_room_coord);
-    void updateRoomOpened(const Vector2D<Level::Room *> &rooms_map, const sf::Vector2i &room_coord);
-    void updateCurrentRoomCoord(const sf::Vector2i &current_room_coord);
+    void setRoomsMap(const Vector2D<Level::Room *> &rooms_map);
+    void setRoomOpended(const sf::Vector2i &room_coord);
+    void setCurrentRoom(const sf::Vector2i &room_coord);
 
 private:
     void drawPlayerStats(sf::RenderTarget &target, const sf::RenderStates &states);
@@ -47,15 +46,12 @@ private:
     float m_stats_armor_bar_width;
 
     // player stats
-    ProgressBar m_player_hp_progress_bar;
-    ProgressBar m_player_armor_progress_bar;
-
-    Minimap m_minimap;
-
-    gui::Frame m_test_frame;
+    std::unique_ptr<ProgressBar> m_player_hp_progress_bar;
+    std::unique_ptr<ProgressBar> m_player_armor_progress_bar;
+    std::unique_ptr<Minimap> m_minimap;
 
     // target stats
-    ProgressBar m_target_hp_progress_bar;
+    std::unique_ptr<ProgressBar> m_target_hp_progress_bar;
 
     struct Skill
     {
