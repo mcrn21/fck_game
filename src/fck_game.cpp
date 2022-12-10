@@ -132,26 +132,26 @@ void FckGame::init()
          },
          [this]() { setState(game_state::LOADING); },
          [this, first_loading_tasks]() {
-             gui::LoadingGui *loading_gui = static_cast<gui::LoadingGui *>(m_gui_list.back().get());
+             gui::LoadingGui *loading_gui = m_gui_manager.back<gui::LoadingGui>();
              loading_gui->setTotal(first_loading_tasks->tasks().size() - 4);
              loading_gui->increaseProgress();
              loadFonts();
          },
          [this]() {
-             static_cast<gui::LoadingGui *>(m_gui_list.back().get())->increaseProgress();
+             m_gui_manager.back<gui::LoadingGui>()->increaseProgress();
              loadTextures();
          },
          [this]() {
-             static_cast<gui::LoadingGui *>(m_gui_list.back().get())->increaseProgress();
+             m_gui_manager.back<gui::LoadingGui>()->increaseProgress();
              loadSounds();
          },
          [this]() {
-             static_cast<gui::LoadingGui *>(m_gui_list.back().get())->increaseProgress();
+             m_gui_manager.back<gui::LoadingGui>()->increaseProgress();
              auto settings = Settings::global();
              KnowledgeBase::loadDrawablesDirectory(settings->sprites_dir_name);
          },
          [this]() {
-             static_cast<gui::LoadingGui *>(m_gui_list.back().get())->increaseProgress();
+             m_gui_manager.back<gui::LoadingGui>()->increaseProgress();
              auto settings = Settings::global();
              KnowledgeBase::loadSkillsDirectory(settings->skills_dir_name);
          },
@@ -160,12 +160,12 @@ void FckGame::init()
              KnowledgeBase::loadEntityScriptsDirectory(settings->scripts_dir_name);
          },
          [this]() {
-             static_cast<gui::LoadingGui *>(m_gui_list.back().get())->increaseProgress();
+             m_gui_manager.back<gui::LoadingGui>()->increaseProgress();
              auto settings = Settings::global();
              KnowledgeBase::loadEntitiesDirectory(settings->entities_dir_name);
          },
          [this]() {
-             static_cast<gui::LoadingGui *>(m_gui_list.back().get())->increaseProgress();
+             m_gui_manager.back<gui::LoadingGui>()->increaseProgress();
              setupInputActions();
          },
          [this, first_loading_tasks]() {
@@ -317,9 +317,7 @@ void FckGame::draw(const sf::Time &elapsed)
 
     renderWindow().draw(m_scene_render_sprite);
 
-    // Draw gui
-    for (auto &gui : m_gui_list)
-        gui->draw(renderWindow(), sf::RenderStates{});
+    m_gui_manager.draw(renderWindow(), sf::RenderStates{});
 
     ImGui::SFML::Render(renderWindow());
 
@@ -340,21 +338,17 @@ void FckGame::setState(game_state::State state)
     switch (m_state)
     {
     case game_state::FIRST_LOADING: {
-        m_gui_list.clear();
-        m_gui_list.push_back(
-            std::make_unique<gui::SplashscreenGui>(m_render_window_view.getSize()));
+        m_gui_manager.push<gui::SplashscreenGui>();
         break;
     }
     case game_state::LOADING: {
-        m_gui_list.clear();
-        m_gui_list.push_back(std::make_unique<gui::LoadingGui>(m_render_window_view.getSize()));
-
+        m_gui_manager.clear();
+        m_gui_manager.push<gui::LoadingGui>();
         break;
     }
     case game_state::MAIN_MENU: {
-        m_gui_list.clear();
-        gui::MainMenuGui *main_menu_gui = new gui::MainMenuGui(m_render_window_view.getSize());
-        m_gui_list.push_back(std::unique_ptr<gui::MainMenuGui>(main_menu_gui));
+        m_gui_manager.clear();
+        gui::MainMenuGui *main_menu_gui = m_gui_manager.push<gui::MainMenuGui>();
 
         m_input_actions.action_activated.connect(
             main_menu_gui, &gui::MainMenuGui::onActionActivated);
@@ -362,14 +356,10 @@ void FckGame::setState(game_state::State state)
         break;
     }
     case game_state::LEVEL: {
-        m_gui_list.pop_back();
+        m_gui_manager.pop();
 
         if (old_state != game_state::LEVEL_MENU)
-        {
-            gui::LevelGui *level_gui
-                = new gui::LevelGui(m_render_window_view.getSize(), m_player_entity);
-            m_gui_list.push_back(std::unique_ptr<gui::LevelGui>(level_gui));
-        }
+            m_gui_manager.push<gui::LevelGui>(m_player_entity);
 
         m_input_actions.action_activated.connect(this, &FckGame::onActionActivated);
         m_player_actions_system.setInputActions(&m_input_actions);
@@ -377,9 +367,7 @@ void FckGame::setState(game_state::State state)
         break;
     }
     case game_state::LEVEL_MENU: {
-        gui::MainMenuGui *main_menu_gui
-            = new gui::MainMenuGui(m_render_window_view.getSize(), true);
-        m_gui_list.push_back(std::unique_ptr<gui::MainMenuGui>(main_menu_gui));
+        gui::MainMenuGui *main_menu_gui = m_gui_manager.push<gui::MainMenuGui>(true);
 
         m_input_actions.action_activated.connect(
             main_menu_gui, &gui::MainMenuGui::onActionActivated);
@@ -415,10 +403,7 @@ void FckGame::event(Event *event)
         renderWindow().setView(m_render_window_view);
 
         Clipping::setOriginalView(m_render_window_view);
-
-        // Resize gui
-        for (auto &gui : m_gui_list)
-            gui->resize(m_render_window_view.getSize());
+        m_gui_manager.setViewportSize(m_render_window_view.getSize());
 
         return;
     }
@@ -484,20 +469,6 @@ void FckGame::loadFonts()
         if (font)
             font->setSmooth(true);
     }
-
-    // Load fonts to ImGui
-    ImGui::GetIO().Fonts->Clear();
-    GuiBase::main_menu_font = ImGui::GetIO().Fonts->AddFontFromFileTTF(
-        settings->font_file_name.c_str(),
-        gui::FONT_SIZE,
-        nullptr,
-        ImGui::GetIO().Fonts->GetGlyphRangesCyrillic());
-    GuiBase::hp_hud_font = ImGui::GetIO().Fonts->AddFontFromFileTTF(
-        settings->font_file_name.c_str(),
-        gui::HP_HUD_SIZE,
-        nullptr,
-        ImGui::GetIO().Fonts->GetGlyphRangesCyrillic());
-    (void)(ImGui::SFML::UpdateFontTexture());
 }
 
 void FckGame::loadTextures()
@@ -580,7 +551,7 @@ void FckGame::newGame()
          },
          [this]() { setState(game_state::LEVEL); },
          [this, loading_new_game_tasks]() {
-             gui::LevelGui *level_gui = static_cast<gui::LevelGui *>(m_gui_list.back().get());
+             gui::LevelGui *level_gui = m_gui_manager.back<gui::LevelGui>();
              level_gui->setRoomsMap(m_level->roomsMap());
              m_level->enableRoom(m_level->firstRoomCoord(), {256.0f, 256.0f});
              loading_new_game_tasks->deleteLater();
@@ -639,7 +610,7 @@ void FckGame::onActionActivated(keyboard_action::Action action)
         m_render_debug = !m_render_debug;
 
     if (action == keyboard_action::BACK)
-        setState(game_state::LEVEL_MENU);
+        EventDispatcher::runTask([this]() { setState(game_state::LEVEL_MENU); });
 }
 
 void FckGame::onWorldEntityEnabled(const Entity &entity)
@@ -872,8 +843,7 @@ void FckGame::entitySetTarget(const Entity &entity, const Entity &target)
     // Update target stats gui
     if (entity == m_player_entity && m_state == game_state::LEVEL)
     {
-        gui::LevelGui *level_gui = static_cast<gui::LevelGui *>(m_gui_list.back().get());
-        level_gui->updateTargetStats();
+        m_gui_manager.back<gui::LevelGui>()->updateTargetStats();
     }
 }
 
@@ -916,13 +886,11 @@ void FckGame::entitySetHealth(const Entity &entity, float health)
         {
             if (entity == m_player_entity)
             {
-                gui::LevelGui *level_gui = static_cast<gui::LevelGui *>(m_gui_list.back().get());
-                level_gui->updatePlayerStats();
+                m_gui_manager.back<gui::LevelGui>()->updatePlayerStats();
             }
             else if (entity == m_player_entity.component<component::Target>().target)
             {
-                gui::LevelGui *level_gui = static_cast<gui::LevelGui *>(m_gui_list.back().get());
-                level_gui->updateTargetStats();
+                m_gui_manager.back<gui::LevelGui>()->updateTargetStats();
             }
         }
     }
@@ -947,13 +915,11 @@ void FckGame::entitySetArmor(const Entity &entity, float armor)
         {
             if (entity == m_player_entity)
             {
-                gui::LevelGui *level_gui = static_cast<gui::LevelGui *>(m_gui_list.back().get());
-                level_gui->updatePlayerStats();
+                m_gui_manager.back<gui::LevelGui>()->updatePlayerStats();
             }
             else if (entity == m_player_entity.component<component::Target>().target)
             {
-                gui::LevelGui *level_gui = static_cast<gui::LevelGui *>(m_gui_list.back().get());
-                level_gui->updateTargetStats();
+                m_gui_manager.back<gui::LevelGui>()->updateTargetStats();
             }
         }
     }
@@ -994,8 +960,7 @@ void FckGame::onLevelRoomOpened(const sf::Vector2i &room_coord)
 {
     if (m_state == game_state::LEVEL)
     {
-        gui::LevelGui *level_gui = static_cast<gui::LevelGui *>(m_gui_list.back().get());
-        level_gui->setRoomOpended(room_coord);
+        m_gui_manager.back<gui::LevelGui>()->setRoomOpended(room_coord);
     }
 }
 
@@ -1003,8 +968,7 @@ void FckGame::onLevelRoomEnabled(const sf::Vector2i &room_coord)
 {
     if (m_state == game_state::LEVEL)
     {
-        gui::LevelGui *level_gui = static_cast<gui::LevelGui *>(m_gui_list.back().get());
-        level_gui->setCurrentRoom(room_coord);
+        m_gui_manager.back<gui::LevelGui>()->setCurrentRoom(room_coord);
     }
 }
 

@@ -1,7 +1,7 @@
 #ifndef LEVELGUI_AICEWWWICILT_H
 #define LEVELGUI_AICEWWWICILT_H
 
-#include "gui_elements/gui_elements.h"
+#include "gui_style.h"
 
 #include "../gui_base.h"
 #include "../knowledge_base.h"
@@ -15,11 +15,10 @@ namespace fck::gui
 class LevelGui : public GuiBase
 {
 public:
-    LevelGui(const sf::Vector2f &size, const Entity &player_entity);
+    LevelGui(const Entity &player_entity);
     ~LevelGui() = default;
 
     void resize(const sf::Vector2f &size);
-    void draw(sf::RenderTarget &target, const sf::RenderStates &states);
 
     void updatePlayerStats();
     void updatePlayerSkills();
@@ -35,23 +34,20 @@ private:
     void drawTargetStats(sf::RenderTarget &target, const sf::RenderStates &states);
 
 private:
-    sf::Vector2f m_size;
     Entity m_player_entity;
+    Entity m_target_entity;
 
     sf::Vector2f m_border_offset;
     sf::Vector2f m_scale;
     sf::Vector2f m_stats_scale;
 
-    float m_stats_hp_bar_width;
-    float m_stats_armor_bar_width;
-
     // player stats
-    std::unique_ptr<ProgressBar> m_player_hp_progress_bar;
-    std::unique_ptr<ProgressBar> m_player_armor_progress_bar;
-    std::unique_ptr<Minimap> m_minimap;
+    ProgressBar *m_player_hp_progress_bar;
+    ProgressBar *m_player_armor_progress_bar;
+    Minimap *m_minimap;
 
     // target stats
-    std::unique_ptr<ProgressBar> m_target_hp_progress_bar;
+    ProgressBar *m_target_hp_progress_bar;
 
     struct Skill
     {

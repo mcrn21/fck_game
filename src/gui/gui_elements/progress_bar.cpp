@@ -68,7 +68,7 @@ void ProgressBar::draw(sf::RenderTarget &target, const sf::RenderStates &states)
     {
         sf::RenderStates new_state = states;
         new_state.texture = m_texture;
-        new_state.transform *= getTransform();
+        new_state.transform *= getParentsTransform();
         new_state.transform.translate(m_bar_offset);
         target.draw(m_bar_vertices, 4, sf::TriangleStrip, new_state);
         target.draw(m_text, new_state);

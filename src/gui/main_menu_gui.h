@@ -1,6 +1,8 @@
 #ifndef MAINMENUGUI_XRRCWSNJBCSE_H
 #define MAINMENUGUI_XRRCWSNJBCSE_H
 
+#include "gui_style.h"
+
 #include "../gui_base.h"
 
 #include <functional>
@@ -12,7 +14,7 @@ namespace fck::gui
 class MainMenuGui : public GuiBase
 {
 public:
-    MainMenuGui(const sf::Vector2f &size, bool level = false);
+    MainMenuGui(bool level = false);
     ~MainMenuGui() = default;
 
     void resize(const sf::Vector2f &size);
@@ -21,21 +23,34 @@ public:
     void onActionActivated(keyboard_action::Action action);
 
 private:
+    void createExitDialog();
+    void createReturnToMainMenuDialog();
+
+    void enableButtons();
+    void disableButtons();
+
     void drawExitGameDialog();
     void drawReturnToMainMenuDialog();
 
 private:
-    sf::Vector2f m_size;
+    sf::Vector2f m_viewport_size;
     bool m_level;
 
-    struct MenuEntry
-    {
-        std::string name;
-        std::function<void()> callback;
-    };
+    std::vector<Frame *> m_buttons;
 
-    std::vector<MenuEntry> m_main_menu_entries;
-    std::vector<std::function<void()>> m_dialogs;
+    QuestionDialog *m_exit_dialog;
+    QuestionDialog *m_return_to_main_menu_dialog;
+
+    sf::RectangleShape m_background;
+
+    //    struct MenuEntry
+    //    {
+    //        std::string name;
+    //        std::function<void()> callback;
+    //    };
+
+    //    std::vector<MenuEntry> m_main_menu_entries;
+    //    std::vector<std::function<void()>> m_dialogs;
 };
 
 } // namespace fck::gui

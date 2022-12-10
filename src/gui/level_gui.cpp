@@ -1,5 +1,4 @@
 #include "level_gui.h"
-#include "gui_style.h"
 
 #include "../components/components.h"
 
@@ -10,26 +9,29 @@
 namespace fck::gui
 {
 
-LevelGui::LevelGui(const sf::Vector2f &size, const Entity &player_entity)
-    : m_size{size}, m_player_entity(player_entity)
+LevelGui::LevelGui(const Entity &player_entity) : m_player_entity(player_entity)
 {
     m_border_offset = {20.0f, 40.0f};
 
     m_scale = {1.0f, 1.0f};
     m_stats_scale = {4.0f, 4.0f};
 
-    m_stats_hp_bar_width = 68.0f;
-    m_stats_armor_bar_width = 52.0f;
-
     // player
-    m_player_hp_progress_bar.reset(GuiStyle::createPlayerHpBar());
-    m_player_armor_progress_bar.reset(GuiStyle::createPlayerArmorBar());
-    m_minimap.reset(GuiStyle::createMinimap());
+    m_player_hp_progress_bar = GuiStyle::createPlayerHpBar();
+    addFrame(m_player_hp_progress_bar);
+
+    m_player_armor_progress_bar = GuiStyle::createPlayerArmorBar();
+    addFrame(m_player_armor_progress_bar);
+
+    m_minimap = GuiStyle::createMinimap();
+    addFrame(m_minimap);
 
     updatePlayerStats();
 
     // target
-    m_target_hp_progress_bar.reset(GuiStyle::createTargetHpBar());
+    m_target_hp_progress_bar = GuiStyle::createTargetHpBar();
+    m_target_hp_progress_bar->setVisible(false);
+    addFrame(m_target_hp_progress_bar);
 
     updateTargetStats();
 
@@ -38,8 +40,6 @@ LevelGui::LevelGui(const sf::Vector2f &size, const Entity &player_entity)
 
 void LevelGui::resize(const sf::Vector2f &size)
 {
-    m_size = size;
-
     // player
     m_player_hp_progress_bar->setPosition(GuiStyle::viewport_offset);
     m_player_armor_progress_bar->setPosition(
@@ -57,32 +57,34 @@ void LevelGui::resize(const sf::Vector2f &size)
         {
             float space = i == 0 ? 0.0f : 4.0f * m_stats_scale.x;
             m_skills[m_skills.size() - 1 - i].sprite.setPosition(
-                m_size - m_border_offset
+                size - m_border_offset
                 - sf::Vector2f{skill_icon_size.x * m_stats_scale.x + space, 0} * float(i));
             m_skills[m_skills.size() - 1 - i].sprite.setScale(m_stats_scale);
             m_skills[m_skills.size() - 1 - i].key_text.setPosition(
-                m_size - m_border_offset
+                size - m_border_offset
                 - sf::Vector2f{(skill_icon_size.x * m_stats_scale.x + space) * float(i), 4.0f});
         }
     }
 
     // target
     m_target_hp_progress_bar->setPosition(
-        {m_size.x - GuiStyle::viewport_offset.x, GuiStyle::viewport_offset.y});
+        {size.x - GuiStyle::viewport_offset.x, GuiStyle::viewport_offset.y});
 }
 
-void LevelGui::draw(sf::RenderTarget &target, const sf::RenderStates &states)
-{
-    if (!m_player_entity.isValid())
-        return;
+//void LevelGui::draw(sf::RenderTarget &target, const sf::RenderStates &states)
+//{
+//    GuiBase::draw(target, states);
 
-    drawPlayerStats(target, states);
-    drawPlayerSkills(target, states);
+//    //    if (!m_player_entity.isValid())
+//    //        return;
 
-    component::Target &target_component = m_player_entity.component<component::Target>();
-    if (target_component.target.isValid())
-        drawTargetStats(target, states);
-}
+//    //    drawPlayerStats(target, states);
+//    //    drawPlayerSkills(target, states);
+
+//    //    component::Target &target_component = m_player_entity.component<component::Target>();
+//    //    if (target_component.target.isValid())
+//    //        drawTargetStats(target, states);
+//}
 
 void LevelGui::updatePlayerStats()
 {
@@ -136,15 +138,18 @@ void LevelGui::updatePlayerSkills()
             m_skills.push_back(s);
         }
     }
-
-    resize(m_size);
 }
 
 void LevelGui::updateTargetStats()
 {
     component::Target &target_component = m_player_entity.component<component::Target>();
     if (!target_component.target.isValid())
+    {
+        m_target_hp_progress_bar->setVisible(false);
         return;
+    }
+
+    m_target_hp_progress_bar->setVisible(true);
 
     component::Stats &stats_component = target_component.target.component<component::Stats>();
 

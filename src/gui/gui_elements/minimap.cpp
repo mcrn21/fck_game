@@ -47,7 +47,7 @@ void Minimap::draw(sf::RenderTarget &target, const sf::RenderStates &states) con
         {
             sf::RenderStates rooms_state = states;
             rooms_state.texture = getTexture();
-            rooms_state.transform *= getTransform();
+            rooms_state.transform *= getParentsTransform();
 
             Clipping clipping(
                 target,
@@ -62,14 +62,12 @@ void Minimap::draw(sf::RenderTarget &target, const sf::RenderStates &states) con
 
         sf::RenderStates current_room_state = states;
         current_room_state.texture = getTexture();
-        current_room_state.transform *= getTransform();
-        current_room_state.transform.translate(
-            getLocalBounds().getSize() / 2.0f
-            - sf::Vector2f{m_current_room_texture_rect.getSize()} / 2.0f);
+        current_room_state.transform *= getParentsTransform();
+        current_room_state.transform.translate(m_current_room_offset);
         target.draw(m_current_room_vertices, 4, sf::TriangleStrip, current_room_state);
 
         sf::RenderStates text_state = states;
-        text_state.transform *= getTransform();
+        text_state.transform *= getParentsTransform();
         target.draw(m_text, text_state);
     }
 }
@@ -137,6 +135,9 @@ void Minimap::setCurrentRoom(const sf::Vector2i &room_coord)
     sf::Vector2i room_size = m_room_texture_rects.begin()->second.getSize();
     m_rooms_vertices_offset = getLocalBounds().getSize() / 2.0f - sf::Vector2f(room_size) / 2.0f;
     m_rooms_vertices_offset -= sf::Vector2f{vector2::mult(room_size, room_coord)};
+
+    m_current_room_offset = getLocalBounds().getSize() / 2.0f
+        - sf::Vector2f{m_current_room_texture_rect.getSize()} / 2.0f;
 }
 
 void Minimap::updateRoomsPositions()

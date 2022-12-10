@@ -62,6 +62,7 @@ private:
     sf::VertexArray m_room_types_vertices;
     std::unordered_map<Level::Room::Type, sf::IntRect> m_room_type_texture_rects;
 
+    sf::Vector2f m_current_room_offset;
     sf::Vertex m_current_room_vertices[4];
     sf::IntRect m_current_room_texture_rect;
 

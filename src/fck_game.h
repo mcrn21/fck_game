@@ -2,7 +2,7 @@
 #define FCKGAME_LHJLOJYRDNWT_H
 
 #include "fck_common.h"
-#include "gui_base.h"
+#include "gui_manager.h"
 #include "level.h"
 
 #include "systems/systems.h"
@@ -97,7 +97,7 @@ private:
 
     game_state::State m_state;
 
-    std::list<std::unique_ptr<GuiBase>> m_gui_list;
+    GuiManager m_gui_manager;
 
     InputActionsMap<keyboard_action::Action> m_input_actions;
 

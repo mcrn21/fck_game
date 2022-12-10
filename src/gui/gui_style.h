@@ -26,7 +26,20 @@ struct GuiStyle
 
     static sf::IntRect progress_bar_red_texture_rect;
     static sf::IntRect progress_bar_blue_texture_rect;
+    static sf::IntRect progress_bar_yellow_texture_rect;
     static sf::Vector2f progress_bar_offset;
+
+    static sf::Vector2f loading_progress_bar_size;
+    static sf::Vector2f loading_progress_bar_text_offset;
+    static uint32_t loading_progress_bar_font_size;
+
+    static sf::Color main_menu_button_default_color;
+    static sf::IntRect main_menu_button_default_frame_texture_rect;
+    static sf::Color main_menu_button_hover_color;
+    static sf::IntRect main_menu_button_hover_frame_texture_rect;
+    static sf::Color main_menu_button_pressed_color;
+    static sf::IntRect main_menu_button_pressed_frame_texture_rect;
+    static uint32_t main_menu_button_font_size;
 
     static sf::Vector2f hp_progress_bar_size;
     static sf::Vector2f armor_progress_bar_size;
@@ -39,11 +52,19 @@ struct GuiStyle
     static sf::Vector2f minimap_size;
     static sf::Vector2f minimap_text_offset;
 
+    static ProgressBar *createLoadingProgressBar();
+
     static ProgressBar *createPlayerHpBar();
     static ProgressBar *createPlayerArmorBar();
     static ProgressBar *createTargetHpBar();
 
     static Minimap *createMinimap();
+
+    static Button *createMainMenuButton(const sf::String &text);
+
+    static QuestionDialog *createQuestionDialog(
+        const sf::String &text, const sf::String &ok_text, const sf::String &cancel_text);
+    static void createQuestionDialogButton(Button *button, const sf::String &text);
 };
 
 } // namespace fck::gui
