@@ -1,44 +1,48 @@
 #include "gui_style.h"
 
+#include "gui_elements/gui_elements.h"
+
 #include "../fck/resource_cache.h"
 #include "../fck/utilities.h"
 
 namespace fck::gui
 {
 
-std::string GuiStyle::ui_texture_name = "ui";
-std::string GuiStyle::ui_font_name = "mini_pixel-7";
+std::string Style::ui_texture_name = "ui";
+std::string Style::ui_font_name = "mini_pixel-7";
 
-sf::Vector2f GuiStyle::viewport_offset = {20.0f, 40.0f};
-sf::Vector2f GuiStyle::stats_scale = {4.0f, 4.0f};
+sf::Vector2f Style::viewport_offset = {20.0f, 40.0f};
+sf::Vector2f Style::stats_scale = {4.0f, 4.0f};
 
-sf::IntRect GuiStyle::frame_texture_rect = {{0, 0}, {40, 8}};
-sf::IntRect GuiStyle::frame_transparented_texture_rect = {{0, 8}, {40, 8}};
-sf::Vector2i GuiStyle::frame_border_size = {3, 3};
+sf::IntRect Style::frame_texture_rect = {{0, 0}, {40, 8}};
+sf::IntRect Style::frame_transparented_texture_rect = {{0, 8}, {40, 8}};
+sf::Vector2i Style::frame_border_size = {3, 3};
 
-sf::IntRect GuiStyle::progress_bar_red_texture_rect = {{41, 2}, {1, 4}};
-sf::IntRect GuiStyle::progress_bar_blue_texture_rect = {{43, 2}, {1, 4}};
-sf::IntRect GuiStyle::progress_bar_yellow_texture_rect = {{45, 2}, {1, 4}};
-sf::Vector2f GuiStyle::progress_bar_offset = {2.0f, 2.0f};
+sf::IntRect Style::progress_bar_red_texture_rect = {{41, 2}, {1, 4}};
+sf::IntRect Style::progress_bar_blue_texture_rect = {{43, 2}, {1, 4}};
+sf::IntRect Style::progress_bar_yellow_texture_rect = {{45, 2}, {1, 4}};
+sf::Vector2f Style::progress_bar_offset = {2.0f, 2.0f};
 
-sf::Vector2f GuiStyle::loading_progress_bar_size = {64.0f, 8.0f};
-sf::Vector2f GuiStyle::loading_progress_bar_text_offset = {0.0f, -4.0f};
-uint32_t GuiStyle::loading_progress_bar_font_size = 30;
+sf::Vector2f Style::loading_progress_bar_size = {64.0f, 8.0f};
+sf::Vector2f Style::loading_progress_bar_text_offset = {0.0f, -4.0f};
+uint32_t Style::loading_progress_bar_font_size = 30;
 
-sf::Color GuiStyle::main_menu_button_default_color = sf::Color(255, 255, 255);
-sf::IntRect GuiStyle::main_menu_button_default_frame_texture_rect = {{0, 0}, {0, 0}};
-sf::Color GuiStyle::main_menu_button_hover_color = sf::Color(255, 255, 255);
-sf::IntRect GuiStyle::main_menu_button_hover_frame_texture_rect = {{0, 96}, {40, 8}};
-sf::Color GuiStyle::main_menu_button_pressed_color = sf::Color(255, 255, 255);
-sf::IntRect GuiStyle::main_menu_button_pressed_frame_texture_rect = {{0, 96}, {40, 8}};
-uint32_t GuiStyle::main_menu_button_font_size = 30;
+sf::Color Style::main_menu_button_default_color = sf::Color(255, 255, 255);
+sf::IntRect Style::main_menu_button_default_frame_texture_rect = {{0, 0}, {0, 0}};
+sf::Color Style::main_menu_button_hover_color = sf::Color(255, 255, 255);
+sf::IntRect Style::main_menu_button_hover_frame_texture_rect = {{8, 96}, {8, 8}};
+sf::Color Style::main_menu_button_pressed_color = sf::Color(255, 255, 255);
+sf::IntRect Style::main_menu_button_pressed_frame_texture_rect = {{8, 96}, {8, 8}};
+uint32_t Style::main_menu_button_font_size = 30;
 
-sf::Vector2f GuiStyle::hp_progress_bar_size = {64.0f, 8.0f};
-sf::Vector2f GuiStyle::armor_progress_bar_size = {52.0f, 8.0f};
-sf::Vector2f GuiStyle::stats_progress_bar_text_offset = {2.0f, -4.0f};
-uint32_t GuiStyle::stats_font_size = 24;
+sf::IntRect Style::dialog_frame_texture_rect = {{16, 96}, {8, 8}};
 
-std::unordered_map<int32_t, sf::IntRect> GuiStyle::minimap_room_texture_rects
+sf::Vector2f Style::hp_progress_bar_size = {64.0f, 8.0f};
+sf::Vector2f Style::armor_progress_bar_size = {52.0f, 8.0f};
+sf::Vector2f Style::stats_progress_bar_text_offset = {2.0f, -4.0f};
+uint32_t Style::stats_font_size = 24;
+
+std::unordered_map<int32_t, sf::IntRect> Style::minimap_room_texture_rects
     = {{0, {{1, 72}, {11, 11}}},
        {Level::Room::LEFT, {{1, 17}, {11, 11}}},
        {Level::Room::LEFT | Level::Room::TOP, {{12, 17}, {11, 11}}},
@@ -57,17 +61,33 @@ std::unordered_map<int32_t, sf::IntRect> GuiStyle::minimap_room_texture_rects
        {Level::Room::LEFT | Level::Room::TOP | Level::Room::RIGHT | Level::Room::BOTTOM,
         {{23, 61}, {11, 11}}}};
 
-std::unordered_map<Level::Room::Type, sf::IntRect> GuiStyle::minimap_room_type_texture_rects
+std::unordered_map<Level::Room::Type, sf::IntRect> Style::minimap_room_type_texture_rects
     = {{Level::Room::UNKNOW, {{1, 83}, {11, 11}}},
        {Level::Room::DEFAULT, {{0, 0}, {0, 0}}},
        {Level::Room::BOSS, {{12, 83}, {11, 11}}},
        {Level::Room::TRADER, {{23, 83}, {11, 11}}}};
 
-sf::IntRect GuiStyle::minimap_current_room_texture_rect = {{12, 72}, {11, 11}};
-sf::Vector2f GuiStyle::minimap_size = {30.0f, 30.0f};
-sf::Vector2f GuiStyle::minimap_text_offset = {4.0f, -7.0f};
+sf::IntRect Style::minimap_current_room_texture_rect = {{12, 72}, {11, 11}};
+sf::Vector2f Style::minimap_size = {30.0f, 30.0f};
+sf::Vector2f Style::minimap_text_offset = {4.0f, -7.0f};
 
-ProgressBar *GuiStyle::createLoadingProgressBar()
+Style Style::frame_style = []() {
+    Style style;
+
+    style.values["texture"] = std::string("ui");
+    style.values["scale"] = sf::Vector2f{4.0f, 4.0f};
+    style.values["frame_border_size"] = sf::Vector2i{3, 3};
+    style.values["frame_default_texture_rect"] = sf::IntRect{{0, 0}, {40, 8}};
+    style.values["frame_hovered_texture_rect"] = sf::IntRect{{0, 0}, {40, 8}};
+    style.values["frame_pressed_texture_rect"] = sf::IntRect{{0, 0}, {40, 8}};
+    style.values["frame_default_color"] = sf::Color::White;
+    style.values["frame_hovered_color"] = sf::Color::White;
+    style.values["frame_pressed_color"] = sf::Color::White;
+
+    return style;
+}();
+
+ProgressBar *Style::createLoadingProgressBar()
 {
     ProgressBar *progress_bar = new ProgressBar{
         *ResourceCache::resource<sf::Texture>(ui_texture_name),
@@ -91,7 +111,7 @@ ProgressBar *GuiStyle::createLoadingProgressBar()
     return progress_bar;
 }
 
-ProgressBar *GuiStyle::createPlayerHpBar()
+ProgressBar *Style::createPlayerHpBar()
 {
     ProgressBar *progress_bar = new ProgressBar{
         *ResourceCache::resource<sf::Texture>(ui_texture_name),
@@ -113,7 +133,7 @@ ProgressBar *GuiStyle::createPlayerHpBar()
     return progress_bar;
 }
 
-ProgressBar *GuiStyle::createPlayerArmorBar()
+ProgressBar *Style::createPlayerArmorBar()
 {
     ProgressBar *progress_bar = new ProgressBar{
         *ResourceCache::resource<sf::Texture>(ui_texture_name),
@@ -135,7 +155,7 @@ ProgressBar *GuiStyle::createPlayerArmorBar()
     return progress_bar;
 }
 
-ProgressBar *GuiStyle::createTargetHpBar()
+ProgressBar *Style::createTargetHpBar()
 {
     ProgressBar *progress_bar = new ProgressBar{
         *ResourceCache::resource<sf::Texture>(ui_texture_name),
@@ -157,7 +177,7 @@ ProgressBar *GuiStyle::createTargetHpBar()
     return progress_bar;
 }
 
-Minimap *GuiStyle::createMinimap()
+Minimap *Style::createMinimap()
 {
     Minimap *minimap = new Minimap{
         *ResourceCache::resource<sf::Texture>(ui_texture_name),
@@ -182,7 +202,7 @@ Minimap *GuiStyle::createMinimap()
     return minimap;
 }
 
-Button *GuiStyle::createMainMenuButton(const sf::String &text)
+Button *Style::createMainMenuButton(const sf::String &text)
 {
     Button *button = new Button{
         *ResourceCache::resource<sf::Texture>(ui_texture_name),
@@ -209,7 +229,7 @@ Button *GuiStyle::createMainMenuButton(const sf::String &text)
     return button;
 }
 
-QuestionDialog *GuiStyle::createQuestionDialog(
+QuestionDialog *Style::createQuestionDialog(
     const sf::String &text, const sf::String &ok_text, const sf::String &cancel_text)
 {
     QuestionDialog *question_dialog = new QuestionDialog{
@@ -217,7 +237,7 @@ QuestionDialog *GuiStyle::createQuestionDialog(
         ok_text,
         cancel_text,
         *ResourceCache::resource<sf::Texture>(ui_texture_name),
-        frame_transparented_texture_rect};
+        dialog_frame_texture_rect};
 
     question_dialog->text().setFont(*ResourceCache::resource<sf::Font>(ui_font_name));
     question_dialog->text().setCharacterSize(main_menu_button_font_size);
@@ -252,15 +272,15 @@ QuestionDialog *GuiStyle::createQuestionDialog(
     return question_dialog;
 }
 
-void GuiStyle::createQuestionDialogButton(Button *button, const sf::String &text)
+void Style::createQuestionDialogButton(Button *button, const sf::String &text)
 {
     button->setTexture(*ResourceCache::resource<sf::Texture>(ui_texture_name));
     button->setDefaultColor(main_menu_button_default_color);
     button->setDefaultFrameTextureRect(main_menu_button_default_frame_texture_rect);
     button->setHoveredColor(main_menu_button_hover_color);
     button->setHoveredFrameTextureRect(main_menu_button_hover_frame_texture_rect);
-    button->setHoveredColor(main_menu_button_pressed_color);
-    button->setHoveredFrameTextureRect(main_menu_button_pressed_frame_texture_rect);
+    button->setPressedColor(main_menu_button_pressed_color);
+    button->setPressedFrameTextureRect(main_menu_button_pressed_frame_texture_rect);
 
     button->setBorderSize(frame_border_size);
     button->setScale({1.0f, 1.0f});

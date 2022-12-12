@@ -3,6 +3,7 @@
 
 #include "drawable.h"
 #include "tmx.h"
+#include "vector_2d.h"
 
 #include <SFML/Graphics/RenderStates.hpp>
 #include <SFML/Graphics/RenderTarget.hpp>
@@ -19,17 +20,15 @@ class ResourceCache;
 class TileMap : public Drawable
 {
 public:
-    static TileMap *createFromTmx(
-        Tmx *tmx, const std::string &layer_name, const std::string &group_name = std::string());
-
-    static std::vector<TileMap *> createFromTmx(Tmx *tmx, int32_t layer_id = -1);
-
-    TileMap();
-    TileMap(
-        sf::Texture *texture,
+    static TileMap *createFromTmxLayer(
+        const Tmx::Layer &layer,
         const sf::Vector2i &map_size,
         const sf::Vector2i &tile_size,
-        const std::vector<std::vector<int32_t>> &tiles = std::vector<std::vector<int32_t>>());
+        const std::string &texture_name,
+        int32_t first_gid);
+
+    TileMap();
+    TileMap(sf::Texture *texture, const sf::Vector2i &tile_size, const Vector2D<int32_t> &tiles);
     ~TileMap() = default;
 
     drawable_type::Type type() const;
@@ -40,14 +39,14 @@ public:
     const sf::Color &color() const;
     void setColor(const sf::Color &color);
 
-    sf::Vector2i mapSize() const;
+    const sf::Vector2i &mapSize() const;
     void setMapSize(const sf::Vector2i &map_size);
 
     sf::Vector2i tileSize() const;
     void setTileSize(const sf::Vector2i &tile_size);
 
     void setTile(const sf::Vector2i &position, int32_t tile);
-    void setTiles(const std::vector<std::vector<int32_t>> &tiles);
+    void setTiles(const Vector2D<int32_t> &tiles);
 
     sf::FloatRect localBounds() const;
     sf::FloatRect globalBounds() const;
@@ -63,10 +62,8 @@ private:
     sf::VertexArray m_vertices;
     sf::Texture *m_texture;
 
-    sf::Vector2i m_map_size;
     sf::Vector2i m_tile_size;
-
-    std::vector<std::vector<int32_t>> m_tiles;
+    Vector2D<int32_t> m_tiles;
 };
 
 } // namespace fck

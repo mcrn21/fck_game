@@ -3,6 +3,8 @@
 
 #include "gui_style.h"
 
+#include "gui_elements/gui_elements.h"
+
 #include "../gui_base.h"
 #include "../knowledge_base.h"
 #include "../level.h"

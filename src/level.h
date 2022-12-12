@@ -52,14 +52,20 @@ public:
     void generateRoomsMap();
     void generateRoomsContent();
 
-    const Vector2D<Room *> &roomsMap() const;
-    const sf::Vector2i &firstRoomCoord() const;
-    const sf::Vector2i &currentRoomCoord() const;
+    const Vector2D<Room *> &getRoomsMap() const;
+    const sf::Vector2i &getFirstRoomCoord() const;
+    const sf::Vector2i &getCurrentRoomCoord() const;
+    sf::Vector2f getRoomPixelsSize() const;
 
     void enableRoom(const sf::Vector2i &coord, const sf::Vector2f &target_position);
 
 private:
     Entity createRoomTransition(Room::Side side, const sf::Vector2i &room_coord);
+    std::vector<Entity> createRoom(const Tmx::Group &room_group);
+    std::vector<Entity> createRoomCollisions(const Tmx::ObjectGroup &collisions_object_group);
+    Entity createTileMapFromLayer(const Tmx::Layer &layer);
+
+    const Tmx::Tileset *getTilesetByGid(int32_t gid);
 
 public:
     Signal<const sf::Vector2i &> room_opened;

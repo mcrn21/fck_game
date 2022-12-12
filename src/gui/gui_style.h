@@ -1,18 +1,22 @@
 #ifndef GUISTYLE_FQQFPDQRPGZG_H
 #define GUISTYLE_FQQFPDQRPGZG_H
 
-#include "gui_elements/gui_elements.h"
-
 #include "../level.h"
 
 #include <SFML/Graphics.hpp>
 
+#include <any>
 #include <string>
 
 namespace fck::gui
 {
 
-struct GuiStyle
+class ProgressBar;
+class Minimap;
+class Button;
+class QuestionDialog;
+
+struct Style
 {
     static std::string ui_texture_name;
     static std::string ui_font_name;
@@ -41,6 +45,8 @@ struct GuiStyle
     static sf::IntRect main_menu_button_pressed_frame_texture_rect;
     static uint32_t main_menu_button_font_size;
 
+    static sf::IntRect dialog_frame_texture_rect;
+
     static sf::Vector2f hp_progress_bar_size;
     static sf::Vector2f armor_progress_bar_size;
     static sf::Vector2f stats_progress_bar_text_offset;
@@ -65,6 +71,10 @@ struct GuiStyle
     static QuestionDialog *createQuestionDialog(
         const sf::String &text, const sf::String &ok_text, const sf::String &cancel_text);
     static void createQuestionDialogButton(Button *button, const sf::String &text);
+
+    static Style frame_style;
+
+    std::unordered_map<std::string, std::any> values;
 };
 
 } // namespace fck::gui

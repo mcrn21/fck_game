@@ -329,25 +329,11 @@ std::vector<Tmx::Layer> Tmx::loadLayers(const pugi::xml_node &node)
         std::string data_str = layer_node.child_value("data");
         std::vector<std::string> data_strs = string::split(data_str, ',');
 
-        int32_t x = 0;
-        int32_t y = 0;
-        layer.tiles.push_back(std::vector<int32_t>());
-        layer.tiles.back().resize(layer.size.x, 0);
-        for (std::string data : data_strs)
+        layer.tiles.resize(data_strs.size(), 0);
+        for (int32_t i = 0; i < data_strs.size(); ++i)
         {
-            string::trim(data);
-            layer.tiles[y][x] = std::stoi(data);
-            ++x;
-            if (x == layer.size.x && y < layer.size.y)
-            {
-                ++y;
-                x = 0;
-                if (y < layer.size.y)
-                {
-                    layer.tiles.push_back(std::vector<int32_t>());
-                    layer.tiles.back().resize(layer.size.x, 0);
-                }
-            }
+            string::trim(data_strs[i]);
+            layer.tiles[i] = std::stoi(data_strs[i]);
         }
 
         layers.push_back(layer);

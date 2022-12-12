@@ -18,11 +18,14 @@ public:
     ~ViewMovement() = default;
 
     void setView(sf::View *newView);
+    void setMovementBounds(const sf::FloatRect &movement_bounds);
 
     void update(double delta_time);
 
 private:
     sf::View *m_view;
+    sf::Vector2f m_movement_lower_bound;
+    sf::Vector2f m_movement_upper_bound;
     float m_velocity_mul;
 };
 

@@ -8,7 +8,7 @@ namespace fck::gui
 
 LoadingGui::LoadingGui() : m_total{1}, m_progress{0}
 {
-    m_progress_bar.reset(GuiStyle::createLoadingProgressBar());
+    m_progress_bar.reset(Style::createLoadingProgressBar());
 }
 
 void LoadingGui::setTotal(int32_t total)
@@ -33,8 +33,8 @@ void LoadingGui::increaseProgress()
 void LoadingGui::resize(const sf::Vector2f &size)
 {
     m_progress_bar->setPosition(
-        {GuiStyle::viewport_offset.x,
-         size.y - GuiStyle::viewport_offset.y - m_progress_bar->getGlobalBounds().getSize().y});
+        {Style::viewport_offset.x,
+         size.y - Style::viewport_offset.y - m_progress_bar->getGlobalBounds().getSize().y});
 }
 
 void LoadingGui::draw(sf::RenderTarget &target, const sf::RenderStates &states)

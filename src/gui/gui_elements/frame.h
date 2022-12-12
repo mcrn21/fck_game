@@ -1,6 +1,8 @@
 #ifndef FRAME_EKBGLLBRCXRS_H
 #define FRAME_EKBGLLBRCXRS_H
 
+#include "../gui_style.h"
+
 #include "../../fck/b2_dynamic_tree.h"
 #include "../../fck/sigslot.h"
 
@@ -32,6 +34,7 @@ class Frame : public sf::Drawable, public sf::Transformable
 
 public:
     Frame();
+    Frame(const Style &style);
     Frame(sf::Texture &texture, const sf::IntRect &frame_texture_rect);
     ~Frame();
 
@@ -43,6 +46,9 @@ public:
     void move(const sf::Vector2f &offset);
     void rotate(sf::Angle angle);
     void scale(const sf::Vector2f &factor);
+
+    const Style &getStyle() const;
+    void setStyle(const Style &style);
 
     sf::Texture *getTexture() const;
     virtual void setTexture(sf::Texture &texture);
@@ -97,6 +103,8 @@ private:
     void updateParentsTransform();
 
 private:
+    Style m_style;
+
     sf::Texture *m_texture;
 
     sf::Vector2f m_frame_size;

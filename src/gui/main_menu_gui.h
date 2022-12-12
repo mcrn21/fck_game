@@ -3,6 +3,8 @@
 
 #include "gui_style.h"
 
+#include "gui_elements/gui_elements.h"
+
 #include "../gui_base.h"
 
 #include <functional>
@@ -29,9 +31,6 @@ private:
     void enableButtons();
     void disableButtons();
 
-    void drawExitGameDialog();
-    void drawReturnToMainMenuDialog();
-
 private:
     sf::Vector2f m_viewport_size;
     bool m_level;
@@ -42,15 +41,6 @@ private:
     QuestionDialog *m_return_to_main_menu_dialog;
 
     sf::RectangleShape m_background;
-
-    //    struct MenuEntry
-    //    {
-    //        std::string name;
-    //        std::function<void()> callback;
-    //    };
-
-    //    std::vector<MenuEntry> m_main_menu_entries;
-    //    std::vector<std::function<void()>> m_dialogs;
 };
 
 } // namespace fck::gui

@@ -319,8 +319,6 @@ void FckGame::draw(const sf::Time &elapsed)
 
     m_gui_manager.draw(renderWindow(), sf::RenderStates{});
 
-    ImGui::SFML::Render(renderWindow());
-
     renderWindow().display();
 }
 
@@ -385,7 +383,7 @@ void FckGame::event(Event *event)
     {
         SfmlEvent *e = static_cast<SfmlEvent *>(event);
 
-        float scene_view_scale = 0.3;
+        float scene_view_scale = 0.2;
 
         m_scene_view.setSize(sf::Vector2f(
             e->get().size.width * scene_view_scale + 0.5,
@@ -527,18 +525,20 @@ void FckGame::newGame()
              m_level = std::make_unique<Level>(&m_world, &m_scene_tree, &m_path_finder);
              m_level->room_opened.connect(this, &FckGame::onLevelRoomOpened);
              m_level->room_enabled.connect(this, &FckGame::onLevelRoomEnabled);
-             m_level->loadFromFile("resources/levels/level2.tmx");
+             m_level->loadFromFile("resources/levels/level3.tmx");
          },
          [this]() { m_level->generateRoomsMap(); },
          [this]() { m_level->generateRoomsContent(); },
          [this]() {
+             m_view_movement_system.setMovementBounds({{0.0f, 0.0f}, m_level->getRoomPixelsSize()});
+
              m_player_entity = KnowledgeBase::createPlayer("kyoshi", &m_world);
 
              component::Script &player_entity_script_component
                  = m_player_entity.addComponent<component::Script>();
              player_entity_script_component.entity_script.reset(new entity_script::Player());
 
-             entityMove(m_player_entity, sf::Vector2f{});
+             entityMove(m_player_entity, sf::Vector2f{256.0f, 256.0f});
 
              Entity kyoshi_2 = KnowledgeBase::createEntity(
                  "kyoshi_2", &m_world); //m_entity_db.createPlayer(&m_world);
@@ -552,8 +552,8 @@ void FckGame::newGame()
          [this]() { setState(game_state::LEVEL); },
          [this, loading_new_game_tasks]() {
              gui::LevelGui *level_gui = m_gui_manager.back<gui::LevelGui>();
-             level_gui->setRoomsMap(m_level->roomsMap());
-             m_level->enableRoom(m_level->firstRoomCoord(), {256.0f, 256.0f});
+             level_gui->setRoomsMap(m_level->getRoomsMap());
+             m_level->enableRoom(m_level->getFirstRoomCoord(), {256.0f, 256.0f});
              loading_new_game_tasks->deleteLater();
          }});
 

@@ -7,17 +7,6 @@
 namespace fck
 {
 
-const std::vector<sf::Event::EventType> SFML_INPUT_EVENTS
-    = {sf::Event::MouseMoved,
-       sf::Event::MouseButtonPressed,
-       sf::Event::MouseButtonReleased,
-       sf::Event::TouchBegan,
-       sf::Event::TouchEnded,
-       sf::Event::MouseWheelScrolled,
-       sf::Event::KeyPressed,
-       sf::Event::KeyReleased,
-       sf::Event::TextEntered};
-
 BaseGame *BaseGame::m_instance = nullptr;
 
 BaseGame::BaseGame() : m_running{false}, m_tick_time{sf::milliseconds(16)}
@@ -26,13 +15,10 @@ BaseGame::BaseGame() : m_running{false}, m_tick_time{sf::milliseconds(16)}
     m_instance = this;
 
     m_render_window.setVerticalSyncEnabled(false);
-
-    ImGui::SFML::Init(m_render_window);
 }
 
 BaseGame::~BaseGame()
 {
-    ImGui::SFML::Shutdown();
 }
 
 BaseGame *BaseGame::instance()
@@ -55,14 +41,7 @@ int32_t BaseGame::exec()
         sf::Event event;
         while (m_render_window.pollEvent(event))
         {
-            ImGui::SFML::ProcessEvent(m_render_window, event);
-
-            if (!(ImGui::IsAnyItemActive()
-                  && std::find(SFML_INPUT_EVENTS.begin(), SFML_INPUT_EVENTS.end(), event.type)
-                      == SFML_INPUT_EVENTS.end()))
-            {
-                EventDispatcher::push(new SfmlEvent{event});
-            }
+            EventDispatcher::push(new SfmlEvent{event});
         }
 
         EventDispatcher::update(elapsed);
@@ -73,7 +52,6 @@ int32_t BaseGame::exec()
             lag -= m_tick_time;
         }
 
-        ImGui::SFML::Update(m_render_window, elapsed);
         draw(elapsed);
     }
 
@@ -99,9 +77,6 @@ void BaseGame::update(const sf::Time &elapsed)
 void BaseGame::draw(const sf::Time &elapsed)
 {
     m_render_window.clear();
-
-    ImGui::SFML::Render(m_render_window);
-
     m_render_window.display();
 }
 

@@ -42,7 +42,7 @@ public:
         int32_t id;
         std::string name;
         sf::Vector2i size;
-        std::vector<std::vector<int32_t>> tiles;
+        std::vector<int32_t> tiles;
         std::map<std::string, std::string> properties;
     };
 

@@ -16,18 +16,6 @@
 namespace fck
 {
 
-//void Level::Room::enable()
-//{
-//    for (Entity &entity : entities)
-//        entity.enable();
-//}
-
-//void Level::Room::disable()
-//{
-//    for (Entity &entity : entities)
-//        entity.disable();
-//}
-
 Level::Level(World *world, b2::DynamicTree<Entity> *scene_tree, PathFinder *path_finder)
     : m_world{world},
       m_scene_tree{scene_tree},
@@ -93,7 +81,7 @@ void Level::generateRoomsMap()
     std::queue<sf::Vector2i> coords_queue;
     std::vector<sf::Vector2i> coords;
 
-    int32_t room_max_count = 100;
+    int32_t room_max_count = 30;
 
     while (coords.size() < room_max_count)
     {
@@ -218,32 +206,18 @@ void Level::generateRoomsContent()
         {
             m_rooms_cache.entities[i] = new std::vector<Entity>();
 
-            for (int32_t j = 0; j < m_level_tmx->layers().size(); ++j)
+            std::string room_group_name = std::to_string(m_rooms_cache.map[i]->neighbors);
+
+            for (const auto &room_group : m_level_tmx->groups())
             {
-                Entity entity = m_world->createEntity();
-
-                component::Transform &transform_component
-                    = entity.addComponent<component::Transform>();
-
-                component::Scene &scene_component = entity.addComponent<component::Scene>();
-                scene_component.local_bounds
-                    = {{0.0f, 0.0f},
-                       sf::Vector2f{vector2::mult(m_level_tmx->size(), m_level_tmx->tileSize())}};
-
-                component::Drawable &drawable_component
-                    = entity.addComponent<component::Drawable>();
-                TileMap *tile_map
-                    = TileMap::createFromTmx(m_level_tmx.get(), m_level_tmx->layers()[j].name);
-                drawable_component.drawable.reset(tile_map);
-
-                drawable_component.global_bounds = sf::FloatRect(
-                    transform_component.transform.getPosition(),
-                    tile_map->globalBounds().getSize());
-
-                drawable_component.z_order = j;
-                drawable_component.z_order_fill_y_coordinate = false;
-
-                m_rooms_cache.entities[i]->push_back(entity);
+                if (room_group.name == room_group_name)
+                {
+                    std::vector<Entity> room_entities = createRoom(room_group);
+                    m_rooms_cache.entities[i]->insert(
+                        m_rooms_cache.entities[i]->end(),
+                        room_entities.begin(),
+                        room_entities.end());
+                }
             }
 
             if (m_rooms_cache.map[i]->neighbors & Room::LEFT)
@@ -265,19 +239,24 @@ void Level::generateRoomsContent()
     }
 }
 
-const Vector2D<Level::Room *> &Level::roomsMap() const
+const Vector2D<Level::Room *> &Level::getRoomsMap() const
 {
     return m_rooms_cache.map;
 }
 
-const sf::Vector2i &Level::firstRoomCoord() const
+const sf::Vector2i &Level::getFirstRoomCoord() const
 {
     return m_rooms_cache.m_first_room_coord;
 }
 
-const sf::Vector2i &Level::currentRoomCoord() const
+const sf::Vector2i &Level::getCurrentRoomCoord() const
 {
     return m_current_room_coord;
+}
+
+sf::Vector2f Level::getRoomPixelsSize() const
+{
+    return sf::Vector2f{vector2::mult(m_level_tmx->size(), m_level_tmx->tileSize())};
 }
 
 void Level::enableRoom(const sf::Vector2i &coord, const sf::Vector2f &target_position)
@@ -409,6 +388,129 @@ Entity Level::createRoomTransition(Room::Side side, const sf::Vector2i &room_coo
     script_component.entity_script.reset(room_transition_script);
 
     return entity;
+}
+
+std::vector<Entity> Level::createRoom(const Tmx::Group &rooms_group)
+{
+    std::vector<Entity> entities;
+    int32_t z_order = 0;
+
+    std::random_device dev;
+    std::mt19937 rng(dev());
+    std::uniform_int_distribution<int32_t> dist(0, rooms_group.groups.size() - 1);
+
+    const Tmx::Group &room_group = rooms_group.groups[dist(rng)];
+
+    for (int32_t i = 0; i < room_group.layers.size(); ++i)
+    {
+        Entity entity = createTileMapFromLayer(room_group.layers[i]);
+        if (entity.isValid())
+        {
+            entity.component<component::Drawable>().z_order = z_order++;
+            entities.push_back(entity);
+        }
+    }
+
+    for (const Tmx::ObjectGroup &object_group : room_group.object_groups)
+    {
+        if (object_group.name == "collisions")
+        {
+            std::vector<Entity> collision_entities = createRoomCollisions(object_group);
+            entities.insert(entities.end(), collision_entities.begin(), collision_entities.end());
+        }
+    }
+
+    return entities;
+}
+
+std::vector<Entity> Level::createRoomCollisions(const Tmx::ObjectGroup &collisions_object_group)
+{
+    if (collisions_object_group.objects.empty())
+        return {};
+
+    std::vector<Entity> entities;
+
+    for (const Tmx::Object &collision_object : collisions_object_group.objects)
+    {
+        if (collision_object.type != Tmx::Object::RECT)
+            continue;
+
+        Entity entity = m_world->createEntity();
+
+        component::Transform &transform_component = entity.addComponent<component::Transform>();
+        transform_component.transform.setPosition(
+            sf::Vector2f{collision_object.rect.getPosition()});
+
+        component::Scene &scene_component = entity.addComponent<component::Scene>();
+        scene_component.local_bounds
+            = {{0.0f, 0.0f}, sf::Vector2f{collision_object.rect.getSize()}};
+
+        component::Collision &collision_component = entity.addComponent<component::Collision>();
+        collision_component.wall = true;
+
+        entities.push_back(entity);
+    }
+
+    return entities;
+}
+
+Entity Level::createTileMapFromLayer(const Tmx::Layer &layer)
+{
+    Entity entity = m_world->createEntity();
+
+    component::Transform &transform_component = entity.addComponent<component::Transform>();
+
+    component::Scene &scene_component = entity.addComponent<component::Scene>();
+    scene_component.local_bounds
+        = {{0.0f, 0.0f}, sf::Vector2f{vector2::mult(m_level_tmx->size(), m_level_tmx->tileSize())}};
+
+    component::Drawable &drawable_component = entity.addComponent<component::Drawable>();
+
+    int32_t gid = 0;
+
+    for (int32_t i = 0; i < layer.tiles.size(); ++i)
+    {
+        if (layer.tiles[i] > 0)
+        {
+            gid = layer.tiles[i];
+            break;
+        }
+    }
+
+    const Tmx::Tileset *tileset = getTilesetByGid(gid);
+    if (!tileset)
+    {
+        entity.destroy();
+        return {};
+    }
+
+    TileMap *tile_map = TileMap::createFromTmxLayer(
+        layer, m_level_tmx->size(), m_level_tmx->tileSize(), tileset->name, tileset->first_gid);
+    if (!tile_map)
+    {
+        entity.destroy();
+        return {};
+    }
+
+    drawable_component.drawable.reset(tile_map);
+
+    drawable_component.global_bounds = sf::FloatRect(
+        transform_component.transform.getPosition(), tile_map->globalBounds().getSize());
+
+    drawable_component.z_order_fill_y_coordinate = false;
+
+    return entity;
+}
+
+const Tmx::Tileset *Level::getTilesetByGid(int32_t gid)
+{
+    for (const Tmx::Tileset &tileset : m_level_tmx->tilesets())
+    {
+        if (gid >= tileset.first_gid && gid < (tileset.first_gid + tileset.tile_count))
+            return &tileset;
+    }
+
+    return nullptr;
 }
 
 } // namespace fck

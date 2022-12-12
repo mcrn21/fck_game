@@ -17,19 +17,24 @@ LevelGui::LevelGui(const Entity &player_entity) : m_player_entity(player_entity)
     m_stats_scale = {4.0f, 4.0f};
 
     // player
-    m_player_hp_progress_bar = GuiStyle::createPlayerHpBar();
+    m_player_hp_progress_bar = Style::createPlayerHpBar();
     addFrame(m_player_hp_progress_bar);
 
-    m_player_armor_progress_bar = GuiStyle::createPlayerArmorBar();
+    m_player_armor_progress_bar = Style::createPlayerArmorBar();
     addFrame(m_player_armor_progress_bar);
 
-    m_minimap = GuiStyle::createMinimap();
+    m_minimap = Style::createMinimap();
     addFrame(m_minimap);
+
+    Frame *frame = new Frame{Style::frame_style};
+    frame->setFrameSize({200.0f, 200.0f});
+    frame->setPosition({200.0f, 200.0f});
+    addFrame(frame);
 
     updatePlayerStats();
 
     // target
-    m_target_hp_progress_bar = GuiStyle::createTargetHpBar();
+    m_target_hp_progress_bar = Style::createTargetHpBar();
     m_target_hp_progress_bar->setVisible(false);
     addFrame(m_target_hp_progress_bar);
 
@@ -41,12 +46,11 @@ LevelGui::LevelGui(const Entity &player_entity) : m_player_entity(player_entity)
 void LevelGui::resize(const sf::Vector2f &size)
 {
     // player
-    m_player_hp_progress_bar->setPosition(GuiStyle::viewport_offset);
+    m_player_hp_progress_bar->setPosition(Style::viewport_offset);
     m_player_armor_progress_bar->setPosition(
-        GuiStyle::viewport_offset + vector2::mult(sf::Vector2f{0.0f, 8.0f}, GuiStyle::stats_scale));
+        Style::viewport_offset + vector2::mult(sf::Vector2f{0.0f, 8.0f}, Style::stats_scale));
     m_minimap->setPosition(
-        GuiStyle::viewport_offset
-        + vector2::mult(sf::Vector2f{0.0f, 16.0f}, GuiStyle::stats_scale));
+        Style::viewport_offset + vector2::mult(sf::Vector2f{0.0f, 16.0f}, Style::stats_scale));
 
     // skills
     if (!m_skills.empty())
@@ -68,7 +72,7 @@ void LevelGui::resize(const sf::Vector2f &size)
 
     // target
     m_target_hp_progress_bar->setPosition(
-        {size.x - GuiStyle::viewport_offset.x, GuiStyle::viewport_offset.y});
+        {size.x - Style::viewport_offset.x, Style::viewport_offset.y});
 }
 
 //void LevelGui::draw(sf::RenderTarget &target, const sf::RenderStates &states)
