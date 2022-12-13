@@ -29,7 +29,7 @@ private:
 template<>
 struct KnowledgeBase::EntityScriptItem<entity_script::EnemyBase> : EntityScriptItemBase
 {
-    const std::string &name() const
+    const std::string &getName() const
     {
         return m_name;
     }
@@ -40,9 +40,9 @@ struct KnowledgeBase::EntityScriptItem<entity_script::EnemyBase> : EntityScriptI
     }
 
 private:
-    void init(toml::table *table)
+    void init(const std::string &name, toml::table *table)
     {
-        m_name = table->at("name").as_string()->get();
+        m_name = name;
 
         m_attack_interval = table->at("attack_interval").as_floating_point()->get();
     }

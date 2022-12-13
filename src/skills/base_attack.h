@@ -65,27 +65,27 @@ template<>
 struct KnowledgeBase::SkillItem<skill::BaseAttack> : SkillItemBase
 {
 public:
-    const std::string &name() const
+    const std::string &getName() const
     {
         return m_name;
     }
 
-    const std::string &displayName() const
+    const std::string &getDisplayName() const
     {
         return m_display_name;
     }
 
-    const std::string &displayDescription() const
+    const std::string &getDisplayDescription() const
     {
         return m_display_description;
     }
 
-    const std::string &textureName() const
+    const std::string &getTextureName() const
     {
         return m_texture_name;
     }
 
-    const sf::IntRect &textureRect() const
+    const sf::IntRect &getTextureRect() const
     {
         return m_texture_rect;
     }
@@ -103,9 +103,9 @@ public:
     }
 
 private:
-    void init(toml::table *table)
+    void init(const std::string &name, toml::table *table)
     {
-        m_name = table->at("name").as_string()->get();
+        m_name = name;
 
         m_display_name = table->at("display_name").as_string()->get();
         m_display_description = table->at("display_description").as_string()->get();

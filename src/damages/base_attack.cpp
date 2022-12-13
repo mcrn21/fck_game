@@ -26,12 +26,12 @@ BaseAttack::BaseAttack(
 
 void BaseAttack::update(double delta_time)
 {
-    if (!entity().isValid())
+    if (!getEntity().isValid())
         return;
 
     if (m_first_update)
     {
-        component::Stats &stats_component = entity().component<component::Stats>();
+        component::Stats &stats_component = getEntity().getComponent<component::Stats>();
         stats_component.damage = m_damage;
 
         //        if (source().isValid())
@@ -43,16 +43,16 @@ void BaseAttack::update(double delta_time)
         //            }
         //        }
 
-        component::State &state_component = entity().component<component::State>();
+        component::State &state_component = getEntity().getComponent<component::State>();
         if (!(entity_state::ATTACK & state_component.state))
-            entity::set_state.emit(entity(), entity_state::DAMAGED);
+            entity::set_state.emit(getEntity(), entity_state::DAMAGED);
 
         m_first_update = false;
     }
 
-    component::Velocity &velocity_component = entity().component<component::Velocity>();
+    component::Velocity &velocity_component = getEntity().getComponent<component::Velocity>();
 
-    if (elapsed() >= m_rebounce_interval.first && elapsed() <= m_rebounce_interval.second)
+    if (getElapsed() >= m_rebounce_interval.first && getElapsed() <= m_rebounce_interval.second)
     {
         velocity_component.velocity = m_rebound_velocity;
         return;
@@ -60,9 +60,9 @@ void BaseAttack::update(double delta_time)
 
     velocity_component.velocity = {};
 
-    component::State &state_component = entity().component<component::State>();
+    component::State &state_component = getEntity().getComponent<component::State>();
     if (!(entity_state::ATTACK & state_component.state))
-        entity::set_state.emit(entity(), entity_state::IDLE);
+        entity::set_state.emit(getEntity(), entity_state::IDLE);
 }
 
 } // namespace fck::damage

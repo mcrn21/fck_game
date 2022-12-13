@@ -2,6 +2,7 @@
 #define DRAWABLE_DEZGEGXGIYIU_H
 
 #include "drawable_animation.h"
+#include "drawable_state.h"
 
 #include "../knowledge_base.h"
 
@@ -65,23 +66,30 @@ struct KnowledgeBase::ComponentItem<component::Drawable> : ComponentItemBase
     {
         component::Drawable &component = entity.addComponent<component::Drawable>();
 
-        auto drawable = KnowledgeBase::createDrawable(name);
-        component.global_bounds = drawable.first->localBounds();
-        component.drawable.reset(drawable.first);
+        auto [drawable, drawable_state, drawable_animation] = KnowledgeBase::createDrawable(name);
 
-        if (drawable.first)
+        component.drawable.reset(drawable);
+        if (drawable)
         {
+            component.global_bounds = drawable->getLocalBounds();
             component.drawable->setPosition(position);
             component.drawable->setRotation(sf::degrees(rotation));
             component.drawable->setScale(scale);
             component.drawable->setOrigin(origin);
         }
 
-        if (drawable.second)
+        if (drawable_state)
+        {
+            component::DrawableState &drawable_state_component
+                = entity.addComponent<component::DrawableState>();
+            drawable_state_component.state.reset(drawable_state);
+        }
+
+        if (drawable_animation)
         {
             component::DrawableAnimation &drawable_animation_component
                 = entity.addComponent<component::DrawableAnimation>();
-            drawable_animation_component.animation.reset(drawable.second);
+            drawable_animation_component.animation.reset(drawable_animation);
         }
 
         component.z_order = z_order;

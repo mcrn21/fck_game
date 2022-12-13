@@ -14,13 +14,13 @@ public:
     Drawable() = default;
     virtual ~Drawable() = default;
 
-    virtual drawable_type::Type type() const = 0;
+    virtual drawable_type::Type getType() const = 0;
 
-    virtual const sf::Color &color() const = 0;
+    virtual const sf::Color &getColor() const = 0;
     virtual void setColor(const sf::Color &color) = 0;
 
-    virtual sf::FloatRect localBounds() const = 0;
-    virtual sf::FloatRect globalBounds() const = 0;
+    virtual sf::FloatRect getLocalBounds() const = 0;
+    virtual sf::FloatRect getGlobalBounds() const = 0;
 };
 
 } // namespace fck

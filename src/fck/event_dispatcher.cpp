@@ -136,10 +136,10 @@ void EventDispatcher::registerEventHandler(EventHandler *event_handler)
     if (!event_handler)
         return;
 
-    if (!event_handler->name().empty())
-        m_event_handlers_names.emplace(event_handler->name(), event_handler);
+    if (!event_handler->getName().empty())
+        m_event_handlers_names.emplace(event_handler->getName(), event_handler);
 
-    for (int32_t event_type : event_handler->eventTypes())
+    for (int32_t event_type : event_handler->getEventTypes())
         m_event_handlers_event_types.emplace(event_type, event_handler);
 }
 
@@ -148,14 +148,14 @@ void EventDispatcher::unregisterEventHandler(EventHandler *event_handler)
     if (!event_handler)
         return;
 
-    if (!event_handler->name().empty())
+    if (!event_handler->getName().empty())
     {
-        auto name_found = m_event_handlers_names.find(event_handler->name());
+        auto name_found = m_event_handlers_names.find(event_handler->getName());
         if (name_found != m_event_handlers_names.end())
             m_event_handlers_names.erase(name_found);
     }
 
-    for (int32_t event_type : event_handler->eventTypes())
+    for (int32_t event_type : event_handler->getEventTypes())
     {
         auto range = m_event_handlers_event_types.equal_range(event_type);
         for (auto it = range.first; it != range.second; ++it)
@@ -185,7 +185,7 @@ void EventDispatcher::unregisterTimer(Timer *timer)
 
 sf::Time EventDispatcher::calculateTimerStartTime(Timer *timer)
 {
-    return sf::milliseconds(m_elapsed_time.asMilliseconds() + timer->interval().asMilliseconds());
+    return sf::milliseconds(m_elapsed_time.asMilliseconds() + timer->getInterval().asMilliseconds());
 }
 
 } // namespace fck

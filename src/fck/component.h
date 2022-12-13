@@ -28,7 +28,7 @@ struct Component : public ComponentBase
 template<class T>
 TypeId componentTypeId()
 {
-    return ClassTypeId<ComponentBase>::id<T>();
+    return ClassTypeId<ComponentBase>::getId<T>();
 }
 
 struct ComponentsFilter

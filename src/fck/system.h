@@ -20,9 +20,9 @@ public:
     SystemBase(const ComponentsFilter &components_filter);
     virtual ~SystemBase() = default;
 
-    World *world() const;
-    const ComponentsFilter &componentsFilter() const;
-    std::vector<Entity> &entities();
+    World *getWorld() const;
+    const ComponentsFilter &getComponentsFilter() const;
+    std::vector<Entity> &getEntities();
 
     void each(const std::function<void(Entity &)> &callback)
     {
@@ -51,7 +51,7 @@ public:
             auto it = m_entities.begin();
             while (it != m_entities.end())
             {
-                callback(*it, (*it).component<Args>()...);
+                callback(*it, (*it).getComponent<Args>()...);
                 ++it;
             }
         }
@@ -86,7 +86,7 @@ public:
 template<class T>
 TypeId systemTypeId()
 {
-    return ClassTypeId<SystemBase>::id<T>();
+    return ClassTypeId<SystemBase>::getId<T>();
 }
 
 } // namespace fck

@@ -31,6 +31,8 @@ struct entity
     static Signal<const Entity &> destroy;
     // collided
     static Signal<const Entity &, const Entity &> collided;
+    // drawable
+    static Signal<const Entity &, const std::string &> set_drawable_state;
 };
 
 } // namespace fck

@@ -9,7 +9,7 @@ TaskSequence::TaskSequence(const std::string &name)
 {
 }
 
-const std::vector<std::function<void()>> &TaskSequence::tasks() const
+const std::vector<std::function<void()>> &TaskSequence::getTasks() const
 {
     return m_tasks;
 }

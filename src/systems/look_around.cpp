@@ -13,9 +13,9 @@ LookAround::LookAround(b2::DynamicTree<Entity> *tree) : m_tree{tree}
 
 void LookAround::update(double delta_time)
 {
-    for (Entity &entity : entities())
+    for (Entity &entity : getEntities())
     {
-        component::LookAround &look_around_component = entity.component<component::LookAround>();
+        component::LookAround &look_around_component = entity.getComponent<component::LookAround>();
 
         look_around_component.found_entities.clear();
         look_around_component.look_at_entities.clear();
@@ -24,7 +24,7 @@ void LookAround::update(double delta_time)
             continue;
 
         m_tree->querry(look_around_component.global_bounds, [&](int32_t id) {
-            Entity other = m_tree->userData(id);
+            Entity other = m_tree->getUserData(id);
             if (other != entity)
             {
                 if (!other.hasComponent<component::State>()
@@ -33,7 +33,7 @@ void LookAround::update(double delta_time)
 
                 look_around_component.found_entities.push_back(other);
 
-                component::Scene &other_scene_component = other.component<component::Scene>();
+                component::Scene &other_scene_component = other.getComponent<component::Scene>();
                 if (look_around_component.global_look_bounds
                         .findIntersection(other_scene_component.global_bounds)
                         .has_value())
@@ -47,9 +47,9 @@ void LookAround::update(double delta_time)
 
 void LookAround::updateBounds(const Entity &entity)
 {
-    component::LookAround &look_around_component = entity.component<component::LookAround>();
-    component::State &state_component = entity.component<component::State>();
-    component::Transform &transform_component = entity.component<component::Transform>();
+    component::LookAround &look_around_component = entity.getComponent<component::LookAround>();
+    component::State &state_component = entity.getComponent<component::State>();
+    component::Transform &transform_component = entity.getComponent<component::Transform>();
 
     sf::Vector2f global_position = transform_component.transform.getPosition();
 

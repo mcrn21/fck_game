@@ -24,7 +24,7 @@ namespace fck
 class FckGame : public BaseGame
 {
 public:
-    static FckGame *instance();
+    static FckGame *getInstance();
 
     FckGame();
     ~FckGame() = default;
@@ -83,6 +83,9 @@ public: // slots
 
     // collided
     void entityCollided(const Entity &entity, const Entity &other);
+
+    // drawable
+    void entityDrawableSetState(const Entity &entity, const std::string &state);
 
     // level
     void onLevelRoomOpened(const sf::Vector2i &room_coord);

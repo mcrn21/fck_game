@@ -34,12 +34,12 @@ public:
 
     void pop();
 
-    GuiBase *back() const;
+    GuiBase *getBack() const;
 
     template<typename T>
-    T *back() const
+    T *getBack() const
     {
-        return static_cast<T *>(back());
+        return static_cast<T *>(getBack());
     }
 
     void clear();

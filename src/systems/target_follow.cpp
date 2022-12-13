@@ -13,16 +13,16 @@ TargetFollow::TargetFollow(PathFinder *path_finder) : m_path_finder{path_finder}
 
 void TargetFollow::update(double delta_time)
 {
-    for (Entity &entity : entities())
+    for (Entity &entity : getEntities())
     {
-        component::Target &target_component = entity.component<component::Target>();
+        component::Target &target_component = entity.getComponent<component::Target>();
         component::Velocity &velocity_component
-            = entity.component<component::Velocity>();
-        component::Transform &transform_component = entity.component<component::Transform>();
-        component::State &state_component = entity.component<component::State>();
+            = entity.getComponent<component::Velocity>();
+        component::Transform &transform_component = entity.getComponent<component::Transform>();
+        component::State &state_component = entity.getComponent<component::State>();
         component::TargetFollow &target_follow_component
-            = entity.component<component::TargetFollow>();
-        component::Scene &scene_component = entity.component<component::Scene>();
+            = entity.getComponent<component::TargetFollow>();
+        component::Scene &scene_component = entity.getComponent<component::Scene>();
 
         if (!target_component.target.isValid())
         {
@@ -52,9 +52,9 @@ void TargetFollow::update(double delta_time)
         component::TargetFollow::State old_state = target_follow_component.state;
 
         component::Transform &target_transform_component
-            = target_component.target.component<component::Transform>();
+            = target_component.target.getComponent<component::Transform>();
 
-        PathFinder::Cell *target_cell = m_path_finder->grid().cellByPosition(
+        PathFinder::Cell *target_cell = m_path_finder->getGrid().getCellByPosition(
             target_transform_component.transform.getPosition());
 
         if (target_cell && target_cell->weight == 0)
@@ -73,9 +73,9 @@ void TargetFollow::update(double delta_time)
                 && dist < target_follow_component.max_distance)
             {
                 target_follow_component.path = m_path_finder->findPath(
-                    m_path_finder->grid().transformPosition(
+                    m_path_finder->getGrid().transformPosition(
                         transform_component.transform.getPosition()),
-                    m_path_finder->grid().transformPosition(
+                    m_path_finder->getGrid().transformPosition(
                         target_transform_component.transform.getPosition()));
 
                 if (!target_follow_component.path.empty())
@@ -87,10 +87,10 @@ void TargetFollow::update(double delta_time)
                     sf::Vector2f point = sf::Vector2f{
                         sf::Vector2i{
                             target_follow_component.path[point_index].x
-                                * m_path_finder->grid().cellSize().x,
+                                * m_path_finder->getGrid().getCellSize().x,
                             target_follow_component.path[point_index].y
-                                * m_path_finder->grid().cellSize().y}
-                        + m_path_finder->grid().cellSize() / 2};
+                                * m_path_finder->getGrid().getCellSize().y}
+                        + m_path_finder->getGrid().getCellSize() / 2};
 
                     float angle
                         = vector2::angleTo(transform_component.transform.getPosition(), point);

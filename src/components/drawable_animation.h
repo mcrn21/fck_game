@@ -5,10 +5,7 @@
 
 #include <memory>
 
-namespace fck
-{
-
-namespace component
+namespace fck::component
 {
 
 struct DrawableAnimation
@@ -16,8 +13,6 @@ struct DrawableAnimation
     std::unique_ptr<fck::DrawableAnimation> animation;
 };
 
-} // namespace component
-
-} // namespace fck
+} // namespace fck::component
 
 #endif // DRAWABLEANIMATION_FHDBWHWDKXVH_H

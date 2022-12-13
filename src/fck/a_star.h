@@ -44,7 +44,7 @@ public:
     PathFinder();
     ~PathFinder() = default;
 
-    Grid<Cell> &grid();
+    Grid<Cell> &getGrid();
 
     void setHeuristic(
         const std::function<uint32_t(const sf::Vector2i &, const sf::Vector2i &)> &heuristic);

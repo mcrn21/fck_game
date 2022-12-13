@@ -194,7 +194,7 @@ Module::~Module()
 {
 }
 
-int32_t Module::seed() const
+int32_t Module::getSeed() const
 {
     return m_seed;
 }
@@ -218,7 +218,7 @@ Perlin::~Perlin()
 {
 }
 
-float Perlin::value(double x, double y, double z)
+float Perlin::getValue(double x, double y, double z)
 {
     double value = 0.0;
     double signal = 0.0;
@@ -238,7 +238,7 @@ float Perlin::value(double x, double y, double z)
         ny = funcs::makeInt32Range(y);
         nz = funcs::makeInt32Range(z);
 
-        seed_ = (seed() + cur_octave) & 0xffffffff;
+        seed_ = (getSeed() + cur_octave) & 0xffffffff;
 
         signal = funcs::gradientCoherentNoise3D(nx, ny, nz, seed_, m_noise_quality);
         value += signal * cur_persistence;
@@ -253,7 +253,7 @@ float Perlin::value(double x, double y, double z)
     return value;
 }
 
-double Perlin::frequency() const
+double Perlin::getFrequency() const
 {
     return m_frequency;
 }
@@ -263,7 +263,7 @@ void Perlin::setFrequency(double frequency)
     m_frequency = frequency;
 }
 
-double Perlin::lacunarity() const
+double Perlin::getLacunarity() const
 {
     return m_lacunarity;
 }
@@ -273,7 +273,7 @@ void Perlin::setLacunarity(double lacunarity)
     m_lacunarity = lacunarity;
 }
 
-Quality Perlin::noiseQuality() const
+Quality Perlin::getNoiseQuality() const
 {
     return m_noise_quality;
 }
@@ -283,7 +283,7 @@ void Perlin::setNoiseQuality(Quality noise_quality)
     m_noise_quality = noise_quality;
 }
 
-int32_t Perlin::octaveCount() const
+int32_t Perlin::getOctaveCount() const
 {
     return m_octave_count;
 }
@@ -293,7 +293,7 @@ void Perlin::setOctaveCount(int32_t octave_count)
     m_octave_count = octave_count;
 }
 
-double Perlin::persistence() const
+double Perlin::getPersistence() const
 {
     return m_persistence;
 }
@@ -316,12 +316,12 @@ Simplex::~Simplex()
 {
 }
 
-float Simplex::value(double x, double y, double z)
+float Simplex::getValue(double x, double y, double z)
 {
-    return fractal(m_octave_count, x, z);
+    return getFractal(m_octave_count, x, z);
 }
 
-double Simplex::frequency() const
+double Simplex::getFrequency() const
 {
     return m_frequency;
 }
@@ -331,7 +331,7 @@ void Simplex::setFrequency(double frequency)
     m_frequency = frequency;
 }
 
-double Simplex::amplitude() const
+double Simplex::getAmplitude() const
 {
     return m_amplitude;
 }
@@ -341,7 +341,7 @@ void Simplex::setAmplitude(double amplitude)
     m_amplitude = amplitude;
 }
 
-double Simplex::lacunarity() const
+double Simplex::getLacunarity() const
 {
     return m_lacunarity;
 }
@@ -351,7 +351,7 @@ void Simplex::setLacunarity(double lacunarity)
     m_lacunarity = lacunarity;
 }
 
-int32_t Simplex::octaveCount() const
+int32_t Simplex::getOctaveCount() const
 {
     return m_octave_count;
 }
@@ -361,7 +361,7 @@ void Simplex::setOctaveCount(int32_t octave_count)
     m_octave_count = octave_count;
 }
 
-double Simplex::persistence() const
+double Simplex::getPersistence() const
 {
     return m_persistence;
 }
@@ -371,7 +371,7 @@ void Simplex::setPersistence(double persistence)
     m_persistence = persistence;
 }
 
-float Simplex::noise(float x, float y)
+float Simplex::getNoise(float x, float y)
 {
     float n0, n1, n2;
 
@@ -443,7 +443,7 @@ float Simplex::noise(float x, float y)
     return 45.23065f * (n0 + n1 + n2);
 }
 
-float Simplex::fractal(int32_t octave_count, float x, float y)
+float Simplex::getFractal(int32_t octave_count, float x, float y)
 {
     float output = 0;
     float denom = 0;
@@ -453,7 +453,7 @@ float Simplex::fractal(int32_t octave_count, float x, float y)
 
     for (int32_t cur_octave = 0; cur_octave < octave_count; ++cur_octave)
     {
-        output += (amplitude * noise(x * frequency, y * frequency));
+        output += (amplitude * getNoise(x * frequency, y * frequency));
         denom += amplitude;
         frequency *= m_lacunarity;
         amplitude *= m_persistence;
@@ -477,7 +477,7 @@ RigedMulti::~RigedMulti()
 {
 }
 
-float RigedMulti::value(double x, double y, double z)
+float RigedMulti::getValue(double x, double y, double z)
 {
     x *= m_frequency;
     y *= m_frequency;
@@ -496,7 +496,7 @@ float RigedMulti::value(double x, double y, double z)
         double ny = funcs::makeInt32Range(y);
         double nz = funcs::makeInt32Range(z);
 
-        int32_t seed_ = (seed() + cur_octave) & 0x7fffffff;
+        int32_t seed_ = (getSeed() + cur_octave) & 0x7fffffff;
         signal = funcs::gradientCoherentNoise3D(nx, ny, nz, seed_, m_noise_quality);
 
         signal = fabs(signal);
@@ -524,7 +524,7 @@ float RigedMulti::value(double x, double y, double z)
     return (value * 1.25) - 1.0;
 }
 
-double RigedMulti::frequency() const
+double RigedMulti::getFrequency() const
 {
     return m_frequency;
 }
@@ -534,7 +534,7 @@ void RigedMulti::setFrequency(double frequency)
     m_frequency = frequency;
 }
 
-double RigedMulti::lacunarity() const
+double RigedMulti::getLacunarity() const
 {
     return m_lacunarity;
 }
@@ -544,7 +544,7 @@ void RigedMulti::setLacunarity(double lacunarity)
     m_lacunarity = lacunarity;
 }
 
-Quality RigedMulti::noiseQuality() const
+Quality RigedMulti::getNoiseQuality() const
 {
     return m_noise_quality;
 }
@@ -554,7 +554,7 @@ void RigedMulti::setNoiseQuality(Quality noise_quality)
     m_noise_quality = noise_quality;
 }
 
-int32_t RigedMulti::octaveCount() const
+int32_t RigedMulti::getOctaveCount() const
 {
     return m_octave_count;
 }
@@ -587,7 +587,7 @@ Voronoi::~Voronoi()
 {
 }
 
-float Voronoi::value(double x, double y, double z)
+float Voronoi::getValue(double x, double y, double z)
 {
     x *= m_frequency;
     y *= m_frequency;
@@ -608,9 +608,9 @@ float Voronoi::value(double x, double y, double z)
         {
             for (int32_t x_cur = x_int - 2; x_cur <= x_int + 2; ++x_cur)
             {
-                double x_pos = x_cur + funcs::valueNoise3D(x_cur, y_cur, z_cur, seed());
-                double y_pos = y_cur + funcs::valueNoise3D(x_cur, y_cur, z_cur, seed() + 1);
-                double z_pos = z_cur + funcs::valueNoise3D(x_cur, y_cur, z_cur, seed() + 2);
+                double x_pos = x_cur + funcs::valueNoise3D(x_cur, y_cur, z_cur, getSeed());
+                double y_pos = y_cur + funcs::valueNoise3D(x_cur, y_cur, z_cur, getSeed() + 1);
+                double z_pos = z_cur + funcs::valueNoise3D(x_cur, y_cur, z_cur, getSeed() + 2);
                 double x_dist = x_pos - x;
                 double y_dist = y_pos - y;
                 double z_dist = z_pos - z;
@@ -647,7 +647,7 @@ float Voronoi::value(double x, double y, double z)
                (int)floor(x_candidate), (int)floor(y_candidate), (int)floor(z_candidate)));
 }
 
-double Voronoi::displacement() const
+double Voronoi::getDisplacement() const
 {
     return m_displacement;
 }
@@ -657,7 +657,7 @@ void Voronoi::setDisplacement(double displacement)
     m_displacement = displacement;
 }
 
-bool Voronoi::distance() const
+bool Voronoi::getDistance() const
 {
     return m_distance;
 }
@@ -667,7 +667,7 @@ void Voronoi::setDistance(bool distance)
     m_distance = distance;
 }
 
-double Voronoi::frequency() const
+double Voronoi::getFrequency() const
 {
     return m_frequency;
 }
@@ -691,13 +691,13 @@ CoordModify::~CoordModify()
 {
 }
 
-float CoordModify::value(double x, double y, double z)
+float CoordModify::getValue(double x, double y, double z)
 {
     if (!m_source)
         return -999;
 
     if (!m_x_modificator && !m_y_modificator && !m_z_modificator)
-        return m_source->value(x, y, x);
+        return m_source->getValue(x, y, x);
 
     float xv = 0;
     float yv = 0;
@@ -706,19 +706,19 @@ float CoordModify::value(double x, double y, double z)
     if ((m_x_modificator == m_y_modificator) && (m_y_modificator == m_z_modificator)
         && (m_x_modificator == m_z_modificator))
     {
-        xv = yv = zv = m_x_modificator->value(x, y, z) * m_power;
+        xv = yv = zv = m_x_modificator->getValue(x, y, z) * m_power;
     }
     else
     {
         if (m_x_modificator)
-            xv = m_x_modificator->value(x, y, z) * m_power;
+            xv = m_x_modificator->getValue(x, y, z) * m_power;
         if (m_y_modificator)
-            yv = m_y_modificator->value(x, y, z) * m_power;
+            yv = m_y_modificator->getValue(x, y, z) * m_power;
         if (m_z_modificator)
-            zv = m_z_modificator->value(x, y, z) * m_power;
+            zv = m_z_modificator->getValue(x, y, z) * m_power;
     }
 
-    return m_source->value(x + xv, y + yv, z + zv);
+    return m_source->getValue(x + xv, y + yv, z + zv);
 }
 
 void CoordModify::setModificator(Module *modificator)
@@ -726,7 +726,7 @@ void CoordModify::setModificator(Module *modificator)
     m_x_modificator = m_y_modificator = m_z_modificator = modificator;
 }
 
-Module *CoordModify::xModificator() const
+Module *CoordModify::getXModificator() const
 {
     return m_x_modificator;
 }
@@ -736,7 +736,7 @@ void CoordModify::setXModificator(Module *x_modificator)
     m_x_modificator = x_modificator;
 }
 
-Module *CoordModify::yModificator() const
+Module *CoordModify::getYModificator() const
 {
     return m_y_modificator;
 }
@@ -746,7 +746,7 @@ void CoordModify::setYModificator(Module *y_modificator)
     m_y_modificator = y_modificator;
 }
 
-Module *CoordModify::zModificator() const
+Module *CoordModify::getZModificator() const
 {
     return m_z_modificator;
 }
@@ -756,7 +756,7 @@ void CoordModify::setZModificator(Module *z_modificator)
     m_z_modificator = z_modificator;
 }
 
-Module *CoordModify::source() const
+Module *CoordModify::getSource() const
 {
     return m_source;
 }
@@ -766,7 +766,7 @@ void CoordModify::setSource(Module *source)
     m_source = source;
 }
 
-float CoordModify::power() const
+float CoordModify::getPower() const
 {
     return m_power;
 }
@@ -784,18 +784,18 @@ Mask::~Mask()
 {
 }
 
-float Mask::value(double x, double y, double z)
+float Mask::getValue(double x, double y, double z)
 {
     if (!m_mask && !m_source)
         return -999;
 
-    float source_value = m_source->value(x, y, z);
-    float mask_value = m_mask->value(x, y, z);
+    float source_value = m_source->getValue(x, y, z);
+    float mask_value = m_mask->getValue(x, y, z);
 
     return (source_value >= mask_value) ? source_value : -999;
 }
 
-Module *Mask::mask() const
+Module *Mask::getMask() const
 {
     return m_mask;
 }
@@ -805,7 +805,7 @@ void Mask::setMask(Module *mask)
     m_mask = mask;
 }
 
-Module *Mask::source() const
+Module *Mask::getSource() const
 {
     return m_source;
 }
@@ -815,7 +815,7 @@ void Mask::setSource(Module *source)
     m_source = source;
 }
 
-float Mask::moreThen() const
+float Mask::getMoreThen() const
 {
     return m_more_then;
 }
@@ -845,7 +845,7 @@ void Map::setSize(int32_t width, int32_t height)
     m_data.resize(m_width * m_height);
 }
 
-float Map::value(int32_t x, int32_t y) const
+float Map::getValue(int32_t x, int32_t y) const
 {
     if (x > m_width || y > m_width || x < 0 || y < 0)
         return 0;
@@ -875,7 +875,7 @@ MapGenerator::~MapGenerator()
 {
 }
 
-Map *MapGenerator::map() const
+Map *MapGenerator::getMap() const
 {
     return m_map;
 }
@@ -885,7 +885,7 @@ void MapGenerator::setMap(Map *map)
     m_map = map;
 }
 
-Module *MapGenerator::module() const
+Module *MapGenerator::getModule() const
 {
     return m_module;
 }
@@ -915,7 +915,7 @@ void MapGenerator::setBounds(int32_t x1, int32_t x2, int32_t y1, int32_t y2)
     m_y2 = y2;
 }
 
-bool MapGenerator::seamless() const
+bool MapGenerator::getSeamless() const
 {
     return m_seamless;
 }
@@ -925,7 +925,7 @@ void MapGenerator::setSeamless(bool seamless)
     m_seamless = seamless;
 }
 
-float MapGenerator::blend() const
+float MapGenerator::getBlend() const
 {
     return m_blend;
 }
@@ -958,14 +958,14 @@ void MapGenerator::generate()
         {
             if (!m_seamless)
             {
-                value = m_module->value(x_cur, 0, z_cur);
+                value = m_module->getValue(x_cur, 0, z_cur);
             }
             else
             {
-                double sw_value = m_module->value(x_cur, 0, z_cur);
-                double se_value = m_module->value(x_cur + x_extent, 0, z_cur);
-                double nw_value = m_module->value(x_cur, 0, z_cur + z_extent);
-                double ne_value = m_module->value(x_cur + x_extent, 0, z_cur + z_extent);
+                double sw_value = m_module->getValue(x_cur, 0, z_cur);
+                double se_value = m_module->getValue(x_cur + x_extent, 0, z_cur);
+                double nw_value = m_module->getValue(x_cur, 0, z_cur + z_extent);
+                double ne_value = m_module->getValue(x_cur + x_extent, 0, z_cur + z_extent);
 
                 double z0 = funcs::linearInterp(sw_value, se_value, m_blend);
                 double z1 = funcs::linearInterp(nw_value, ne_value, m_blend);

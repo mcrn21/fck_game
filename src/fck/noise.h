@@ -23,10 +23,10 @@ public:
     Module();
     virtual ~Module();
 
-    int32_t seed() const;
+    int32_t getSeed() const;
     void setSeed(int32_t seed);
 
-    virtual float value(double x, double y, double z)
+    virtual float getValue(double x, double y, double z)
     {
         return 0;
     }
@@ -41,21 +41,21 @@ public:
     Perlin();
     ~Perlin();
 
-    float value(double x, double y, double z);
+    float getValue(double x, double y, double z);
 
-    double frequency() const;
+    double getFrequency() const;
     void setFrequency(double frequency);
 
-    double lacunarity() const;
+    double getLacunarity() const;
     void setLacunarity(double lacunarity);
 
-    Quality noiseQuality() const;
+    Quality getNoiseQuality() const;
     void setNoiseQuality(Quality noise_quality);
 
-    int32_t octaveCount() const;
+    int32_t getOctaveCount() const;
     void setOctaveCount(int32_t octave_count);
 
-    double persistence() const;
+    double getPersistence() const;
     void setPersistence(double persistence);
 
 private:
@@ -72,26 +72,26 @@ public:
     Simplex();
     ~Simplex();
 
-    float value(double x, double y, double z);
+    float getValue(double x, double y, double z);
 
-    double frequency() const;
+    double getFrequency() const;
     void setFrequency(double frequency);
 
-    double amplitude() const;
+    double getAmplitude() const;
     void setAmplitude(double amplitude);
 
-    double lacunarity() const;
+    double getLacunarity() const;
     void setLacunarity(double lacunarity);
 
-    int32_t octaveCount() const;
+    int32_t getOctaveCount() const;
     void setOctaveCount(int32_t octave_count);
 
-    double persistence() const;
+    double getPersistence() const;
     void setPersistence(double persistence);
 
 private:
-    float noise(float x, float y);
-    float fractal(int32_t octave_count, float x, float y);
+    float getNoise(float x, float y);
+    float getFractal(int32_t octave_count, float x, float y);
 
 private:
     double m_frequency;
@@ -107,18 +107,18 @@ public:
     RigedMulti();
     ~RigedMulti();
 
-    float value(double x, double y, double z);
+    float getValue(double x, double y, double z);
 
-    double frequency() const;
+    double getFrequency() const;
     void setFrequency(double frequency);
 
-    double lacunarity() const;
+    double getLacunarity() const;
     void setLacunarity(double lacunarity);
 
-    Quality noiseQuality() const;
+    Quality getNoiseQuality() const;
     void setNoiseQuality(Quality noise_quality);
 
-    int32_t octaveCount() const;
+    int32_t getOctaveCount() const;
     void setOctaveCount(int32_t octave_count);
 
 private:
@@ -138,15 +138,15 @@ public:
     Voronoi();
     ~Voronoi();
 
-    float value(double x, double y, double z);
+    float getValue(double x, double y, double z);
 
-    double displacement() const;
+    double getDisplacement() const;
     void setDisplacement(double displacement);
 
-    bool distance() const;
+    bool getDistance() const;
     void setDistance(bool distance);
 
-    double frequency() const;
+    double getFrequency() const;
     void setFrequency(double frequency);
 
 private:
@@ -161,23 +161,23 @@ public:
     CoordModify();
     ~CoordModify();
 
-    float value(double x, double y, double z);
+    float getValue(double x, double y, double z);
 
     void setModificator(Module *modificator);
 
-    Module *xModificator() const;
+    Module *getXModificator() const;
     void setXModificator(Module *x_modificator);
 
-    Module *yModificator() const;
+    Module *getYModificator() const;
     void setYModificator(Module *y_modificator);
 
-    Module *zModificator() const;
+    Module *getZModificator() const;
     void setZModificator(Module *z_modificator);
 
-    Module *source() const;
+    Module *getSource() const;
     void setSource(Module *source);
 
-    float power() const;
+    float getPower() const;
     void setPower(float power);
 
 private:
@@ -196,15 +196,15 @@ public:
     Mask();
     ~Mask();
 
-    float value(double x, double y, double z);
+    float getValue(double x, double y, double z);
 
-    Module *mask() const;
+    Module *getMask() const;
     void setMask(Module *mask);
 
-    Module *source() const;
+    Module *getSource() const;
     void setSource(Module *source);
 
-    float moreThen() const;
+    float getMoreThen() const;
     void setMoreThen(float more_then);
 
 private:
@@ -222,7 +222,7 @@ public:
 
     void setSize(int32_t width, int32_t height);
 
-    float value(int32_t x, int32_t y) const;
+    float getValue(int32_t x, int32_t y) const;
     void setValue(int32_t x, int32_t y, float value);
 
 private:
@@ -237,19 +237,19 @@ public:
     MapGenerator();
     ~MapGenerator();
 
-    Map *map() const;
+    Map *getMap() const;
     void setMap(Map *map);
 
-    Module *module() const;
+    Module *getModule() const;
     void setModule(Module *module);
 
     void setDestSize(int32_t width, int32_t height);
     void setBounds(int32_t x1, int32_t x2, int32_t y1, int32_t y2);
 
-    bool seamless() const;
+    bool getSeamless() const;
     void setSeamless(bool seamless);
 
-    float blend() const;
+    float getBlend() const;
     void setBlend(float blend);
 
     void generate();

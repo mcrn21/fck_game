@@ -13,72 +13,72 @@ Tmx::Tmx()
     clear();
 }
 
-std::string Tmx::version() const
+std::string Tmx::getVersion() const
 {
     return m_version;
 }
 
-std::string Tmx::tiledVersion() const
+std::string Tmx::getTiledVersion() const
 {
     return m_tiled_version;
 }
 
-Tmx::Orientation Tmx::orientation() const
+Tmx::Orientation Tmx::getOrientation() const
 {
     return m_orientation;
 }
 
-Tmx::RenderOrder Tmx::renderOrder() const
+Tmx::RenderOrder Tmx::getRenderOrder() const
 {
     return m_render_order;
 }
 
-sf::Vector2i Tmx::size() const
+sf::Vector2i Tmx::getSize() const
 {
     return m_size;
 }
 
-sf::Vector2i Tmx::tileSize() const
+sf::Vector2i Tmx::getTileSize() const
 {
     return m_tile_size;
 }
 
-int32_t Tmx::infinite() const
+int32_t Tmx::getInfinite() const
 {
     return m_infinite;
 }
 
-int32_t Tmx::nextLayerId() const
+int32_t Tmx::getNextLayerId() const
 {
     return m_next_layer_id;
 }
 
-int32_t Tmx::nextObjectId() const
+int32_t Tmx::getNextObjectId() const
 {
     return m_next_object_id;
 }
 
-const std::map<std::string, std::string> &Tmx::properties() const
+const std::map<std::string, std::string> &Tmx::getProperties() const
 {
     return m_properties;
 }
 
-const std::vector<Tmx::Tileset> &Tmx::tilesets() const
+const std::vector<Tmx::Tileset> &Tmx::getTilesets() const
 {
     return m_tilesets;
 }
 
-const std::vector<Tmx::Layer> &Tmx::layers() const
+const std::vector<Tmx::Layer> &Tmx::getLayers() const
 {
     return m_layers;
 }
 
-const std::vector<Tmx::ObjectGroup> &Tmx::objectGroups() const
+const std::vector<Tmx::ObjectGroup> &Tmx::getObjectGroups() const
 {
     return m_object_groups;
 }
 
-const std::vector<Tmx::Group> &Tmx::groups() const
+const std::vector<Tmx::Group> &Tmx::getGroups() const
 {
     return m_groups;
 }

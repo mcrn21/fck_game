@@ -41,7 +41,7 @@ struct KnowledgeBase::ComponentItem<component::Shadow> : ComponentItemBase
     {
         component::Shadow &component = entity.addComponent<component::Shadow>();
 
-        sf::Texture *tex = ResourceCache::resource<sf::Texture>(texture);
+        sf::Texture *tex = ResourceCache::getResource<sf::Texture>(texture);
         if (tex)
         {
             component.shadow.setTexture(*tex, true);

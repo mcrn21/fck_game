@@ -24,12 +24,12 @@ public:
         return false;
     }
 
-    std::string errorString() const
+    std::string getErrorString() const
     {
         return m_error_string;
     }
 
-    static std::shared_ptr<T> global()
+    static std::shared_ptr<T> getGlobal()
     {
         return instance();
     }

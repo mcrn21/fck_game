@@ -15,10 +15,10 @@ Stats::Stats()
 
 void Stats::update(double delta_time)
 {
-    for (Entity &entity : entities())
+    for (Entity &entity : getEntities())
     {
-        component::Stats &stats_component = entity.component<component::Stats>();
-        component::State &state_component = entity.component<component::State>();
+        component::Stats &stats_component = entity.getComponent<component::Stats>();
+        component::State &state_component = entity.getComponent<component::State>();
 
         if (stats_component.damage > 0)
         {

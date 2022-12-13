@@ -27,12 +27,12 @@ Entity &Entity::operator=(const Entity &other)
     return *this;
 }
 
-const Id &Entity::id() const
+const Id &Entity::getId() const
 {
     return m_id;
 }
 
-World *Entity::world() const
+World *Entity::getWorld() const
 {
     fck_assert(m_world, "scene reference in entity is null");
     return m_world;
@@ -45,32 +45,32 @@ bool Entity::isValid() const
 
 bool Entity::isEnabled() const
 {
-    return world()->isEnabled(*this);
+    return getWorld()->isEnabled(*this);
 }
 
 void Entity::enable()
 {
-    world()->enableEntity(*this);
+    getWorld()->enableEntity(*this);
 }
 
 void Entity::disable()
 {
-    world()->disableEntity(*this);
+    getWorld()->disableEntity(*this);
 }
 
 void Entity::destroy()
 {
-    world()->destroyEntity(*this);
+    getWorld()->destroyEntity(*this);
 }
 
 void Entity::removeAllComponents()
 {
-    world()->m_entity_attributes.component_storage.removeAllComponents(*this);
+    getWorld()->m_entity_attributes.component_storage.removeAllComponents(*this);
 }
 
-ComponentsFilter Entity::componentFilter() const
+ComponentsFilter Entity::getComponentFilter() const
 {
-    return world()->m_entity_attributes.component_storage.componentsFilter(*this);
+    return getWorld()->m_entity_attributes.component_storage.getComponentsFilter(*this);
 }
 
 bool Entity::operator==(const Entity &entity) const
@@ -85,23 +85,23 @@ bool Entity::operator!=(const Entity &entity) const
 
 void Entity::addComponent(ComponentBase *component, TypeId component_type_id)
 {
-    world()->m_entity_attributes.component_storage.addComponent(
+    getWorld()->m_entity_attributes.component_storage.addComponent(
         *this, component, component_type_id);
 }
 
 void Entity::removeComponent(TypeId component_type_id)
 {
-    world()->m_entity_attributes.component_storage.removeComponent(*this, component_type_id);
+    getWorld()->m_entity_attributes.component_storage.removeComponent(*this, component_type_id);
 }
 
-ComponentBase *Entity::component(TypeId component_type_id) const
+ComponentBase *Entity::getComponent(TypeId component_type_id) const
 {
-    return world()->m_entity_attributes.component_storage.component(*this, component_type_id);
+    return getWorld()->m_entity_attributes.component_storage.getComponent(*this, component_type_id);
 }
 
 bool Entity::hasComponent(TypeId component_type_id) const
 {
-    return world()->m_entity_attributes.component_storage.hasComponent(*this, component_type_id);
+    return getWorld()->m_entity_attributes.component_storage.hasComponent(*this, component_type_id);
 }
 
 } // namespace fck

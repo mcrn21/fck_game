@@ -11,10 +11,10 @@ Script::Script()
 
 void Script::update(double delta_time)
 {
-    for (Entity &entity : entities())
+    for (Entity &entity : getEntities())
     {
         component::Script &script_component
-            = entity.component<component::Script>();
+            = entity.getComponent<component::Script>();
         if (script_component.entity_script)
             script_component.entity_script->update(entity, delta_time);
     }

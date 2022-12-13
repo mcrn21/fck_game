@@ -35,13 +35,13 @@ Collision::Collision()
 
 void Collision::update(double delta_time)
 {
-    for (Entity &entity : entities())
+    for (Entity &entity : getEntities())
     {
-        component::Scene &scene_component = entity.component<component::Scene>();
+        component::Scene &scene_component = entity.getComponent<component::Scene>();
         component::Velocity &velocity_component
-            = entity.component<component::Velocity>();
-        component::Transform &transform_component = entity.component<component::Transform>();
-        component::Collision &collision_component = entity.component<component::Collision>();
+            = entity.getComponent<component::Velocity>();
+        component::Transform &transform_component = entity.getComponent<component::Transform>();
+        component::Collision &collision_component = entity.getComponent<component::Collision>();
 
         if (!vector2::isValid(velocity_component.velocity))
             continue;
@@ -65,16 +65,16 @@ void Collision::update(double delta_time)
             Sweep sweep;
             int32_t foo = 1;
             scene_component.tree->querry(querry_bounds, [&](int32_t id) {
-                Entity other = scene_component.tree->userData(id);
+                Entity other = scene_component.tree->getUserData(id);
                 if (other != entity)
                 {
                     if (!other.hasComponent<component::Collision>())
                         return true;
 
                     component::Collision &other_collision_component
-                        = other.component<component::Collision>();
+                        = other.getComponent<component::Collision>();
 
-                    collisions::AABB other_aabb{other.component<component::Scene>().global_bounds};
+                    collisions::AABB other_aabb{other.getComponent<component::Scene>().global_bounds};
                     other_aabb.half += scene_component.global_bounds.getSize() / 2.0f;
 
                     auto hit = other_aabb.intersectSegment(position, delta);

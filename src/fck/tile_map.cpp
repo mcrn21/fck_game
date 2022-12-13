@@ -11,7 +11,7 @@ TileMap *TileMap::createFromTmxLayer(
     const std::string &texture_name,
     int32_t first_gid)
 {
-    sf::Texture *texture = ResourceCache::resource<sf::Texture>(texture_name);
+    sf::Texture *texture = ResourceCache::getResource<sf::Texture>(texture_name);
     if (!texture)
         return nullptr;
 
@@ -21,7 +21,7 @@ TileMap *TileMap::createFromTmxLayer(
     for (int32_t i = 0; i < layer.tiles.size(); ++i)
         tiles[i] = layer.tiles[i] - first_gid;
 
-    return new TileMap{texture, tile_size, tiles};
+    return new TileMap{*texture, tile_size, tiles};
 }
 
 TileMap::TileMap() : m_texture{nullptr}
@@ -29,33 +29,30 @@ TileMap::TileMap() : m_texture{nullptr}
 }
 
 TileMap::TileMap(
-    sf::Texture *texture, const sf::Vector2i &tile_size, const Vector2D<int32_t> &tiles)
-    : m_texture{texture}, m_tile_size{tile_size}, m_tiles{tiles}
+    sf::Texture &texture, const sf::Vector2i &tile_size, const Vector2D<int32_t> &tiles)
+    : m_texture{&texture}, m_tile_size{tile_size}, m_tiles{tiles}
 {
     updatePositions();
     updateTexCoords();
 }
 
-drawable_type::Type TileMap::type() const
+drawable_type::Type TileMap::getType() const
 {
     return drawable_type::TILE_MAP;
 }
 
-sf::Texture *TileMap::texture() const
+sf::Texture *TileMap::getTexture() const
 {
     return m_texture;
 }
 
-void TileMap::setTexture(sf::Texture *texture, const sf::Vector2i &tile_size)
+void TileMap::setTexture(sf::Texture &texture, const sf::Vector2i &tile_size)
 {
-    if (texture && (texture != m_texture || m_tile_size != tile_size))
-    {
-        updateTexCoords();
-    }
-    m_texture = texture;
+    m_texture = &texture;
+    setTileSize(tile_size);
 }
 
-const sf::Color &TileMap::color() const
+const sf::Color &TileMap::getColor() const
 {
     return m_vertices[0].color;
 }
@@ -66,9 +63,9 @@ void TileMap::setColor(const sf::Color &color)
         m_vertices[i].color = color;
 }
 
-const sf::Vector2i &TileMap::mapSize() const
+const sf::Vector2i &TileMap::getMapSize() const
 {
-    return m_tiles.size2D();
+    return m_tiles.getSize2D();
 }
 
 void TileMap::setMapSize(const sf::Vector2i &map_size)
@@ -77,7 +74,7 @@ void TileMap::setMapSize(const sf::Vector2i &map_size)
     updatePositions();
 }
 
-sf::Vector2i TileMap::tileSize() const
+sf::Vector2i TileMap::getTileSize() const
 {
     return m_tile_size;
 }
@@ -91,7 +88,7 @@ void TileMap::setTileSize(const sf::Vector2i &tile_size)
 
 void TileMap::setTile(const sf::Vector2i &position, int32_t tile)
 {
-    m_tiles.data(position) = tile;
+    m_tiles.getData(position) = tile;
     updateTexCoords();
 }
 
@@ -102,12 +99,12 @@ void TileMap::setTiles(const Vector2D<int32_t> &tiles)
     updateTexCoords();
 }
 
-sf::FloatRect TileMap::localBounds() const
+sf::FloatRect TileMap::getLocalBounds() const
 {
     return m_vertices.getBounds();
 }
 
-sf::FloatRect TileMap::globalBounds() const
+sf::FloatRect TileMap::getGlobalBounds() const
 {
     return getTransform().transformRect(m_vertices.getBounds());
 }
@@ -126,9 +123,9 @@ void TileMap::draw(sf::RenderTarget &target, const sf::RenderStates &states) con
 void TileMap::updatePositions()
 {
     m_vertices.setPrimitiveType(sf::Triangles);
-    m_vertices.resize(m_tiles.size() * 6);
+    m_vertices.resize(m_tiles.getSize() * 6);
 
-    for (int32_t i = 0; i < m_tiles.size(); ++i)
+    for (int32_t i = 0; i < m_tiles.getSize(); ++i)
     {
         auto coord = m_tiles.transformIndex(i);
         sf::Vertex *quad = &m_vertices[i * 6];
@@ -145,7 +142,7 @@ void TileMap::updatePositions()
 
 void TileMap::updateTexCoords()
 {
-    for (int32_t i = 0; i < m_tiles.size(); ++i)
+    for (int32_t i = 0; i < m_tiles.getSize(); ++i)
     {
         int32_t tile = m_tiles.at(i);
         auto coord = m_tiles.transformIndex(i);

@@ -32,7 +32,7 @@ void IdStorage::destroy(const Id &id)
         return;
 
     ++m_versions[id];
-    m_free_indexes.insert(id.index());
+    m_free_indexes.insert(id.getIndex());
 }
 
 Id IdStorage::get(uint32_t index) const
@@ -44,7 +44,7 @@ Id IdStorage::get(uint32_t index) const
 
 bool IdStorage::isValid(const Id &id) const
 {
-    return id.index() < m_next_index && id.version() == m_versions[id];
+    return id.getIndex() < m_next_index && id.getVersion() == m_versions[id];
 }
 
 void IdStorage::resize(int32_t size)

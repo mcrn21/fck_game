@@ -27,19 +27,19 @@ void Player::onEntityCollided(const Entity &entity, const Entity &other)
 
 void Player::updateTarget(const Entity &entity)
 {
-    component::Player &player_component = entity.component<component::Player>();
-    component::Target &target_component = entity.component<component::Target>();
-    component::LookAround &look_around_component = entity.component<component::LookAround>();
+    component::Player &player_component = entity.getComponent<component::Player>();
+    component::Target &target_component = entity.getComponent<component::Target>();
+    component::LookAround &look_around_component = entity.getComponent<component::LookAround>();
 
     if (!target_component.target.isValid())
     {
         for (const Entity &looked_entity : look_around_component.look_at_entities)
         {
             component::State &looked_entity_state_component
-                = looked_entity.component<component::State>();
+                = looked_entity.getComponent<component::State>();
             if (looked_entity_state_component.state != entity_state::DEATH)
             {
-                spdlog::debug("Set target {}", looked_entity.id().index());
+                spdlog::debug("Set target {}", looked_entity.getId().getIndex());
                 entity::set_target.emit(entity, looked_entity);
                 break;
             }
@@ -58,7 +58,7 @@ void Player::updateTarget(const Entity &entity)
             for (const Entity &looked_entity : look_around_component.look_at_entities)
             {
                 component::State &looked_entity_state_component
-                    = looked_entity.component<component::State>();
+                    = looked_entity.getComponent<component::State>();
                 if (looked_entity_state_component.state != entity_state::DEATH)
                 {
                     entity::set_target.emit(entity, looked_entity);
@@ -88,11 +88,11 @@ void Player::updateTarget(const Entity &entity)
 
                 Entity &looked_entity = *look_at_entities_found;
                 component::State &looked_entity_state_component
-                    = looked_entity.component<component::State>();
+                    = looked_entity.getComponent<component::State>();
 
                 if (looked_entity_state_component.state != entity_state::DEATH)
                 {
-                    spdlog::debug("Change target {}", looked_entity.id().index());
+                    spdlog::debug("Change target {}", looked_entity.getId().getIndex());
                     entity::set_target.emit(entity, looked_entity);
                     break;
                 }

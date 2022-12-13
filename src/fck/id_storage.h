@@ -62,15 +62,15 @@ struct Id
         return m_id != 0;
     }
 
-    uint64_t id() const
+    uint64_t getId() const
     {
         return m_id;
     }
-    uint32_t index() const
+    uint32_t getIndex() const
     {
         return m_id & 0xffffffffUL;
     }
-    uint32_t version() const
+    uint32_t getVersion() const
     {
         return m_id >> 32;
     }
@@ -109,7 +109,7 @@ struct hash<::fck::Id>
 {
     std::size_t operator()(const ::fck::Id &id) const
     {
-        return std::hash<uint64_t>()(id.id());
+        return std::hash<uint64_t>()(id.getId());
     }
 };
 

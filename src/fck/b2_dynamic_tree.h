@@ -125,13 +125,13 @@ public:
 
     /// Get proxy user data.
     /// @return the proxy user data or 0 if the id is invalid.
-    T userData(int32_t proxy_id) const;
+    T getUserData(int32_t proxy_id) const;
 
     bool wasMoved(int32_t proxy_id) const;
     void clearMoved(int32_t proxy_id);
 
     /// Get the fat AABB for a proxy.
-    const AABB &fatAABB(int32_t proxy_id) const;
+    const AABB &getFatAABB(int32_t proxy_id) const;
 
     /// Query an AABB for overlapping proxies. The callback class
     /// is called for each proxy that overlaps the supplied AABB.
@@ -149,14 +149,14 @@ public:
 
     /// Compute the height of the binary tree in O(N) time. Should not be
     /// called often.
-    int32_t height() const;
+    int32_t getHeight() const;
 
     /// Get the maximum balance of an node in the tree. The balance is the difference
     /// in height of the two children of a node.
-    int32_t maxBalance() const;
+    int32_t getMaxBalance() const;
 
     /// Get the ratio of the sum of the node areas to the root area.
-    float areaRatio() const;
+    float getAreaRatio() const;
 
     /// Shift the world origin. Useful for large worlds.
     /// The shift formula is: position -= newOrigin
@@ -314,7 +314,7 @@ bool DynamicTree<T>::moveProxy(int32_t proxy_id, const AABB &aabb, const sf::Vec
 }
 
 template<typename T>
-T DynamicTree<T>::userData(int32_t proxy_id) const
+T DynamicTree<T>::getUserData(int32_t proxy_id) const
 {
     assert(0 <= proxy_id && proxy_id < m_node_capacity);
     return m_nodes[proxy_id].user_data;
@@ -335,7 +335,7 @@ void DynamicTree<T>::clearMoved(int32_t proxy_id)
 }
 
 template<typename T>
-const AABB &DynamicTree<T>::fatAABB(int32_t proxy_id) const
+const AABB &DynamicTree<T>::getFatAABB(int32_t proxy_id) const
 {
     assert(0 <= proxy_id && proxy_id < m_node_capacity);
     return m_nodes[proxy_id].aabb;
@@ -381,7 +381,7 @@ void DynamicTree<T>::querry(const AABB &aabb, const std::function<bool(int32_t)>
 }
 
 template<typename T>
-int32_t DynamicTree<T>::height() const
+int32_t DynamicTree<T>::getHeight() const
 {
     if (m_root == NULL_TREE_NODE)
     {
@@ -392,7 +392,7 @@ int32_t DynamicTree<T>::height() const
 }
 
 template<typename T>
-int32_t DynamicTree<T>::maxBalance() const
+int32_t DynamicTree<T>::getMaxBalance() const
 {
     int32_t max_balance = 0;
     for (int32_t i = 0; i < m_node_capacity; ++i)
@@ -415,7 +415,7 @@ int32_t DynamicTree<T>::maxBalance() const
 }
 
 template<typename T>
-float DynamicTree<T>::areaRatio() const
+float DynamicTree<T>::getAreaRatio() const
 {
     if (m_root == NULL_TREE_NODE)
     {

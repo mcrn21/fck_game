@@ -14,7 +14,7 @@ void ComponentStorage::addComponent(
 {
     fck_assert(entity.isValid(), "invalid entity cannot have components added to it");
 
-    auto index = entity.id().index();
+    auto index = entity.getId().getIndex();
     auto &component_data_for_entity = m_component_entries[index];
 
     component_data_for_entity.components[component_type_id].reset(component);
@@ -26,7 +26,7 @@ void ComponentStorage::removeComponent(Entity &entity, TypeId component_type_id)
     if (!entity.isValid())
         return;
 
-    auto index = entity.id().index();
+    auto index = entity.getId().getIndex();
     auto &component_data_for_entity = m_component_entries[index];
 
     component_data_for_entity.components[component_type_id].reset();
@@ -38,7 +38,7 @@ void ComponentStorage::removeAllComponents(Entity &entity)
     if (!entity.isValid())
         return;
 
-    auto index = entity.id().index();
+    auto index = entity.getId().getIndex();
     auto &component_data_for_entity = m_component_entries[index];
 
     for (int32_t i = 0; i < MAX_AMOUNT_OF_COMPONENTS; ++i)
@@ -51,27 +51,27 @@ void ComponentStorage::removeAllComponents(Entity &entity)
     }
 }
 
-ComponentBase *ComponentStorage::component(const Entity &entity, TypeId component_type_id) const
+ComponentBase *ComponentStorage::getComponent(const Entity &entity, TypeId component_type_id) const
 {
     fck_assert(
         entity.isValid() && hasComponent(entity, component_type_id),
         "Entity is not valid or does not contain component");
 
-    return componentsArray(entity)[component_type_id].get();
+    return getComponentsArray(entity)[component_type_id].get();
 }
 
-ComponentsFilter ComponentStorage::componentsFilter(const Entity &entity) const
+ComponentsFilter ComponentStorage::getComponentsFilter(const Entity &entity) const
 {
     fck_assert(entity.isValid(), "invalid entity cannot retrieve the component list");
 
-    return m_component_entries[entity.id().index()].components_filter;
+    return m_component_entries[entity.getId().getIndex()].components_filter;
 }
 
-std::vector<ComponentBase *> ComponentStorage::components(const Entity &entity) const
+std::vector<ComponentBase *> ComponentStorage::getComponents(const Entity &entity) const
 {
     fck_assert(entity.isValid(), "invalid entity cannot retrieve components, as it has none");
 
-    auto &components_array = componentsArray(entity);
+    auto &components_array = getComponentsArray(entity);
 
     std::vector<ComponentBase *> components_list;
     components_list.reserve(components_array.size());
@@ -86,7 +86,7 @@ bool ComponentStorage::hasComponent(const Entity &entity, TypeId component_type_
 {
     fck_assert(entity.isValid(), "invalid entity cannot check if it has components");
 
-    auto &components = componentsArray(entity);
+    auto &components = getComponentsArray(entity);
     return components.size() > component_type_id && components[component_type_id] != nullptr;
 }
 
@@ -100,14 +100,14 @@ void ComponentStorage::clear()
     m_component_entries.clear();
 }
 
-ComponentStorage::ComponentsArray &ComponentStorage::componentsArray(const Entity &e)
+ComponentStorage::ComponentsArray &ComponentStorage::getComponentsArray(const Entity &e)
 {
-    return m_component_entries[e.id().index()].components;
+    return m_component_entries[e.getId().getIndex()].components;
 }
 
-const ComponentStorage::ComponentsArray &ComponentStorage::componentsArray(const Entity &e) const
+const ComponentStorage::ComponentsArray &ComponentStorage::getComponentsArray(const Entity &e) const
 {
-    return m_component_entries[e.id().index()].components;
+    return m_component_entries[e.getId().getIndex()].components;
 }
 
 } // namespace fck

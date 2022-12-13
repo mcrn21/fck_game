@@ -90,7 +90,7 @@ Style Style::frame_style = []() {
 ProgressBar *Style::createLoadingProgressBar()
 {
     ProgressBar *progress_bar = new ProgressBar{
-        *ResourceCache::resource<sf::Texture>(ui_texture_name),
+        *ResourceCache::getResource<sf::Texture>(ui_texture_name),
         frame_texture_rect,
         progress_bar_yellow_texture_rect,
         progress_bar_offset};
@@ -99,7 +99,7 @@ ProgressBar *Style::createLoadingProgressBar()
     progress_bar->setFrameSize(loading_progress_bar_size);
     progress_bar->setScale(stats_scale);
 
-    progress_bar->text().setFont(*ResourceCache::resource<sf::Font>(ui_font_name));
+    progress_bar->text().setFont(*ResourceCache::getResource<sf::Font>(ui_font_name));
     progress_bar->text().setCharacterSize(loading_progress_bar_font_size);
     progress_bar->text().setOutlineColor(sf::Color::Black);
     progress_bar->text().setOutlineThickness(1.0f);
@@ -114,7 +114,7 @@ ProgressBar *Style::createLoadingProgressBar()
 ProgressBar *Style::createPlayerHpBar()
 {
     ProgressBar *progress_bar = new ProgressBar{
-        *ResourceCache::resource<sf::Texture>(ui_texture_name),
+        *ResourceCache::getResource<sf::Texture>(ui_texture_name),
         frame_texture_rect,
         progress_bar_red_texture_rect,
         progress_bar_offset};
@@ -123,7 +123,7 @@ ProgressBar *Style::createPlayerHpBar()
     progress_bar->setFrameSize(hp_progress_bar_size);
     progress_bar->setScale(stats_scale);
 
-    progress_bar->text().setFont(*ResourceCache::resource<sf::Font>(ui_font_name));
+    progress_bar->text().setFont(*ResourceCache::getResource<sf::Font>(ui_font_name));
     progress_bar->text().setCharacterSize(stats_font_size);
     progress_bar->text().setOutlineColor(sf::Color::Black);
     progress_bar->text().setOutlineThickness(1.0f);
@@ -136,7 +136,7 @@ ProgressBar *Style::createPlayerHpBar()
 ProgressBar *Style::createPlayerArmorBar()
 {
     ProgressBar *progress_bar = new ProgressBar{
-        *ResourceCache::resource<sf::Texture>(ui_texture_name),
+        *ResourceCache::getResource<sf::Texture>(ui_texture_name),
         frame_texture_rect,
         progress_bar_blue_texture_rect,
         progress_bar_offset};
@@ -145,7 +145,7 @@ ProgressBar *Style::createPlayerArmorBar()
     progress_bar->setFrameSize(armor_progress_bar_size);
     progress_bar->setScale(stats_scale);
 
-    progress_bar->text().setFont(*ResourceCache::resource<sf::Font>(ui_font_name));
+    progress_bar->text().setFont(*ResourceCache::getResource<sf::Font>(ui_font_name));
     progress_bar->text().setCharacterSize(stats_font_size);
     progress_bar->text().setOutlineColor(sf::Color::Black);
     progress_bar->text().setOutlineThickness(1.0f);
@@ -158,7 +158,7 @@ ProgressBar *Style::createPlayerArmorBar()
 ProgressBar *Style::createTargetHpBar()
 {
     ProgressBar *progress_bar = new ProgressBar{
-        *ResourceCache::resource<sf::Texture>(ui_texture_name),
+        *ResourceCache::getResource<sf::Texture>(ui_texture_name),
         frame_texture_rect,
         progress_bar_red_texture_rect,
         progress_bar_offset};
@@ -167,7 +167,7 @@ ProgressBar *Style::createTargetHpBar()
     progress_bar->setFrameSize(hp_progress_bar_size);
     progress_bar->setScale(vector2::mult(stats_scale, {-1.0f, 1.0f}));
 
-    progress_bar->text().setFont(*ResourceCache::resource<sf::Font>(ui_font_name));
+    progress_bar->text().setFont(*ResourceCache::getResource<sf::Font>(ui_font_name));
     progress_bar->text().setCharacterSize(stats_font_size);
     progress_bar->text().setOutlineColor(sf::Color::Black);
     progress_bar->text().setOutlineThickness(1.0f);
@@ -180,7 +180,7 @@ ProgressBar *Style::createTargetHpBar()
 Minimap *Style::createMinimap()
 {
     Minimap *minimap = new Minimap{
-        *ResourceCache::resource<sf::Texture>(ui_texture_name),
+        *ResourceCache::getResource<sf::Texture>(ui_texture_name),
         frame_transparented_texture_rect,
         minimap_room_texture_rects,
         minimap_room_type_texture_rects,
@@ -190,7 +190,7 @@ Minimap *Style::createMinimap()
     minimap->setFrameSize(minimap_size);
     minimap->setScale(stats_scale);
 
-    minimap->text().setFont(*ResourceCache::resource<sf::Font>(ui_font_name));
+    minimap->text().setFont(*ResourceCache::getResource<sf::Font>(ui_font_name));
     minimap->text().setCharacterSize(stats_font_size);
     minimap->text().setOutlineColor(sf::Color::Black);
     minimap->text().setOutlineThickness(1.0f);
@@ -205,7 +205,7 @@ Minimap *Style::createMinimap()
 Button *Style::createMainMenuButton(const sf::String &text)
 {
     Button *button = new Button{
-        *ResourceCache::resource<sf::Texture>(ui_texture_name),
+        *ResourceCache::getResource<sf::Texture>(ui_texture_name),
         main_menu_button_default_color,
         main_menu_button_default_frame_texture_rect,
         main_menu_button_hover_color,
@@ -216,7 +216,7 @@ Button *Style::createMainMenuButton(const sf::String &text)
     button->setBorderSize(frame_border_size);
     button->setScale(stats_scale);
 
-    button->text().setFont(*ResourceCache::resource<sf::Font>(ui_font_name));
+    button->text().setFont(*ResourceCache::getResource<sf::Font>(ui_font_name));
     button->text().setCharacterSize(main_menu_button_font_size);
     button->text().setOutlineColor(sf::Color::Black);
     button->text().setOutlineThickness(1.0f);
@@ -236,10 +236,10 @@ QuestionDialog *Style::createQuestionDialog(
         text,
         ok_text,
         cancel_text,
-        *ResourceCache::resource<sf::Texture>(ui_texture_name),
+        *ResourceCache::getResource<sf::Texture>(ui_texture_name),
         dialog_frame_texture_rect};
 
-    question_dialog->text().setFont(*ResourceCache::resource<sf::Font>(ui_font_name));
+    question_dialog->text().setFont(*ResourceCache::getResource<sf::Font>(ui_font_name));
     question_dialog->text().setCharacterSize(main_menu_button_font_size);
     question_dialog->text().setOutlineColor(sf::Color::Black);
     question_dialog->text().setOutlineThickness(1.0f);
@@ -274,7 +274,7 @@ QuestionDialog *Style::createQuestionDialog(
 
 void Style::createQuestionDialogButton(Button *button, const sf::String &text)
 {
-    button->setTexture(*ResourceCache::resource<sf::Texture>(ui_texture_name));
+    button->setTexture(*ResourceCache::getResource<sf::Texture>(ui_texture_name));
     button->setDefaultColor(main_menu_button_default_color);
     button->setDefaultFrameTextureRect(main_menu_button_default_frame_texture_rect);
     button->setHoveredColor(main_menu_button_hover_color);
@@ -285,7 +285,7 @@ void Style::createQuestionDialogButton(Button *button, const sf::String &text)
     button->setBorderSize(frame_border_size);
     button->setScale({1.0f, 1.0f});
 
-    button->text().setFont(*ResourceCache::resource<sf::Font>(ui_font_name));
+    button->text().setFont(*ResourceCache::getResource<sf::Font>(ui_font_name));
     button->text().setCharacterSize(main_menu_button_font_size);
     button->text().setOutlineColor(sf::Color::Black);
     button->text().setOutlineThickness(1.0f);

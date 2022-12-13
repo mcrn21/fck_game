@@ -92,20 +92,20 @@ public:
     Tmx(const Tmx &other);
     ~Tmx() = default;
 
-    std::string version() const;
-    std::string tiledVersion() const;
-    Orientation orientation() const;
-    RenderOrder renderOrder() const;
-    sf::Vector2i size() const;
-    sf::Vector2i tileSize() const;
-    int32_t infinite() const;
-    int32_t nextLayerId() const;
-    int32_t nextObjectId() const;
-    const std::map<std::string, std::string> &properties() const;
-    const std::vector<Tileset> &tilesets() const;
-    const std::vector<Layer> &layers() const;
-    const std::vector<ObjectGroup> &objectGroups() const;
-    const std::vector<Group> &groups() const;
+    std::string getVersion() const;
+    std::string getTiledVersion() const;
+    Orientation getOrientation() const;
+    RenderOrder getRenderOrder() const;
+    sf::Vector2i getSize() const;
+    sf::Vector2i getTileSize() const;
+    int32_t getInfinite() const;
+    int32_t getNextLayerId() const;
+    int32_t getNextObjectId() const;
+    const std::map<std::string, std::string> &getProperties() const;
+    const std::vector<Tileset> &getTilesets() const;
+    const std::vector<Layer> &getLayers() const;
+    const std::vector<ObjectGroup> &getObjectGroups() const;
+    const std::vector<Group> &getGroups() const;
 
     bool loadFromFile(const std::string &filename);
     bool loadFromMemory(const void *data, std::size_t size);

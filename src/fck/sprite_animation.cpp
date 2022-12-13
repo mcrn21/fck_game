@@ -8,25 +8,42 @@ SpriteAnimation::SpriteAnimation()
 {
 }
 
-SpriteAnimation::SpriteAnimation(Sprite *sprite)
-    : m_sprite{sprite}, m_current_state{nullptr}, m_current_frame{0}, m_playing{false}
+SpriteAnimation::SpriteAnimation(Sprite &sprite)
+    : m_sprite{&sprite}, m_current_state{nullptr}, m_current_frame{0}, m_playing{false}
 {
 }
 
-drawable_animation_type::Type SpriteAnimation::type() const
-{
-    return drawable_animation_type::SPRITE;
-}
-
-Sprite *SpriteAnimation::sprite() const
+Sprite *SpriteAnimation::getSprite() const
 {
     return m_sprite;
 }
 
-void SpriteAnimation::setSprite(Sprite *sprite)
+void SpriteAnimation::setSprite(Sprite &sprite)
 {
-    m_sprite = sprite;
+    m_sprite = &sprite;
     stop();
+}
+
+void SpriteAnimation::setCurrentState(const std::string &state_name)
+{
+    auto state_found = m_states.find(state_name);
+    if (state_found == m_states.end())
+        return;
+
+    if (m_current_state == &state_found->second)
+        return;
+
+    stop();
+
+    m_current_state = &state_found->second;
+    m_current_frame = 0;
+    m_frame_interval = sf::milliseconds(
+        state_found->second.interval.asMilliseconds()
+        / (state_found->second.frame_count.x * state_found->second.frame_count.y));
+
+    m_sprite->setTextureRect(getFrameRect());
+
+    m_current_frame = 1;
 }
 
 void SpriteAnimation::addState(
@@ -68,34 +85,12 @@ void SpriteAnimation::removeState(const std::string &state_name)
     }
 }
 
-void SpriteAnimation::setCurrentState(const std::string &state_name)
-{
-    auto state_found = m_states.find(state_name);
-    if (state_found == m_states.end())
-        return;
-
-    if (m_current_state == &state_found->second)
-        return;
-
-    stop();
-
-    m_current_state = &state_found->second;
-    m_current_frame = 0;
-    m_frame_interval = sf::milliseconds(
-        state_found->second.interval.asMilliseconds()
-        / (state_found->second.frame_count.x * state_found->second.frame_count.y));
-
-    m_sprite->setTextureRect(frameRect());
-
-    m_current_frame = 1;
-}
-
 bool SpriteAnimation::hasStates() const
 {
     return !m_states.empty();
 }
 
-sf::IntRect SpriteAnimation::frameRect() const
+sf::IntRect SpriteAnimation::getFrameRect() const
 {
     if (m_current_state)
     {
@@ -137,7 +132,7 @@ void SpriteAnimation::update(const sf::Time &elapsed)
         if (m_elapsed > m_frame_interval)
         {
             m_elapsed = sf::Time::Zero;
-            m_sprite->setTextureRect(frameRect());
+            m_sprite->setTextureRect(getFrameRect());
             ++m_current_frame;
             if (m_current_frame == m_current_state->frame_count.x * m_current_state->frame_count.y)
             {

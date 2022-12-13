@@ -8,17 +8,17 @@ SkillBase::SkillBase(const std::string &name, double cooldown)
 {
 }
 
-const std::string &SkillBase::name() const
+const std::string &SkillBase::getName() const
 {
     return m_name;
 }
 
-double SkillBase::elapsed() const
+double SkillBase::getEelapsed() const
 {
     return m_elapsed;
 }
 
-double SkillBase::cooldown() const
+double SkillBase::getCooldown() const
 {
     return m_cooldown;
 }

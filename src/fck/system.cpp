@@ -8,17 +8,17 @@ SystemBase::SystemBase(const ComponentsFilter &components_filter)
 {
 }
 
-World *SystemBase::world() const
+World *SystemBase::getWorld() const
 {
     return m_world;
 }
 
-const ComponentsFilter &SystemBase::componentsFilter() const
+const ComponentsFilter &SystemBase::getComponentsFilter() const
 {
     return m_components_filter;
 }
 
-std::vector<Entity> &SystemBase::entities()
+std::vector<Entity> &SystemBase::getEntities()
 {
     return m_entities;
 }

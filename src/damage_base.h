@@ -19,11 +19,12 @@ public:
     DamageBase(const Entity &entity, double interval, const Entity &source = Entity{});
     virtual ~DamageBase() = default;
 
-    const Entity &entity() const;
-    const Entity &source() const;
+    const Entity &getEntity() const;
+    const Entity &getSource() const;
 
-    double interval() const;
-    double elapsed() const;
+    double getInterval() const;
+    double getElapsed() const;
+
     bool isReady() const;
     void finish();
 

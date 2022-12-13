@@ -28,28 +28,28 @@ public:
         int32_t first_gid);
 
     TileMap();
-    TileMap(sf::Texture *texture, const sf::Vector2i &tile_size, const Vector2D<int32_t> &tiles);
+    TileMap(sf::Texture &texture, const sf::Vector2i &tile_size, const Vector2D<int32_t> &tiles);
     ~TileMap() = default;
 
-    drawable_type::Type type() const;
+    drawable_type::Type getType() const;
 
-    sf::Texture *texture() const;
-    void setTexture(sf::Texture *texture, const sf::Vector2i &tile_size = sf::Vector2i());
+    sf::Texture *getTexture() const;
+    void setTexture(sf::Texture &texture, const sf::Vector2i &tile_size = sf::Vector2i());
 
-    const sf::Color &color() const;
+    const sf::Color &getColor() const;
     void setColor(const sf::Color &color);
 
-    const sf::Vector2i &mapSize() const;
+    const sf::Vector2i &getMapSize() const;
     void setMapSize(const sf::Vector2i &map_size);
 
-    sf::Vector2i tileSize() const;
+    sf::Vector2i getTileSize() const;
     void setTileSize(const sf::Vector2i &tile_size);
 
     void setTile(const sf::Vector2i &position, int32_t tile);
     void setTiles(const Vector2D<int32_t> &tiles);
 
-    sf::FloatRect localBounds() const;
-    sf::FloatRect globalBounds() const;
+    sf::FloatRect getLocalBounds() const;
+    sf::FloatRect getGlobalBounds() const;
 
 protected:
     void draw(sf::RenderTarget &target, const sf::RenderStates &states) const;

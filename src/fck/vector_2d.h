@@ -27,7 +27,7 @@ public:
         return {index % m_size.x, index / m_size.x};
     }
 
-    T &data(const sf::Vector2i &coords)
+    T &getData(const sf::Vector2i &coords)
     {
         int32_t index = coords.y * m_size.x + coords.x;
         if (index > m_data.size())
@@ -35,7 +35,7 @@ public:
         return m_data[index];
     }
 
-    const T &data(const sf::Vector2i &coords) const
+    const T &getData(const sf::Vector2i &coords) const
     {
         int32_t index = coords.y * m_size.x + coords.x;
         if (index > m_data.size())
@@ -53,12 +53,12 @@ public:
         return m_data[index];
     }
 
-    const sf::Vector2i &size2D() const
+    const sf::Vector2i &getSize2D() const
     {
         return m_size;
     }
 
-    std::size_t size() const
+    std::size_t getSize() const
     {
         return m_data.size();
     }

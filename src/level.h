@@ -63,6 +63,7 @@ private:
     Entity createRoomTransition(Room::Side side, const sf::Vector2i &room_coord);
     std::vector<Entity> createRoom(const Tmx::Group &room_group);
     std::vector<Entity> createRoomCollisions(const Tmx::ObjectGroup &collisions_object_group);
+    std::vector<Entity> createRoomEntities(const Tmx::ObjectGroup &entities_object_group);
     Entity createTileMapFromLayer(const Tmx::Layer &layer);
 
     const Tmx::Tileset *getTilesetByGid(int32_t gid);
@@ -82,11 +83,11 @@ private:
     {
         void clear()
         {
-            for (int32_t i = 0; i < map.size(); ++i)
+            for (int32_t i = 0; i < map.getSize(); ++i)
                 delete map[i];
             map.clear();
 
-            for (int32_t i = 0; i < entities.size(); ++i)
+            for (int32_t i = 0; i < entities.getSize(); ++i)
                 delete entities[i];
             entities.clear();
 
@@ -97,18 +98,18 @@ private:
 
         void enableRoom(const sf::Vector2i &room_coord)
         {
-            if (entities.data(room_coord))
+            if (entities.getData(room_coord))
             {
-                for (Entity &entity : *entities.data(room_coord))
+                for (Entity &entity : *entities.getData(room_coord))
                     entity.enable();
             }
         }
 
         void disableRoom(const sf::Vector2i &room_coord)
         {
-            if (entities.data(room_coord))
+            if (entities.getData(room_coord))
             {
-                for (Entity &entity : *entities.data(room_coord))
+                for (Entity &entity : *entities.getData(room_coord))
                     entity.disable();
             }
         }

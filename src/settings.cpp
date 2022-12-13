@@ -15,6 +15,8 @@ Settings::Settings()
     ui_file_name = "resources/textures/ui.png";
     font_file_name = "resources/fonts/mini_pixel-7.ttf";
 
+    resources_database_name = "resources/game_data";
+
     fonts_dir_name = "resources/fonts";
     textures_dir_name = "resources/textures";
     sounds_dir_name = "resources/sounds";

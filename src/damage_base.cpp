@@ -8,22 +8,22 @@ DamageBase::DamageBase(const Entity &entity, double interval, const Entity &sour
 {
 }
 
-const Entity &DamageBase::entity() const
+const Entity &DamageBase::getEntity() const
 {
     return m_entity;
 }
 
-const Entity &DamageBase::source() const
+const Entity &DamageBase::getSource() const
 {
     return m_source;
 }
 
-double DamageBase::interval() const
+double DamageBase::getInterval() const
 {
     return m_interval;
 }
 
-double DamageBase::elapsed() const
+double DamageBase::getElapsed() const
 {
     return m_elapsed;
 }

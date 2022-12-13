@@ -17,14 +17,14 @@ public:
     Grid();
     ~Grid();
 
-    const sf::Vector2i &cellSize() const;
+    const sf::Vector2i &getCellSize() const;
     void setCellSize(const sf::Vector2i &cell_size);
 
-    const std::vector<std::vector<T *>> &grid() const;
+    const std::vector<std::vector<T *>> &getGrid() const;
     void setGrid(const std::vector<std::vector<T *>> &grid);
 
-    T *cell(const sf::Vector2i &coord);
-    T *cellByPosition(const sf::Vector2f &position);
+    T *getCell(const sf::Vector2i &coord);
+    T *getCellByPosition(const sf::Vector2f &position);
 
     sf::Vector2i transformPosition(const sf::Vector2f &position) const;
 
@@ -48,7 +48,7 @@ Grid<T>::~Grid()
 }
 
 template<typename T>
-const sf::Vector2i &Grid<T>::cellSize() const
+const sf::Vector2i &Grid<T>::getCellSize() const
 {
     return m_cell_size;
 }
@@ -60,7 +60,7 @@ void Grid<T>::setCellSize(const sf::Vector2i &cell_size)
 }
 
 template<typename T>
-const std::vector<std::vector<T *>> &Grid<T>::grid() const
+const std::vector<std::vector<T *>> &Grid<T>::getGrid() const
 {
     return m_grid;
 }
@@ -73,7 +73,7 @@ void Grid<T>::setGrid(const std::vector<std::vector<T *>> &grid)
 }
 
 template<typename T>
-T *Grid<T>::cell(const sf::Vector2i &coord)
+T *Grid<T>::getCell(const sf::Vector2i &coord)
 {
     if (coord.x < 0 || coord.y < 0)
         return nullptr;
@@ -88,7 +88,7 @@ T *Grid<T>::cell(const sf::Vector2i &coord)
 }
 
 template<typename T>
-T *Grid<T>::cellByPosition(const sf::Vector2f &position)
+T *Grid<T>::getCellByPosition(const sf::Vector2f &position)
 {
     if (position.x < 0 || position.y < 0)
         return nullptr;
@@ -96,7 +96,7 @@ T *Grid<T>::cellByPosition(const sf::Vector2f &position)
     int32_t x = position.x / m_cell_size.x;
     int32_t y = position.x / m_cell_size.y;
 
-    return cell({x, y});
+    return getCell({x, y});
 }
 
 template<typename T>

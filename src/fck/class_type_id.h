@@ -13,7 +13,7 @@ class ClassTypeId
 {
 public:
     template<typename U>
-    static TypeId id()
+    static TypeId getId()
     {
         static const TypeId id = m_next++;
         return id;

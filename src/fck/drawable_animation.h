@@ -14,8 +14,6 @@ public:
     DrawableAnimation();
     virtual ~DrawableAnimation() = default;
 
-    virtual drawable_animation_type::Type type() const;
-
     virtual void setCurrentState([[maybe_unused]] const std::string &state_name);
 
     virtual void start();

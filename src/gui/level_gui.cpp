@@ -26,11 +26,6 @@ LevelGui::LevelGui(const Entity &player_entity) : m_player_entity(player_entity)
     m_minimap = Style::createMinimap();
     addFrame(m_minimap);
 
-    Frame *frame = new Frame{Style::frame_style};
-    frame->setFrameSize({200.0f, 200.0f});
-    frame->setPosition({200.0f, 200.0f});
-    addFrame(frame);
-
     updatePlayerStats();
 
     // target
@@ -92,7 +87,7 @@ void LevelGui::resize(const sf::Vector2f &size)
 
 void LevelGui::updatePlayerStats()
 {
-    component::Stats &stats_component = m_player_entity.component<component::Stats>();
+    component::Stats &stats_component = m_player_entity.getComponent<component::Stats>();
 
     std::string hp_text = std::to_string(int32_t(stats_component.health)) + "/"
         + std::to_string(int32_t(stats_component.max_health));
@@ -112,12 +107,12 @@ void LevelGui::updatePlayerStats()
 
 void LevelGui::updatePlayerSkills()
 {
-    component::Skills &skills_component = m_player_entity.component<component::Skills>();
+    component::Skills &skills_component = m_player_entity.getComponent<component::Skills>();
     m_skills.clear();
 
     for (const auto &skill : skills_component.skills)
     {
-        KnowledgeBase::SkillItemBase *skill_item = KnowledgeBase::skill(skill->name());
+        KnowledgeBase::SkillItemBase *skill_item = KnowledgeBase::getSkill(skill->getName());
         if (skill_item)
         {
             Skill s;
@@ -125,11 +120,11 @@ void LevelGui::updatePlayerSkills()
             s.skill_item = skill_item;
             s.skill = skill.get();
 
-            s.sprite.setTexture(*ResourceCache::resource<sf::Texture>(skill_item->textureName()));
-            s.sprite.setTextureRect(skill_item->textureRect());
+            s.sprite.setTexture(*ResourceCache::getResource<sf::Texture>(skill_item->getTextureName()));
+            s.sprite.setTextureRect(skill_item->getTextureRect());
             s.sprite.setOrigin(s.sprite.getLocalBounds().getSize());
 
-            s.key_text.setFont(*ResourceCache::resource<sf::Font>("mini_pixel-7"));
+            s.key_text.setFont(*ResourceCache::getResource<sf::Font>("mini_pixel-7"));
             s.key_text.setString("J");
             s.key_text.setCharacterSize(24);
             s.key_text.setOutlineColor(sf::Color::Black);
@@ -146,7 +141,7 @@ void LevelGui::updatePlayerSkills()
 
 void LevelGui::updateTargetStats()
 {
-    component::Target &target_component = m_player_entity.component<component::Target>();
+    component::Target &target_component = m_player_entity.getComponent<component::Target>();
     if (!target_component.target.isValid())
     {
         m_target_hp_progress_bar->setVisible(false);
@@ -155,7 +150,7 @@ void LevelGui::updateTargetStats()
 
     m_target_hp_progress_bar->setVisible(true);
 
-    component::Stats &stats_component = target_component.target.component<component::Stats>();
+    component::Stats &stats_component = target_component.target.getComponent<component::Stats>();
 
     std::string hp_text = std::to_string(int32_t(stats_component.health)) + "/"
         + std::to_string(int32_t(stats_component.max_health));

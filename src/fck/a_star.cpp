@@ -45,7 +45,7 @@ PathFinder::PathFinder()
 {
 }
 
-Grid<PathFinder::Cell> &PathFinder::grid()
+Grid<PathFinder::Cell> &PathFinder::getGrid()
 {
     return m_grid;
 }
@@ -136,7 +136,7 @@ std::vector<sf::Vector2i> PathFinder::findPath(
 
 bool PathFinder::detectCollision(const sf::Vector2i coordinates)
 {
-    Cell *cell = m_grid.cell(coordinates);
+    Cell *cell = m_grid.getCell(coordinates);
     if (cell)
         return cell->weight > 0;
 

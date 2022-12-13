@@ -24,10 +24,10 @@ void ViewMovement::setMovementBounds(const sf::FloatRect &movement_bounds)
 
 void ViewMovement::update(double delta_time)
 {
-    for (Entity &entity : entities())
+    for (Entity &entity : getEntities())
     {
-        component::Transform &transform_component = entity.component<component::Transform>();
-        component::Player &player_component = entity.component<component::Player>();
+        component::Transform &transform_component = entity.getComponent<component::Transform>();
+        component::Player &player_component = entity.getComponent<component::Player>();
 
         if (player_component.view_hard_set_position)
         {

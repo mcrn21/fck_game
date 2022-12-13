@@ -15,23 +15,23 @@ class Sprite : public Drawable
 {
 public:
     Sprite();
-    Sprite(sf::Texture *texture);
-    Sprite(sf::Texture *texture, const sf::IntRect &rectangle);
+    Sprite(sf::Texture &texture);
+    Sprite(sf::Texture &texture, const sf::IntRect &rectangle);
     ~Sprite() = default;
 
-    drawable_type::Type type() const;
+    drawable_type::Type getType() const;
 
-    sf::Texture *texture() const;
-    void setTexture(sf::Texture *texture, bool resetRect = false);
+    sf::Texture *getTexture() const;
+    void setTexture(sf::Texture &texture, bool resetRect = false);
 
-    const sf::IntRect &textureRect() const;
+    const sf::IntRect &getTextureRect() const;
     void setTextureRect(const sf::IntRect &rectangle);
 
-    const sf::Color &color() const;
+    const sf::Color &getColor() const;
     void setColor(const sf::Color &color);
 
-    sf::FloatRect localBounds() const;
-    sf::FloatRect globalBounds() const;
+    sf::FloatRect getLocalBounds() const;
+    sf::FloatRect getGlobalBounds() const;
 
 protected:
     void draw(sf::RenderTarget &target, const sf::RenderStates &states) const;

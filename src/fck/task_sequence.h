@@ -16,7 +16,7 @@ public:
     TaskSequence(const std::string &name = std::string{});
     ~TaskSequence() = default;
 
-    const std::vector<std::function<void()>> &tasks() const;
+    const std::vector<std::function<void()>> &getTasks() const;
     void setTasks(const std::vector<std::function<void()>> &tasks);
 
     void start();

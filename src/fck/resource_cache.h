@@ -15,7 +15,7 @@ class ResourceCache
 {
 public:
     template<typename T>
-    static T *resource(const std::string &resource_name);
+    static T *getResource(const std::string &resource_name);
     template<typename T>
     static void addResource(const std::string &resource_name, T *resource);
     template<typename T>
@@ -52,7 +52,7 @@ private:
 };
 
 template<typename T>
-T *ResourceCache::resource(const std::string &resource_name)
+T *ResourceCache::getResource(const std::string &resource_name)
 {
     Cache<T> *c = instance().cache<T>(false);
     if (!c)
@@ -89,7 +89,7 @@ void ResourceCache::removeResource(const std::string &resource_name)
 template<typename T, typename... Args>
 T *ResourceCache::loadFromFile(const std::string &resource_name, Args &&...args)
 {
-    T *exist_resource = resource<T>(resource_name);
+    T *exist_resource = getResource<T>(resource_name);
     if (exist_resource)
         return exist_resource;
 
@@ -109,7 +109,7 @@ T *ResourceCache::loadFromFile(const std::string &resource_name, Args &&...args)
 template<typename T, typename... Args>
 T *ResourceCache::loadFromMemory(const std::string &resource_name, Args &&...args)
 {
-    T *exist_resource = resource<T>(resource_name);
+    T *exist_resource = getResource<T>(resource_name);
     if (exist_resource)
         return exist_resource;
 
@@ -129,7 +129,7 @@ T *ResourceCache::loadFromMemory(const std::string &resource_name, Args &&...arg
 template<typename T, typename... Args>
 T *ResourceCache::loadFromStream(const std::string &resource_name, Args &&...args)
 {
-    T *exist_resource = resource<T>(resource_name);
+    T *exist_resource = getResource<T>(resource_name);
     if (exist_resource)
         return exist_resource;
 

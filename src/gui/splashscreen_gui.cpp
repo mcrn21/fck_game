@@ -7,7 +7,7 @@ namespace fck::gui
 
 SplashscreenGui::SplashscreenGui()
 {
-    m_splashsceen_sprite.setTexture(*ResourceCache::resource<sf::Texture>("splash"), true);
+    m_splashsceen_sprite.setTexture(*ResourceCache::getResource<sf::Texture>("splash"), true);
 }
 
 void SplashscreenGui::resize(const sf::Vector2f &size)

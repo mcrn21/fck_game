@@ -19,8 +19,8 @@ public:
         const std::string &name = std::string{});
     virtual ~EventHandler();
 
-    const std::vector<int32_t> &eventTypes() const;
-    std::string name() const;
+    const std::vector<int32_t> &getEventTypes() const;
+    std::string getName() const;
 
     bool isEnable() const;
     void setEnable(bool enable);

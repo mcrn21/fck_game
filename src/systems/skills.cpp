@@ -9,13 +9,13 @@ Skills::Skills()
 
 void Skills::update(double delta_time)
 {
-    for (Entity &entity : entities())
+    for (Entity &entity : getEntities())
     {
-        component::Skills &skills_component = entity.component<component::Skills>();
+        component::Skills &skills_component = entity.getComponent<component::Skills>();
 
         if (skills_component.next_skill != -1)
         {
-            component::State &state_component = entity.component<component::State>();
+            component::State &state_component = entity.getComponent<component::State>();
 
             // If entity already attacked, damaged or die ignore skill
             if (skills_component.next_skill < skills_component.skills.size()
@@ -25,11 +25,11 @@ void Skills::update(double delta_time)
                 if (entity.hasComponent<component::Target>())
                 {
                     component::Target &target_component
-                        = entity.component<component::Target>();
+                        = entity.getComponent<component::Target>();
                     if (target_component.target.isValid())
                     {
                         component::State &target_state_component
-                            = target_component.target.component<component::State>();
+                            = target_component.target.getComponent<component::State>();
                         if (target_state_component.state != entity_state::DEATH)
                             target = target_component.target;
                     }
@@ -47,7 +47,7 @@ void Skills::update(double delta_time)
             if (!skill->isReady())
             {
                 // If entity die finish skill
-                component::State &state_component = entity.component<component::State>();
+                component::State &state_component = entity.getComponent<component::State>();
                 if (state_component.state == entity_state::DEATH)
                 {
                     skill->finish();

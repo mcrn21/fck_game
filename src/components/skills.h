@@ -43,7 +43,7 @@ struct KnowledgeBase::ComponentItem<component::Skills> : ComponentItemBase
 
         for (const std::string &skill : skills)
             component.skills.push_back(
-                std::unique_ptr<SkillBase>(KnowledgeBase::skill(skill)->create()));
+                std::unique_ptr<SkillBase>(KnowledgeBase::getSkill(skill)->create()));
     }
 
     std::vector<std::string> skills;

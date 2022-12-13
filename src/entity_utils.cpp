@@ -21,5 +21,7 @@ Signal<const Entity &, float> entity::set_armor;
 Signal<const Entity &> entity::destroy;
 // collided
 Signal<const Entity &, const Entity &> entity::collided;
+// drawable
+Signal<const Entity &, const std::string &> entity::set_drawable_state;
 
 } // namespace fck

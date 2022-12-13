@@ -29,18 +29,6 @@ std::string toString(Type type);
 Type fromString(const std::string &string);
 } // namespace drawable_type
 
-namespace drawable_animation_type
-{
-enum Type
-{
-    NO_TYPE,
-    SPRITE
-};
-
-std::string toString(Type type);
-Type fromString(const std::string &string);
-} // namespace drawable_animation_type
-
 } // namespace fck
 
 #endif // COMMON_OZWWVWGYBOZG_H

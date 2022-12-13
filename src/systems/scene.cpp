@@ -52,7 +52,7 @@ void updateCellWeight(PathFinder *path_finder, const sf::IntRect &bounds, bool r
         for (int32_t j = 0; j < bounds.width; ++j)
         {
             PathFinder::Cell *cell_info
-                = path_finder->grid().cell({bounds.left + j, bounds.top + i});
+                = path_finder->getGrid().getCell({bounds.left + j, bounds.top + i});
             if (cell_info)
             {
                 if (!reduce)
@@ -75,9 +75,9 @@ Scene::Scene(b2::DynamicTree<Entity> *tree, PathFinder *path_finder)
 
 void Scene::moveEntity(const Entity &entity, const sf::Vector2f &offset)
 {
-    component::Scene &scene_component = entity.component<component::Scene>();
+    component::Scene &scene_component = entity.getComponent<component::Scene>();
     component::Transform &transform_component
-        = entity.component<component::Transform>();
+        = entity.getComponent<component::Transform>();
 
     sf::FloatRect old_scene_global_bounds = scene_component.global_bounds;
     scene_component.global_bounds
@@ -92,7 +92,7 @@ void Scene::moveEntity(const Entity &entity, const sf::Vector2f &offset)
         updateCellWeight(
             m_path_finder,
             gridBoundsBySceneBounds(
-                scene_component.global_bounds, m_path_finder->grid().cellSize()),
+                scene_component.global_bounds, m_path_finder->getGrid().getCellSize()),
             false);
     }
 }
@@ -100,8 +100,8 @@ void Scene::moveEntity(const Entity &entity, const sf::Vector2f &offset)
 void Scene::onEntityAdded(Entity &entity)
 {
     component::Transform &transform_component
-        = entity.component<component::Transform>();
-    component::Scene &scene_component = entity.component<component::Scene>();
+        = entity.getComponent<component::Transform>();
+    component::Scene &scene_component = entity.getComponent<component::Scene>();
 
     scene_component.global_bounds
         = transform_component.transform.getTransform().transformRect(scene_component.local_bounds);
@@ -116,14 +116,14 @@ void Scene::onEntityAdded(Entity &entity)
         updateCellWeight(
             m_path_finder,
             gridBoundsBySceneBounds(
-                scene_component.global_bounds, m_path_finder->grid().cellSize()),
+                scene_component.global_bounds, m_path_finder->getGrid().getCellSize()),
             false);
     }
 }
 
 void Scene::onEntityRemoved(Entity &entity)
 {
-    component::Scene &scene_component = entity.component<component::Scene>();
+    component::Scene &scene_component = entity.getComponent<component::Scene>();
 
     m_tree->destroyProxy(scene_component.tree_id);
 
@@ -132,7 +132,7 @@ void Scene::onEntityRemoved(Entity &entity)
         updateCellWeight(
             m_path_finder,
             gridBoundsBySceneBounds(
-                scene_component.global_bounds, m_path_finder->grid().cellSize()),
+                scene_component.global_bounds, m_path_finder->getGrid().getCellSize()),
             true);
     }
 }

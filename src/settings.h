@@ -26,6 +26,8 @@ public:
     std::string ui_file_name;
     std::string font_file_name;
 
+    std::string resources_database_name;
+
     std::string fonts_dir_name;
     std::string textures_dir_name;
     std::string sounds_dir_name;

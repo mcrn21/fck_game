@@ -21,21 +21,6 @@ Frame::Frame()
 {
 }
 
-Frame::Frame(const Style &style)
-    : m_texture{nullptr},
-      m_visible{true},
-      m_enable{true},
-      m_hovered{false},
-      m_focused{false},
-      m_focusable{false},
-      m_parent{nullptr},
-      m_proxy_id{-1},
-      m_gui_base{nullptr},
-      m_z_order{-1}
-{
-    setStyle(style);
-}
-
 Frame::Frame(sf::Texture &texture, const sf::IntRect &frame_texture_rect)
     : m_texture{&texture},
       m_frame_texture_rect{frame_texture_rect},
@@ -111,25 +96,6 @@ void Frame::scale(const sf::Vector2f &factor)
     sf::Transformable::scale(factor);
     updateFramesTree(sf::Vector2f{});
     updateParentsTransform();
-}
-
-const Style &Frame::getStyle() const
-{
-    return m_style;
-}
-
-void Frame::setStyle(const Style &style)
-{
-    m_style = style;
-
-    m_texture = ResourceCache::resource<sf::Texture>(
-        std::any_cast<std::string>(m_style.values["texture"]));
-    m_border_size = std::any_cast<sf::Vector2i>(m_style.values["frame_border_size"]);
-
-    setFrameTextureRect(std::any_cast<sf::IntRect>(m_style.values["frame_default_texture_rect"]));
-    setFrameColor(std::any_cast<sf::Color>(m_style.values["frame_default_color"]));
-
-    setScale(std::any_cast<sf::Vector2f>(m_style.values["scale"]));
 }
 
 sf::Texture *Frame::getTexture() const
@@ -278,14 +244,10 @@ const sf::Transform &Frame::getParentsTransform() const
 
 void Frame::onHoverIn()
 {
-    setFrameColor(std::any_cast<sf::Color>(m_style.values["frame_hovered_color"]));
-    setFrameTextureRect(std::any_cast<sf::IntRect>(m_style.values["frame_hovered_texture_rect"]));
 }
 
 void Frame::onHoverOut()
 {
-    setFrameColor(std::any_cast<sf::Color>(m_style.values["frame_default_color"]));
-    setFrameTextureRect(std::any_cast<sf::IntRect>(m_style.values["frame_default_texture_rect"]));
 }
 
 void Frame::onFocusIn()
@@ -298,24 +260,10 @@ void Frame::onFocusOut()
 
 void Frame::onMousePressed()
 {
-    setFrameColor(std::any_cast<sf::Color>(m_style.values["frame_pressed_color"]));
-    setFrameTextureRect(std::any_cast<sf::IntRect>(m_style.values["frame_pressed_texture_rect"]));
 }
 
 void Frame::onMouseReleased()
 {
-    if (isHovered())
-    {
-        setFrameColor(std::any_cast<sf::Color>(m_style.values["frame_hovered_color"]));
-        setFrameTextureRect(
-            std::any_cast<sf::IntRect>(m_style.values["frame_hovered_texture_rect"]));
-    }
-    else
-    {
-        setFrameColor(std::any_cast<sf::Color>(m_style.values["frame_default_color"]));
-        setFrameTextureRect(
-            std::any_cast<sf::IntRect>(m_style.values["frame_default_texture_rect"]));
-    }
 }
 
 void Frame::draw(sf::RenderTarget &target, const sf::RenderStates &states) const

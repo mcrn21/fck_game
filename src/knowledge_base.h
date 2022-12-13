@@ -8,22 +8,27 @@
 #include "fck/common.h"
 #include "fck/drawable.h"
 #include "fck/drawable_animation.h"
+#include "fck/drawable_state.h"
 #include "fck/entity.h"
 #include "fck/resource_cache.h"
 #include "fck/sprite.h"
 #include "fck/sprite_animation.h"
+#include "fck/sprite_state.h"
 #include "fck/utilities.h"
+
+#include "sqlite/sqlite3.h"
 
 #include <toml++/toml.h>
 
 #include <spdlog/spdlog.h>
 
+#include <tuple>
 #include <typeindex>
 #include <unordered_map>
 
-#define KNOWLEDGE_BASE_REGISTER_DRAWABLE(_class1_, _class2_) \
+#define KNOWLEDGE_BASE_REGISTER_DRAWABLE(_class1_, _class2_, _class3_) \
     inline const bool knowledge_base_drawable_##_class1_ \
-        = ::fck::KnowledgeBase::registerDrawable<_class1_, _class2_>()
+        = ::fck::KnowledgeBase::registerDrawable<_class1_, _class2_, _class3_>()
 
 #define KNOWLEDGE_BASE_REGISTER_COMPONENT(_class_) \
     inline const bool knowledge_base_component_##_class_ \
@@ -47,10 +52,10 @@ public:
     struct DrawableItemBase
     {
         virtual void init(toml::table *table) = 0;
-        virtual std::pair<Drawable *, DrawableAnimation *> create() = 0;
+        virtual std::tuple<Drawable *, DrawableState *, DrawableAnimation *> create() = 0;
     };
 
-    template<typename T, typename U>
+    template<typename T, typename U, typename V>
     struct DrawableItem : DrawableItemBase
     {
         static drawable_type::Type drawableType()
@@ -59,15 +64,16 @@ public:
         }
     };
 
-    template<typename T, typename U>
-    static std::pair<T *, U *> createDrawable(const std::string &drawable_name);
-    static std::pair<Drawable *, DrawableAnimation *> createDrawable(
+    template<typename T, typename U, typename V>
+    static std::tuple<T *, U *, V *> createDrawable(const std::string &drawable_name);
+    static std::tuple<Drawable *, DrawableState *, DrawableAnimation *> createDrawable(
         const std::string &drawable_name);
 
-    template<typename T, typename U>
+    template<typename T, typename U, typename V>
     static bool registerDrawable();
 
     static void loadDrawablesDirectory(const std::string &dir_name);
+    static void loadDrawablesFromDatabase(const std::string &database_name);
 
     // Entities
     struct ComponentItemBase
@@ -89,7 +95,6 @@ public:
 
     struct EntityItem
     {
-        std::string name;
         std::vector<std::unique_ptr<ComponentItemBase>> components;
     };
 
@@ -100,21 +105,22 @@ public:
     static bool registerComponent();
 
     static void loadEntitiesDirectory(const std::string &dir_name);
+    static void loadEntitiesFromDatabase(const std::string &database_name);
 
     // Skills
     struct SkillItemBase
     {
         friend class KnowledgeBase;
 
-        virtual const std::string &name() const = 0;
-        virtual const std::string &displayName() const = 0;
-        virtual const std::string &displayDescription() const = 0;
-        virtual const std::string &textureName() const = 0;
-        virtual const sf::IntRect &textureRect() const = 0;
+        virtual const std::string &getName() const = 0;
+        virtual const std::string &getDisplayName() const = 0;
+        virtual const std::string &getDisplayDescription() const = 0;
+        virtual const std::string &getTextureName() const = 0;
+        virtual const sf::IntRect &getTextureRect() const = 0;
         virtual SkillBase *create() const = 0;
 
     private:
-        virtual void init(toml::table *table) = 0;
+        virtual void init(const std::string &name, toml::table *table) = 0;
     };
 
     template<typename T>
@@ -122,23 +128,24 @@ public:
     {
     };
 
-    static SkillItemBase *skill(const std::string &name);
+    static SkillItemBase *getSkill(const std::string &name);
 
     template<typename T>
     static bool registerBaseSkill(const std::string &base_skill_name);
 
     static void loadSkillsDirectory(const std::string &dir_name);
+    static void loadSkillsFromDatabase(const std::string &database_name);
 
     // Entity scripts
     struct EntityScriptItemBase
     {
         friend class KnowledgeBase;
 
-        virtual const std::string &name() const = 0;
+        virtual const std::string &getName() const = 0;
         virtual EntityScriptBase *create() const = 0;
 
     private:
-        virtual void init(toml::table *table) = 0;
+        virtual void init(const std::string &name, toml::table *table) = 0;
     };
 
     template<typename T>
@@ -152,12 +159,27 @@ public:
     static bool registerBaseEntityScript(const std::string &base_entity_script_name);
 
     static void loadEntityScriptsDirectory(const std::string &dir_name);
+    static void loadEntityScriptsFromDatabase(const std::string &database_name);
 
 private:
     static KnowledgeBase &instance();
 
+    static int32_t loadDrawablesFromDatabaseCallback(
+        void *user_data, int argc, char **argv, char **column_name);
+    static int32_t loadEntitiesFromDatabaseCallback(
+        void *user_data, int argc, char **argv, char **column_name);
+    static int32_t loadSkillsFromDatabaseCallback(
+        void *user_data, int argc, char **argv, char **column_name);
+    static int32_t loadEntityScriptsFromDatabaseCallback(
+        void *user_data, int argc, char **argv, char **column_name);
+
     KnowledgeBase();
     ~KnowledgeBase() = default;
+
+    void loadDrawableFromBuffer(const std::string &name, const std::string &data);
+    void loadEntityFromBuffer(const std::string &name, const std::string &data);
+    void loadSkillFromBuffer(const std::string &name, const std::string &data);
+    void loadEntityScriptFromBuffer(const std::string &name, const std::string &data);
 
 private:
     std::unordered_map<drawable_type::Type, std::function<DrawableItemBase *()>> m_drawable_fabrics;
@@ -175,22 +197,23 @@ private:
     std::unordered_map<std::string, std::unique_ptr<EntityScriptItemBase>> m_entity_scripts;
 };
 
-template<typename T, typename U>
-std::pair<T *, U *> KnowledgeBase::createDrawable(const std::string &drawable_name)
+template<typename T, typename U, typename V>
+std::tuple<T *, U *, V *> KnowledgeBase::createDrawable(const std::string &drawable_name)
 {
-    auto drawable = createDrawable(drawable_name);
+    auto [drawable, drawable_state, drawable_animation] = createDrawable(drawable_name);
     return {
-        drawable.first ? static_cast<T *>(drawable.first) : nullptr,
-        drawable.second ? static_cast<T *>(drawable.second) : nullptr};
+        drawable ? static_cast<T *>(drawable) : nullptr,
+        drawable_state ? static_cast<T *>(drawable_state) : nullptr,
+        drawable_animation ? static_cast<T *>(drawable_animation) : nullptr};
 }
 
-template<typename T, typename U>
+template<typename T, typename U, typename V>
 bool KnowledgeBase::registerDrawable()
 {
     spdlog::info(
-        "Register drawable: {}", drawable_type::toString(DrawableItem<T, U>::drawableType()));
+        "Register drawable: {}", drawable_type::toString(DrawableItem<T, U, V>::drawableType()));
     instance().m_drawable_fabrics.emplace(
-        DrawableItem<T, U>::drawableType(), []() { return new DrawableItem<T, U>; });
+        DrawableItem<T, U, V>::drawableType(), []() { return new DrawableItem<T, U, V>; });
     return true;
 }
 
@@ -223,7 +246,7 @@ bool KnowledgeBase::registerBaseEntityScript(const std::string &base_entity_scri
 
 // Drawables
 template<>
-struct KnowledgeBase::DrawableItem<Sprite, SpriteAnimation> : DrawableItemBase
+struct KnowledgeBase::DrawableItem<Sprite, SpriteState, SpriteAnimation> : DrawableItemBase
 {
     static drawable_type::Type drawableType()
     {
@@ -232,15 +255,31 @@ struct KnowledgeBase::DrawableItem<Sprite, SpriteAnimation> : DrawableItemBase
 
     void init(toml::table *table)
     {
-        name = table->at("name").as_string()->get();
-
         std::string texture_name = table->at("texture").as_string()->get();
-        texture = ResourceCache::resource<sf::Texture>(texture_name);
+        texture = ResourceCache::getResource<sf::Texture>(texture_name);
         if (!texture)
             throw Exception{fmt::format("Texture not found: {}", texture_name)};
 
         if (table->contains("texture_rect"))
             texture_rect = rect::tomlArrayToIntRect(table->at("texture_rect").as_array());
+
+        if (table->contains("states") && table->at("states").is_table())
+        {
+            toml::table *states_table = table->at("states").as_table();
+
+            for (auto &it : *states_table)
+            {
+                if (!it.second.is_table())
+                    continue;
+
+                toml::table *state_table = it.second.as_table();
+
+                sf::IntRect state_rect
+                    = rect::tomlArrayToIntRect(state_table->at("state_rect").as_array());
+
+                states.emplace(it.first.data(), state_rect);
+            }
+        }
 
         if (table->contains("animations") && table->at("animations").is_table())
         {
@@ -264,20 +303,31 @@ struct KnowledgeBase::DrawableItem<Sprite, SpriteAnimation> : DrawableItemBase
                     it.first.data(), Animation{interval, repeat, frame_rect, frame_count});
             }
         }
-    }
-
-    std::pair<Drawable *, DrawableAnimation *> create()
-    {
-        std::pair<Sprite *, SpriteAnimation *> sprite = {nullptr, nullptr};
-
-        sprite.first = new Sprite{texture, texture_rect};
 
         if (!animations.empty())
+            states.clear();
+    }
+
+    std::tuple<Drawable *, DrawableState *, DrawableAnimation *> create()
+    {
+
+        Sprite *sprite = new Sprite{*texture, texture_rect};
+
+        SpriteState *sprite_state = nullptr;
+        if (!states.empty())
         {
-            sprite.second = new SpriteAnimation{sprite.first};
+            sprite_state = new SpriteState{*sprite};
+            for (const auto &it : states)
+                sprite_state->addState(it.first, it.second);
+        }
+
+        SpriteAnimation *sprite_animation = nullptr;
+        if (!animations.empty())
+        {
+            sprite_animation = new SpriteAnimation{*sprite};
             for (const auto &it : animations)
             {
-                sprite.second->addState(
+                sprite_animation->addState(
                     it.first,
                     sf::milliseconds(it.second.interval),
                     it.second.repeat,
@@ -286,8 +336,13 @@ struct KnowledgeBase::DrawableItem<Sprite, SpriteAnimation> : DrawableItemBase
             }
         }
 
-        return sprite;
+        return {sprite, sprite_state, sprite_animation};
     }
+
+    struct State
+    {
+        sf::IntRect state_rect;
+    };
 
     struct Animation
     {
@@ -297,13 +352,13 @@ struct KnowledgeBase::DrawableItem<Sprite, SpriteAnimation> : DrawableItemBase
         sf::Vector2i frame_count;
     };
 
-    std::string name;
     sf::Texture *texture = nullptr;
     sf::IntRect texture_rect;
+    std::unordered_map<std::string, sf::IntRect> states;
     std::unordered_map<std::string, Animation> animations;
 };
 
-KNOWLEDGE_BASE_REGISTER_DRAWABLE(Sprite, SpriteAnimation);
+KNOWLEDGE_BASE_REGISTER_DRAWABLE(Sprite, SpriteState, SpriteAnimation);
 
 } // namespace fck
 

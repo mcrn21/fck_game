@@ -21,10 +21,10 @@ public:
     SkillBase(const std::string &name, double cooldown);
     virtual ~SkillBase() = default;
 
-    const std::string &name() const;
+    const std::string &getName() const;
 
-    double elapsed() const;
-    double cooldown() const;
+    double getEelapsed() const;
+    double getCooldown() const;
     bool isReady();
     void finish();
     void broke();

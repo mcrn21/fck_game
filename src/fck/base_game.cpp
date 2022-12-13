@@ -21,7 +21,7 @@ BaseGame::~BaseGame()
 {
 }
 
-BaseGame *BaseGame::instance()
+BaseGame *BaseGame::getInstance()
 {
     return m_instance;
 }
@@ -64,7 +64,7 @@ void BaseGame::exit()
     m_running = false;
 }
 
-sf::RenderWindow &BaseGame::renderWindow()
+sf::RenderWindow &BaseGame::getRrenderWindow()
 {
     return m_render_window;
 }

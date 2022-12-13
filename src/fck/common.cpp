@@ -32,29 +32,4 @@ Type fromString(const std::string &string)
 
 } // namespace drawable_type
 
-namespace drawable_animation_type
-{
-
-std::string toString(Type type)
-{
-    static std::unordered_map<Type, std::string> strings = {{Type::SPRITE, "sprite"}};
-
-    auto strings_found = strings.find(type);
-    if (strings_found != strings.end())
-        return strings_found->second;
-    return "no_type";
-}
-
-Type fromString(const std::string &string)
-{
-    static std::unordered_map<std::string, Type> types = {{"sprite", Type::SPRITE}};
-
-    auto types_found = types.find(string);
-    if (types_found != types.end())
-        return types_found->second;
-    return Type::NO_TYPE;
-}
-
-} // namespace drawable_animation_type
-
 } // namespace fck

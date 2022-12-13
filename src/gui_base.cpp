@@ -104,7 +104,7 @@ void GuiBase::event(Event *event)
         sf::FloatRect bounds = {
             {float(sf_event->get().mouseMove.x), float(sf_event->get().mouseMove.y)}, {1.0f, 1.0f}};
         m_frames_tree.querry(bounds, [&](int32_t proxy_id) {
-            gui::Frame *f = m_frames_tree.userData(proxy_id);
+            gui::Frame *f = m_frames_tree.getUserData(proxy_id);
             if (f->isVisible())
                 m_hovered_frames.push_back(f);
 

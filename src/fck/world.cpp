@@ -73,17 +73,17 @@ void World::destroyAllEntities()
     destroyEntities(m_entity_cache.alive);
 }
 
-int32_t World::entityCount() const
+int32_t World::getEntityCount() const
 {
     return m_entity_cache.alive.size();
 }
 
-const std::vector<Entity> &World::entities() const
+const std::vector<Entity> &World::getEntities() const
 {
     return m_entity_cache.alive;
 }
 
-Entity World::entity(std::size_t index)
+Entity World::getEntity(std::size_t index)
 {
     return Entity{m_entity_id_storage.get(index), this};
 }
@@ -92,7 +92,7 @@ void World::enableEntity(const Entity &entity)
 {
     if (!isValid(entity))
     {
-        spdlog::warn("Enable invalid entity: id: {}", entity.id().index());
+        spdlog::warn("Enable invalid entity: id: {}", entity.getId().getIndex());
         return;
     }
 
@@ -103,7 +103,7 @@ void World::disableEntity(const Entity &entity)
 {
     if (!isValid(entity))
     {
-        spdlog::warn("Disable invalid entity: id: {}", entity.id().index());
+        spdlog::warn("Disable invalid entity: id: {}", entity.getId().getIndex());
         return;
     }
 
@@ -112,12 +112,13 @@ void World::disableEntity(const Entity &entity)
 
 bool World::isEnabled(const Entity &entity) const
 {
-    return isValid(entity) ? m_entity_attributes.attributes[entity.id().index()].enabled : false;
+    return isValid(entity) ? m_entity_attributes.attributes[entity.getId().getIndex()].enabled
+                           : false;
 }
 
 bool World::isValid(const Entity &entity) const
 {
-    return m_entity_id_storage.isValid(entity.id());
+    return m_entity_id_storage.isValid(entity.getId());
 }
 
 void World::refresh()
@@ -125,7 +126,7 @@ void World::refresh()
     // go through all the activated entities from last call to refresh
     for (auto &entity : m_entity_cache.enabled)
     {
-        auto &attribute = m_entity_attributes.attributes[entity.id().index()];
+        auto &attribute = m_entity_attributes.attributes[entity.getId().getIndex()];
         attribute.enabled = true;
 
         // loop through all the systems within the scene
@@ -134,8 +135,8 @@ void World::refresh()
             uint64_t system_index = it.first;
 
             // if the entity passes the filter the system has and is not already part of the system
-            if (m_entity_attributes.component_storage.componentsFilter(entity).test(
-                    it.second->componentsFilter()))
+            if (m_entity_attributes.component_storage.getComponentsFilter(entity).test(
+                    it.second->getComponentsFilter()))
             {
                 if (attribute.systems.size() <= system_index || !attribute.systems[system_index])
                 {
@@ -157,7 +158,7 @@ void World::refresh()
     // go through all the deactivated entities from last call to refresh
     for (auto &entity : m_entity_cache.disabled)
     {
-        auto &attribute = m_entity_attributes.attributes[entity.id().index()];
+        auto &attribute = m_entity_attributes.attributes[entity.getId().getIndex()];
         attribute.enabled = false;
 
         // loop through all the systems within the world
@@ -188,7 +189,7 @@ void World::refresh()
             m_entity_cache.alive.end());
 
         m_entity_attributes.component_storage.removeAllComponents(entity);
-        m_entity_id_storage.destroy(entity.id());
+        m_entity_id_storage.destroy(entity.getId());
     }
 
     m_entity_cache.clearTemp();
@@ -230,7 +231,7 @@ bool World::systemExist(TypeId system_type_id) const
 
 void World::checkForResize(int32_t size)
 {
-    auto new_size = entityCount() + size;
+    auto new_size = getEntityCount() + size;
     if (new_size > m_entity_id_storage.size())
         resize(new_size);
 }

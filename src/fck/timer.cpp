@@ -19,7 +19,7 @@ Timer::~Timer()
     EventDispatcher::instance().unregisterTimer(this);
 }
 
-sf::Time Timer::interval() const
+sf::Time Timer::getInterval() const
 {
     return m_interval;
 }

@@ -123,7 +123,7 @@ void Minimap::setRoomOpened(const sf::Vector2i &room_coord)
     if (!m_rooms_map || m_room_texture_rects.empty() || m_room_type_texture_rects.empty())
         return;
 
-    int32_t index = room_coord.y * m_rooms_map->size2D().x + room_coord.x;
+    int32_t index = room_coord.y * m_rooms_map->getSize2D().x + room_coord.x;
     updateRoomTypeTexCoords(index);
 }
 
@@ -151,12 +151,12 @@ void Minimap::updateRoomsPositions()
     sf::Vector2i room_size = m_room_texture_rects.begin()->second.getSize();
 
     m_rooms_vertices.setPrimitiveType(sf::Triangles);
-    m_rooms_vertices.resize(m_rooms_map->size() * 6);
+    m_rooms_vertices.resize(m_rooms_map->getSize() * 6);
 
     m_room_types_vertices.setPrimitiveType(sf::Triangles);
-    m_room_types_vertices.resize(m_rooms_map->size() * 6);
+    m_room_types_vertices.resize(m_rooms_map->getSize() * 6);
 
-    for (int32_t i = 0; i < m_rooms_map->size(); ++i)
+    for (int32_t i = 0; i < m_rooms_map->getSize(); ++i)
     {
         sf::Vector2i coord = m_rooms_map->transformIndex(i);
 
@@ -189,7 +189,7 @@ void Minimap::updateRoomsTexCoords()
     if (!m_rooms_map || m_room_texture_rects.empty() || m_room_type_texture_rects.empty())
         return;
 
-    for (int32_t i = 0; i < m_rooms_map->size(); ++i)
+    for (int32_t i = 0; i < m_rooms_map->getSize(); ++i)
     {
         if (m_rooms_map->at(i))
         {

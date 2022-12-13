@@ -8,13 +8,13 @@ Sprite::Sprite() : m_vertices{sf::TriangleStrip}, m_texture{nullptr}
     m_vertices.resize(4);
 }
 
-Sprite::Sprite(sf::Texture *texture) : m_vertices{sf::TriangleStrip}, m_texture{nullptr}
+Sprite::Sprite(sf::Texture &texture) : m_vertices{sf::TriangleStrip}, m_texture{nullptr}
 {
     m_vertices.resize(4);
     setTexture(texture);
 }
 
-Sprite::Sprite(sf::Texture *texture, const sf::IntRect &rectangle)
+Sprite::Sprite(sf::Texture &texture, const sf::IntRect &rectangle)
     : m_vertices{sf::TriangleStrip}, m_texture{nullptr}
 {
     m_vertices.resize(4);
@@ -22,28 +22,24 @@ Sprite::Sprite(sf::Texture *texture, const sf::IntRect &rectangle)
     setTextureRect(rectangle);
 }
 
-drawable_type::Type Sprite::type() const
+drawable_type::Type Sprite::getType() const
 {
     return drawable_type::SPRITE;
 }
 
-sf::Texture *Sprite::texture() const
+sf::Texture *Sprite::getTexture() const
 {
     return m_texture;
 }
 
-void Sprite::setTexture(sf::Texture *texture, bool resetRect)
+void Sprite::setTexture(sf::Texture &texture, bool resetRect)
 {
-    if (texture)
-    {
-        if (resetRect || (!m_texture && (m_texture_rect == sf::IntRect())))
-            setTextureRect(
-                sf::IntRect({0, 0}, sf::Vector2i(texture->getSize().x, texture->getSize().y)));
-    }
-    m_texture = texture;
+    if (resetRect)
+        setTextureRect(sf::IntRect({0, 0}, sf::Vector2i(texture.getSize().x, texture.getSize().y)));
+    m_texture = &texture;
 }
 
-const sf::IntRect &Sprite::textureRect() const
+const sf::IntRect &Sprite::getTextureRect() const
 {
     return m_texture_rect;
 }
@@ -55,7 +51,7 @@ void Sprite::setTextureRect(const sf::IntRect &rectangle)
     updatePositions();
 }
 
-const sf::Color &Sprite::color() const
+const sf::Color &Sprite::getColor() const
 {
     return m_vertices[0].color;
 }
@@ -68,12 +64,12 @@ void Sprite::setColor(const sf::Color &color)
     m_vertices[3].color = color;
 }
 
-sf::FloatRect Sprite::localBounds() const
+sf::FloatRect Sprite::getLocalBounds() const
 {
     return m_vertices.getBounds();
 }
 
-sf::FloatRect Sprite::globalBounds() const
+sf::FloatRect Sprite::getGlobalBounds() const
 {
     return getTransform().transformRect(m_vertices.getBounds());
 }

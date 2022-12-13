@@ -38,17 +38,15 @@ void BaseAttack::apply(const Entity &entity, const Entity &target)
     m_entity = entity;
     m_target = target;
 
-    component::Transform &transform_component = m_entity.component<component::Transform>();
-    component::Velocity &velocity_component = m_entity.component<component::Velocity>();
-    component::State &state_component = m_entity.component<component::State>();
-    component::DrawableAnimation &drawable_animation_component
-        = m_entity.component<component::DrawableAnimation>();
+    component::Transform &transform_component = m_entity.getComponent<component::Transform>();
+    component::Velocity &velocity_component = m_entity.getComponent<component::Velocity>();
+    component::State &state_component = m_entity.getComponent<component::State>();
 
     if (m_target.isValid())
     {
         component::Transform &target_transform_component
-            = m_target.component<component::Transform>();
-        component::Scene &target_scene_component = m_target.component<component::Scene>();
+            = m_target.getComponent<component::Transform>();
+        component::Scene &target_scene_component = m_target.getComponent<component::Scene>();
 
         m_jump_point = target_transform_component.transform.getPosition();
         m_jump_point.x += transform_component.transform.getPosition().x > m_jump_point.x
@@ -89,8 +87,7 @@ void BaseAttack::apply(const Entity &entity, const Entity &target)
     std::mt19937 mt(rd());
     std::uniform_int_distribution<int32_t> dist(0, m_attack_animations.size() - 1);
 
-    drawable_animation_component.animation->setCurrentState(m_attack_animations[dist(mt)]);
-    drawable_animation_component.animation->start();
+    entity::set_drawable_state.emit(m_entity, m_attack_animations[dist(mt)]);
 }
 
 void BaseAttack::update(double delta_time)
@@ -103,9 +100,9 @@ void BaseAttack::update(double delta_time)
 
 void BaseAttack::idleAttack(double delta_time)
 {
-    component::Velocity &velocity_component = m_entity.component<component::Velocity>();
+    component::Velocity &velocity_component = m_entity.getComponent<component::Velocity>();
 
-    if (elapsed() >= m_jump_interval.first && elapsed() <= m_jump_interval.second)
+    if (getEelapsed() >= m_jump_interval.first && getEelapsed() <= m_jump_interval.second)
     {
         velocity_component.velocity = m_jump_velocity;
         return;
@@ -116,8 +113,8 @@ void BaseAttack::idleAttack(double delta_time)
 
 void BaseAttack::targetAttack(double delta_time)
 {
-    component::Velocity &velocity_component = m_entity.component<component::Velocity>();
-    if (elapsed() >= m_jump_interval.first && elapsed() <= m_jump_interval.second)
+    component::Velocity &velocity_component = m_entity.getComponent<component::Velocity>();
+    if (getEelapsed() >= m_jump_interval.first && getEelapsed() <= m_jump_interval.second)
     {
         velocity_component.velocity = m_jump_velocity;
         return;
@@ -130,12 +127,12 @@ void BaseAttack::targetAttack(double delta_time)
 
     if (!m_target_attacked)
     {
-        component::State &target_state_component = m_target.component<component::State>();
+        component::State &target_state_component = m_target.getComponent<component::State>();
         if (target_state_component.state != entity_state::DAMAGED
             && target_state_component.state != entity_state::DEATH)
         {
             component::Transform &target_transform_component
-                = m_target.component<component::Transform>();
+                = m_target.getComponent<component::Transform>();
             sf::Vector2f rebounce_velocity
                 = {m_jump_point.x > target_transform_component.transform.getPosition().x ? -100.0f
                                                                                          : 100.0f,
@@ -145,11 +142,11 @@ void BaseAttack::targetAttack(double delta_time)
             std::mt19937 mt(rd());
             std::uniform_real_distribution<float> dist(m_damage.first, m_damage.second);
 
-            component::Damage &target_damage_component = m_target.component<component::Damage>();
+            component::Damage &target_damage_component = m_target.getComponent<component::Damage>();
             if (!target_damage_component.damage)
             {
-                target_damage_component.damage.reset(new damage::BaseAttack(
-                    dist(mt), rebounce_velocity, m_target, 0.2, m_entity));
+                target_damage_component.damage.reset(
+                    new damage::BaseAttack(dist(mt), rebounce_velocity, m_target, 0.2, m_entity));
             }
         }
         m_target_attacked = true;

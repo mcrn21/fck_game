@@ -11,9 +11,9 @@ EnemyBase::EnemyBase(double attack_interval) : m_attack_interval{attack_interval
 
 void EnemyBase::update(const Entity &entity, double delta_time)
 {
-    component::TargetFollow &target_follow_component = entity.component<component::TargetFollow>();
-    component::Target &target_component = entity.component<component::Target>();
-    component::LookAround &look_around_component = entity.component<component::LookAround>();
+    component::TargetFollow &target_follow_component = entity.getComponent<component::TargetFollow>();
+    component::Target &target_component = entity.getComponent<component::Target>();
+    component::LookAround &look_around_component = entity.getComponent<component::LookAround>();
 
     if (!target_component.target.isValid())
     {
@@ -33,7 +33,7 @@ void EnemyBase::update(const Entity &entity, double delta_time)
 
         if (m_attack_interval < 0)
         {
-            component::Skills &skills_component = entity.component<component::Skills>();
+            component::Skills &skills_component = entity.getComponent<component::Skills>();
             skills_component.next_skill = 0;
             m_attack_interval = 0.5;
         }

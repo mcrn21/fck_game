@@ -25,13 +25,13 @@ public:
     };
 
     SpriteAnimation();
-    SpriteAnimation(Sprite *sprite);
+    SpriteAnimation(Sprite &sprite);
     ~SpriteAnimation() = default;
 
-    drawable_animation_type::Type type() const;
+    Sprite *getSprite() const;
+    void setSprite(Sprite &sprite);
 
-    Sprite *sprite() const;
-    void setSprite(Sprite *sprite);
+    void setCurrentState(const std::string &state_name);
 
     void addState(
         const std::string &state_name,
@@ -40,10 +40,9 @@ public:
         const sf::IntRect &frame_rect,
         const sf::Vector2i &frame_count);
     void removeState(const std::string &state_name);
-    void setCurrentState(const std::string &state_name);
     bool hasStates() const;
 
-    sf::IntRect frameRect() const;
+    sf::IntRect getFrameRect() const;
 
     void start();
     void pause();

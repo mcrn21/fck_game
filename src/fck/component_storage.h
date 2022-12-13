@@ -23,9 +23,9 @@ public:
     void removeComponent(Entity &entity, TypeId component_type_id);
     void removeAllComponents(Entity &entity);
 
-    ComponentBase *component(const Entity &entity, TypeId component_type_id) const;
-    ComponentsFilter componentsFilter(const Entity &entity) const;
-    std::vector<ComponentBase *> components(const Entity &entity) const;
+    ComponentBase *getComponent(const Entity &entity, TypeId component_type_id) const;
+    ComponentsFilter getComponentsFilter(const Entity &entity) const;
+    std::vector<ComponentBase *> getComponents(const Entity &entity) const;
 
     bool hasComponent(const Entity &entity, TypeId component_type_id) const;
 
@@ -35,8 +35,8 @@ public:
 private:
     typedef std::array<std::unique_ptr<ComponentBase>, MAX_AMOUNT_OF_COMPONENTS> ComponentsArray;
 
-    ComponentsArray &componentsArray(const Entity &e);
-    const ComponentsArray &componentsArray(const Entity &e) const;
+    ComponentsArray &getComponentsArray(const Entity &e);
+    const ComponentsArray &getComponentsArray(const Entity &e) const;
 
 private:
     struct EntityComponents

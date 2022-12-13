@@ -18,12 +18,12 @@ EventHandler::~EventHandler()
     EventDispatcher::instance().unregisterEventHandler(this);
 }
 
-const std::vector<int32_t> &EventHandler::eventTypes() const
+const std::vector<int32_t> &EventHandler::getEventTypes() const
 {
     return m_event_types;
 }
 
-std::string EventHandler::name() const
+std::string EventHandler::getName() const
 {
     return m_name;
 }

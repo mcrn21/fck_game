@@ -17,8 +17,8 @@ public:
 
     Entity &operator=(const Entity &other);
 
-    const Id &id() const;
-    World *world() const;
+    const Id &getId() const;
+    World *getWorld() const;
 
     bool isValid() const;
     bool isEnabled() const;
@@ -36,12 +36,12 @@ public:
     void removeAllComponents();
 
     template<typename T>
-    T &component() const;
+    T &getComponent() const;
 
     template<typename T>
     bool hasComponent() const;
 
-    ComponentsFilter componentFilter() const;
+    ComponentsFilter getComponentFilter() const;
 
     bool operator==(const Entity &entity) const;
     bool operator!=(const Entity &entity) const;
@@ -49,7 +49,7 @@ public:
 private:
     void addComponent(ComponentBase *component, TypeId component_type_id);
     void removeComponent(TypeId component_type_id);
-    ComponentBase *component(TypeId component_type_id) const;
+    ComponentBase *getComponent(TypeId component_type_id) const;
     bool hasComponent(TypeId component_type_id) const;
 
 private:
@@ -72,9 +72,9 @@ void Entity::removeComponent()
 }
 
 template<typename T>
-T &Entity::component() const
+T &Entity::getComponent() const
 {
-    Component<T> *c = static_cast<Component<T> *>(component(componentTypeId<T>()));
+    Component<T> *c = static_cast<Component<T> *>(getComponent(componentTypeId<T>()));
     return static_cast<T &>(*(c->data.get()));
 }
 

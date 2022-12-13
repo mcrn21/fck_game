@@ -16,10 +16,10 @@ Movement::Movement()
 
 void Movement::update(double delta_time)
 {
-    for (Entity &entity : entities())
+    for (Entity &entity : getEntities())
     {
         component::Velocity &velocity_component
-            = entity.component<component::Velocity>();
+            = entity.getComponent<component::Velocity>();
 
         if (vector2::isValid(velocity_component.velocity))
         {

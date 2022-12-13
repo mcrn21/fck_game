@@ -47,9 +47,9 @@ public:
     void destroyEntities(const std::vector<Entity> &entities);
     void destroyAllEntities();
 
-    int32_t entityCount() const;
-    const std::vector<Entity> &entities() const;
-    Entity entity(std::size_t index);
+    int32_t getEntityCount() const;
+    const std::vector<Entity> &getEntities() const;
+    Entity getEntity(std::size_t index);
 
     void enableEntity(const Entity &entity);
     void disableEntity(const Entity &entity);

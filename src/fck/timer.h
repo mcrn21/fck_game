@@ -16,7 +16,7 @@ public:
     Timer(sf::Time interval, bool repeat, const std::function<void()> &callback);
     ~Timer();
 
-    sf::Time interval() const;
+    sf::Time getInterval() const;
     void setInterval(sf::Time interval);
 
     bool isRepeat() const;

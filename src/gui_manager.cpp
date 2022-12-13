@@ -33,7 +33,7 @@ void GuiManager::pop()
     m_gui_list.pop_back();
 }
 
-GuiBase *GuiManager::back() const
+GuiBase *GuiManager::getBack() const
 {
     if (m_gui_list.empty())
         return nullptr;
