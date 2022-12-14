@@ -2,6 +2,7 @@
 #define DRAWABLESTATE_ORYBISWUJKUL_H
 
 #include <string>
+#include <vector>
 
 namespace fck
 {
@@ -14,6 +15,8 @@ public:
 
     virtual std::string getCurrentState() const = 0;
     virtual void setCurrentState(const std::string &state_name) = 0;
+
+    virtual std::vector<std::string> getStates() const = 0;
 };
 
 } // namespace fck

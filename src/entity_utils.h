@@ -13,6 +13,8 @@ namespace fck
 
 struct entity
 {
+    static std::vector<std::string> getDrawableStates(const Entity &entity);
+
     // transform
     static Signal<const Entity &, const sf::Vector2f &> move;
     static Signal<const Entity &, const sf::Vector2f &> set_position;

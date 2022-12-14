@@ -3,6 +3,20 @@
 namespace fck
 {
 
+std::vector<std::string> entity::getDrawableStates(const Entity &entity)
+{
+    if (entity.hasComponent<component::DrawableAnimation>())
+    {
+        return entity.getComponent<component::DrawableAnimation>().animation->getStates();
+    }
+    else if (entity.hasComponent<component::DrawableState>())
+    {
+        return entity.getComponent<component::DrawableState>().state->getStates();
+    }
+
+    return {};
+}
+
 // transform
 Signal<const Entity &, const sf::Vector2f &> entity::move;
 Signal<const Entity &, const sf::Vector2f &> entity::set_position;

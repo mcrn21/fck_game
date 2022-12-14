@@ -5,6 +5,8 @@
 
 #include "SFML/System/Time.hpp"
 
+#include <vector>
+
 namespace fck
 {
 
@@ -15,6 +17,7 @@ public:
     virtual ~DrawableAnimation() = default;
 
     virtual void setCurrentState([[maybe_unused]] const std::string &state_name);
+    virtual std::vector<std::string> getStates() const;
 
     virtual void start();
     virtual void restart();

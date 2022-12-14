@@ -17,6 +17,47 @@ namespace fck
 namespace component
 {
 
+struct DrawableProxyBase
+{
+    virtual ~DrawableProxyBase() = default;
+
+    virtual sf::Transformable &asTransformable() = 0;
+    virtual sf::Drawable &asDrawable() = 0;
+
+    virtual const sf::FloatRect &getLocalBounds() const = 0;
+    virtual const sf::FloatRect &getGlobalBounds() const = 0;
+};
+
+template<typename T>
+struct DrawableProxy : DrawableProxyBase
+{
+    DrawableProxy(T *drawable) : drawable{drawable}
+    {
+    }
+
+    sf::Transformable &asTransformable()
+    {
+        return *static_cast<sf::Transformable *>(drawable.get());
+    }
+
+    sf::Drawable &asDrawable()
+    {
+        return *static_cast<sf::Drawable *>(drawable.get());
+    }
+
+    const sf::FloatRect &getLocalBounds() const
+    {
+        return drawable->getLocalBounds();
+    }
+
+    const sf::FloatRect &getGlobalBounds() const
+    {
+        return drawable->getGlobalBounds();
+    }
+
+    std::unique_ptr<T> drawable;
+};
+
 struct Drawable
 {
     std::unique_ptr<fck::Drawable> drawable;

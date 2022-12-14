@@ -15,8 +15,7 @@ void Render::moveEntity(const Entity &entity, const sf::Vector2f &offset)
     if (!drawable_component.drawable)
         return;
 
-    component::Transform &transform_component
-        = entity.getComponent<component::Transform>();
+    component::Transform &transform_component = entity.getComponent<component::Transform>();
 
     if (drawable_component.z_order_fill_y_coordinate)
         drawable_component.z_order = transform_component.transform.getPosition().y + Z_ORDER;

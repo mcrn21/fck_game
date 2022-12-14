@@ -20,7 +20,7 @@ public:
     {
         sf::Time interval = sf::milliseconds(0);
         bool repeat;
-        sf::IntRect frame_rect;
+        sf::IntRect texture_rect;
         sf::Vector2i frame_count;
     };
 
@@ -32,6 +32,7 @@ public:
     void setSprite(Sprite &sprite);
 
     void setCurrentState(const std::string &state_name);
+    std::vector<std::string> getStates() const;
 
     void addState(
         const std::string &state_name,
@@ -42,7 +43,7 @@ public:
     void removeState(const std::string &state_name);
     bool hasStates() const;
 
-    sf::IntRect getFrameRect() const;
+    sf::IntRect getTextureRect() const;
 
     void start();
     void pause();

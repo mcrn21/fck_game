@@ -42,6 +42,16 @@ void SpriteState::setCurrentState(const std::string &state_name)
     }
 }
 
+std::vector<std::string> SpriteState::getStates() const
+{
+    std::vector<std::string> states;
+
+    for (const auto &it : m_states)
+        states.push_back(it.first);
+
+    return states;
+}
+
 void SpriteState::addState(const std::string &state_name, const sf::IntRect &state_rect)
 {
     m_states.emplace(state_name, state_rect);
@@ -57,7 +67,7 @@ bool SpriteState::hasState(const std::string &state_name) const
     return m_states.find(state_name) != m_states.end();
 }
 
-sf::IntRect SpriteState::getStateRect(const std::string &state_name) const
+sf::IntRect SpriteState::getTextureRect(const std::string &state_name) const
 {
     return m_states.at(state_name);
 }

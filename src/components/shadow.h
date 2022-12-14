@@ -15,7 +15,7 @@ namespace component
 
 struct Shadow
 {
-    sf::Sprite shadow;
+    std::unique_ptr<sf::Shape> shadow_shape;
 };
 
 } // namespace component
@@ -30,29 +30,66 @@ struct KnowledgeBase::ComponentItem<component::Shadow> : ComponentItemBase
 
     void init(toml::table *table)
     {
-        if (table->contains("texture"))
-            texture = table->at("texture").as_string()->get();
+        if (table->contains("position"))
+            position = vector2::tomlArrayToVector2f(table->at("position").as_array());
+
+        if (table->contains("rotation"))
+            rotation = table->at("rotation").as_floating_point()->get();
 
         if (table->contains("scale"))
             scale = vector2::tomlArrayToVector2f(table->at("scale").as_array());
+
+        if (table->contains("origin"))
+            origin = vector2::tomlArrayToVector2f(table->at("origin").as_array());
+
+        if (table->contains("type"))
+            type = table->at("type").as_string()->get();
+
+        if (table->contains("rect_size"))
+            rect_size = vector2::tomlArrayToVector2f(table->at("rect_size").as_array());
+
+        if (table->contains("radius"))
+            radius = table->at("radius").as_floating_point()->get();
     }
 
     void create(Entity &entity)
     {
         component::Shadow &component = entity.addComponent<component::Shadow>();
 
-        sf::Texture *tex = ResourceCache::getResource<sf::Texture>(texture);
-        if (tex)
+        if (type == "rect")
         {
-            component.shadow.setTexture(*tex, true);
-            component.shadow.setOrigin(component.shadow.getLocalBounds().getSize() / 2.0f);
-            component.shadow.setScale(scale);
+            sf::RectangleShape *shape = new sf::RectangleShape();
+            shape->setFillColor(sf::Color(0, 0, 0, 110));
+
+            shape->setSize(rect_size);
+
+            component.shadow_shape.reset(shape);
         }
+        else if (type == "circle")
+        {
+            sf::CircleShape *shape = new sf::CircleShape();
+            shape->setFillColor(sf::Color(0, 0, 0, 110));
+
+            shape->setPointCount(12);
+            shape->setRadius(radius);
+
+            component.shadow_shape.reset(shape);
+        }
+
+        component.shadow_shape->setPosition(position);
+        component.shadow_shape->setRotation(sf::degrees(rotation));
+        component.shadow_shape->setScale(scale);
+        component.shadow_shape->setOrigin(origin);
     }
 
-    std::string texture;
-
+    sf::Vector2f position;
+    float rotation = 0.0f;
     sf::Vector2f scale = {1.0f, 1.0f};
+    sf::Vector2f origin;
+
+    std::string type = "rect";
+    sf::Vector2f rect_size = {0.0f, 0.0f};
+    float radius = 0.0f;
 };
 
 namespace component

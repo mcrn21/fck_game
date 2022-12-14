@@ -206,13 +206,25 @@ void Level::generateRoomsContent()
         {
             m_rooms_cache.entities[i] = new std::vector<Entity>();
 
-            std::string room_group_name = std::to_string(m_rooms_cache.map[i]->neighbors);
-
-            room_group_name = "12";
-
             for (const auto &room_group : m_level_tmx->getGroups())
             {
-                if (room_group.name == room_group_name)
+                std::vector<std::string> room_group_name_strs = string::split(room_group.name, ',');
+                int32_t neighbors = 0;
+
+                for (std::string room_group_name : room_group_name_strs)
+                {
+                    string::trim(room_group_name);
+                    if (room_group_name == "left")
+                        neighbors |= Room::LEFT;
+                    else if (room_group_name == "top")
+                        neighbors |= Room::TOP;
+                    else if (room_group_name == "right")
+                        neighbors |= Room::RIGHT;
+                    else if (room_group_name == "bottom")
+                        neighbors |= Room::BOTTOM;
+                }
+
+                if (m_rooms_cache.map[i]->neighbors == neighbors)
                 {
                     std::vector<Entity> room_entities = createRoom(room_group);
                     m_rooms_cache.entities[i]->insert(
@@ -323,43 +335,59 @@ void Level::enableRoom(const sf::Vector2i &coord, const sf::Vector2f &target_pos
 Entity Level::createRoomTransition(Room::Side side, const sf::Vector2i &room_coord)
 {
     std::unordered_map<Room::Side, sf::FloatRect> room_transtion_bounds;
-    room_transtion_bounds[Room::LEFT] = {
-        {0, float(m_level_tmx->getTileSize().y)},
-        {float(m_level_tmx->getTileSize().x),
-         float(m_level_tmx->getSize().y * m_level_tmx->getTileSize().y - m_level_tmx->getTileSize().y * 2)}};
+    room_transtion_bounds[Room::LEFT]
+        = {{0, float(m_level_tmx->getTileSize().y)},
+           {float(m_level_tmx->getTileSize().x),
+            float(
+                m_level_tmx->getSize().y * m_level_tmx->getTileSize().y
+                - m_level_tmx->getTileSize().y * 2)}};
 
-    room_transtion_bounds[Room::RIGHT] = {
-        {float(m_level_tmx->getSize().x * m_level_tmx->getTileSize().x - m_level_tmx->getTileSize().x),
-         float(m_level_tmx->getTileSize().y)},
-        {float(m_level_tmx->getTileSize().x),
-         float(m_level_tmx->getSize().y * m_level_tmx->getTileSize().y - m_level_tmx->getTileSize().y * 2)}};
+    room_transtion_bounds[Room::RIGHT]
+        = {{float(
+                m_level_tmx->getSize().x * m_level_tmx->getTileSize().x
+                - m_level_tmx->getTileSize().x),
+            float(m_level_tmx->getTileSize().y)},
+           {float(m_level_tmx->getTileSize().x),
+            float(
+                m_level_tmx->getSize().y * m_level_tmx->getTileSize().y
+                - m_level_tmx->getTileSize().y * 2)}};
 
-    room_transtion_bounds[Room::TOP] = {
-        {float(m_level_tmx->getTileSize().x), 0},
-        {float(m_level_tmx->getSize().x * m_level_tmx->getTileSize().x - m_level_tmx->getTileSize().x * 2),
-         float(m_level_tmx->getTileSize().y)}};
+    room_transtion_bounds[Room::TOP]
+        = {{float(m_level_tmx->getTileSize().x), 0},
+           {float(
+                m_level_tmx->getSize().x * m_level_tmx->getTileSize().x
+                - m_level_tmx->getTileSize().x * 2),
+            float(m_level_tmx->getTileSize().y)}};
 
-    room_transtion_bounds[Room::BOTTOM] = {
-        {float(m_level_tmx->getTileSize().x),
-         float(m_level_tmx->getSize().y * m_level_tmx->getTileSize().y - m_level_tmx->getTileSize().y)},
-        {float(m_level_tmx->getSize().x * m_level_tmx->getTileSize().x - m_level_tmx->getTileSize().x * 2),
-         float(m_level_tmx->getTileSize().y)}};
+    room_transtion_bounds[Room::BOTTOM]
+        = {{float(m_level_tmx->getTileSize().x),
+            float(
+                m_level_tmx->getSize().y * m_level_tmx->getTileSize().y
+                - m_level_tmx->getTileSize().y)},
+           {float(
+                m_level_tmx->getSize().x * m_level_tmx->getTileSize().x
+                - m_level_tmx->getTileSize().x * 2),
+            float(m_level_tmx->getTileSize().y)}};
 
     std::unordered_map<Room::Side, sf::Vector2f> target_positions;
 
     target_positions[Room::LEFT]
-        = {m_level_tmx->getSize().x * m_level_tmx->getTileSize().x - m_level_tmx->getTileSize().x * 2.0f,
+        = {m_level_tmx->getSize().x * m_level_tmx->getTileSize().x
+               - m_level_tmx->getTileSize().x * 2.0f,
            m_level_tmx->getSize().y * m_level_tmx->getTileSize().y / 2.0f};
 
-    target_positions[Room::RIGHT] = {
-        m_level_tmx->getTileSize().x * 2.0f, m_level_tmx->getSize().y * m_level_tmx->getTileSize().y / 2.0f};
+    target_positions[Room::RIGHT]
+        = {m_level_tmx->getTileSize().x * 2.0f,
+           m_level_tmx->getSize().y * m_level_tmx->getTileSize().y / 2.0f};
 
     target_positions[Room::TOP]
         = {m_level_tmx->getSize().x * m_level_tmx->getTileSize().x / 2.0f,
-           m_level_tmx->getSize().y * m_level_tmx->getTileSize().y - m_level_tmx->getTileSize().y * 2.0f};
+           m_level_tmx->getSize().y * m_level_tmx->getTileSize().y
+               - m_level_tmx->getTileSize().y * 2.0f};
 
-    target_positions[Room::BOTTOM] = {
-        m_level_tmx->getSize().x * m_level_tmx->getTileSize().x / 2.0f, m_level_tmx->getTileSize().y * 2.0f};
+    target_positions[Room::BOTTOM]
+        = {m_level_tmx->getSize().x * m_level_tmx->getTileSize().x / 2.0f,
+           m_level_tmx->getTileSize().y * 2.0f};
 
     std::unordered_map<Room::Side, sf::Vector2i> neighbor_rooms;
 
@@ -474,14 +502,50 @@ std::vector<Entity> Level::createRoomEntities(const Tmx::ObjectGroup &entities_o
         if (entity_object.type != Tmx::Object::RECT)
             continue;
 
-        std::vector<std::string> name_strs = string::split(entity_object.name, '#');
-
-        Entity entity = KnowledgeBase::createEntity(string::trimCopy(name_strs[0]), m_world);
+        Entity entity = KnowledgeBase::createEntity(entity_object.name, m_world);
         if (entity.isValid())
         {
-            entity::set_position.emit(entity, sf::Vector2f{entity_object.rect.getPosition()});
-            if (name_strs.size() > 1)
-                entity::set_drawable_state.emit(entity, string::trimCopy(name_strs[1]));
+            entity::set_position.emit(
+                entity,
+                sf::Vector2f{entity_object.rect.getPosition()}
+                    + sf::Vector2f{entity_object.rect.getSize()} / 2.0f);
+
+            for (const auto &it : entity_object.properties)
+            {
+                if (it.first == "drawable_state")
+                {
+                    if (it.second.starts_with('['))
+                    {
+                        std::string states = it.second;
+                        states.erase(0, 1);
+                        states.erase(states.size() - 1, 1);
+                        std::vector<std::string> state_strs = string::split(states, ',');
+
+                        state_strs.erase(
+                            std::remove(state_strs.begin(), state_strs.end(), ""),
+                            state_strs.end());
+
+                        if (state_strs.empty())
+                            state_strs = entity::getDrawableStates(entity);
+
+                        std::random_device dev;
+                        std::mt19937 rng(dev());
+                        std::uniform_int_distribution<int32_t> dist(0, state_strs.size() - 1);
+
+                        entity::set_drawable_state.emit(
+                            entity, string::trimCopy(state_strs[dist(rng)]));
+                    }
+                    else
+                    {
+                        entity::set_drawable_state.emit(entity, it.second);
+                    }
+                }
+                else if (it.first == "direction")
+                {
+                    entity::set_direction.emit(
+                        entity, entity_state::directionFromString(it.second));
+                }
+            }
 
             entities.push_back(entity);
         }
@@ -498,7 +562,8 @@ Entity Level::createTileMapFromLayer(const Tmx::Layer &layer)
 
     component::Scene &scene_component = entity.addComponent<component::Scene>();
     scene_component.local_bounds
-        = {{0.0f, 0.0f}, sf::Vector2f{vector2::mult(m_level_tmx->getSize(), m_level_tmx->getTileSize())}};
+        = {{0.0f, 0.0f},
+           sf::Vector2f{vector2::mult(m_level_tmx->getSize(), m_level_tmx->getTileSize())}};
 
     component::Drawable &drawable_component = entity.addComponent<component::Drawable>();
 
@@ -521,7 +586,11 @@ Entity Level::createTileMapFromLayer(const Tmx::Layer &layer)
     }
 
     TileMap *tile_map = TileMap::createFromTmxLayer(
-        layer, m_level_tmx->getSize(), m_level_tmx->getTileSize(), tileset->name, tileset->first_gid);
+        layer,
+        m_level_tmx->getSize(),
+        m_level_tmx->getTileSize(),
+        tileset->name,
+        tileset->first_gid);
     if (!tile_map)
     {
         entity.destroy();

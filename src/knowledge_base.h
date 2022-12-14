@@ -275,7 +275,7 @@ struct KnowledgeBase::DrawableItem<Sprite, SpriteState, SpriteAnimation> : Drawa
                 toml::table *state_table = it.second.as_table();
 
                 sf::IntRect state_rect
-                    = rect::tomlArrayToIntRect(state_table->at("state_rect").as_array());
+                    = rect::tomlArrayToIntRect(state_table->at("texture_rect").as_array());
 
                 states.emplace(it.first.data(), state_rect);
             }
@@ -295,7 +295,7 @@ struct KnowledgeBase::DrawableItem<Sprite, SpriteState, SpriteAnimation> : Drawa
                 int32_t interval = state_table->at("interval").as_integer()->get();
                 bool repeat = state_table->at("repeat").as_boolean()->get();
                 sf::IntRect frame_rect
-                    = rect::tomlArrayToIntRect(state_table->at("frame_rect").as_array());
+                    = rect::tomlArrayToIntRect(state_table->at("texture_rect").as_array());
                 sf::Vector2i frame_count
                     = vector2::tomlArrayToVector2i(state_table->at("frame_count").as_array());
 
@@ -331,7 +331,7 @@ struct KnowledgeBase::DrawableItem<Sprite, SpriteState, SpriteAnimation> : Drawa
                     it.first,
                     sf::milliseconds(it.second.interval),
                     it.second.repeat,
-                    it.second.frame_rect,
+                    it.second.texture_rect,
                     it.second.frame_count);
             }
         }
@@ -341,14 +341,14 @@ struct KnowledgeBase::DrawableItem<Sprite, SpriteState, SpriteAnimation> : Drawa
 
     struct State
     {
-        sf::IntRect state_rect;
+        sf::IntRect texture_rect;
     };
 
     struct Animation
     {
         int32_t interval = 0;
         bool repeat = false;
-        sf::IntRect frame_rect;
+        sf::IntRect texture_rect;
         sf::Vector2i frame_count;
     };
 

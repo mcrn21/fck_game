@@ -41,9 +41,19 @@ void SpriteAnimation::setCurrentState(const std::string &state_name)
         state_found->second.interval.asMilliseconds()
         / (state_found->second.frame_count.x * state_found->second.frame_count.y));
 
-    m_sprite->setTextureRect(getFrameRect());
+    m_sprite->setTextureRect(getTextureRect());
 
     m_current_frame = 1;
+}
+
+std::vector<std::string> SpriteAnimation::getStates() const
+{
+    std::vector<std::string> states;
+
+    for (const auto &it : m_states)
+        states.push_back(it.first);
+
+    return states;
 }
 
 void SpriteAnimation::addState(
@@ -90,7 +100,7 @@ bool SpriteAnimation::hasStates() const
     return !m_states.empty();
 }
 
-sf::IntRect SpriteAnimation::getFrameRect() const
+sf::IntRect SpriteAnimation::getTextureRect() const
 {
     if (m_current_state)
     {
@@ -99,11 +109,12 @@ sf::IntRect SpriteAnimation::getFrameRect() const
 
         return sf::IntRect{
             sf::Vector2i(
-                m_current_state->frame_rect.left
-                    + current_frame_x * m_current_state->frame_rect.width,
-                m_current_state->frame_rect.top
-                    + current_frame_y * m_current_state->frame_rect.height),
-            sf::Vector2i(m_current_state->frame_rect.width, m_current_state->frame_rect.height)};
+                m_current_state->texture_rect.left
+                    + current_frame_x * m_current_state->texture_rect.width,
+                m_current_state->texture_rect.top
+                    + current_frame_y * m_current_state->texture_rect.height),
+            sf::Vector2i(
+                m_current_state->texture_rect.width, m_current_state->texture_rect.height)};
     }
     return sf::IntRect{};
 }
@@ -132,7 +143,7 @@ void SpriteAnimation::update(const sf::Time &elapsed)
         if (m_elapsed > m_frame_interval)
         {
             m_elapsed = sf::Time::Zero;
-            m_sprite->setTextureRect(getFrameRect());
+            m_sprite->setTextureRect(getTextureRect());
             ++m_current_frame;
             if (m_current_frame == m_current_state->frame_count.x * m_current_state->frame_count.y)
             {

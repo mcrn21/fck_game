@@ -150,7 +150,8 @@ void FckGame::init()
          },
          [this]() {
              m_gui_manager.getBack<gui::LoadingGui>()->increaseProgress();
-             KnowledgeBase::loadDrawablesFromDatabase(Settings::getGlobal()->resources_database_name);
+             KnowledgeBase::loadDrawablesFromDatabase(
+                 Settings::getGlobal()->resources_database_name);
          },
          [this]() {
              m_gui_manager.getBack<gui::LoadingGui>()->increaseProgress();
@@ -163,7 +164,8 @@ void FckGame::init()
          },
          [this]() {
              m_gui_manager.getBack<gui::LoadingGui>()->increaseProgress();
-             KnowledgeBase::loadEntitiesFromDatabase(Settings::getGlobal()->resources_database_name);
+             KnowledgeBase::loadEntitiesFromDatabase(
+                 Settings::getGlobal()->resources_database_name);
          },
          [this]() {
              m_gui_manager.getBack<gui::LoadingGui>()->increaseProgress();
@@ -244,7 +246,8 @@ void FckGame::draw(const sf::Time &elapsed)
         {
             if (entity.hasComponent<component::Drawable>())
             {
-                component::Drawable &drawable_component = entity.getComponent<component::Drawable>();
+                component::Drawable &drawable_component
+                    = entity.getComponent<component::Drawable>();
                 component::Transform &transform_component
                     = entity.getComponent<component::Transform>();
                 bool transparented = false;
@@ -273,7 +276,8 @@ void FckGame::draw(const sf::Time &elapsed)
                 if (entity.hasComponent<component::Shadow>())
                 {
                     component::Shadow &shadow_component = entity.getComponent<component::Shadow>();
-                    m_scene_render_texture.draw(shadow_component.shadow, render_states);
+                    if (shadow_component.shadow_shape)
+                        m_scene_render_texture.draw(*shadow_component.shadow_shape, render_states);
                 }
 
                 m_scene_render_texture.draw(*drawable_component.drawable, render_states);
@@ -815,7 +819,8 @@ void FckGame::entitySetTarget(const Entity &entity, const Entity &target)
 
     if (old_target.isValid())
     {
-        component::Target &old_target_target_component = old_target.getComponent<component::Target>();
+        component::Target &old_target_target_component
+            = old_target.getComponent<component::Target>();
 
         old_target_target_component.lookings.erase(
             std::remove(
