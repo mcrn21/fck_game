@@ -14,29 +14,50 @@ RoomTransition::RoomTransition(Level *level)
 {
 }
 
+void RoomTransition::setSide(Room::Side side)
+{
+    m_side = side;
+}
+
 void RoomTransition::setRoomCoord(const sf::Vector2i &room_coord)
 {
     m_room_coord = room_coord;
-}
-
-void RoomTransition::setTargetPosition(const sf::Vector2f &target_position)
-{
-    m_target_position = target_position;
 }
 
 void RoomTransition::update(const Entity &entity, double delta_time)
 {
     if (m_need_change_room)
     {
-        spdlog::debug("Update move player");
-        m_level->enableRoom(m_room_coord, m_target_position);
+        sf::Vector2f target_position;
+
+        if (m_side == Room::LEFT)
+        {
+            target_position
+                = m_level->getRoomsMap().getData(m_room_coord)->getEntryPoints().at(Room::RIGHT);
+        }
+        else if (m_side == Room::RIGHT)
+        {
+            target_position
+                = m_level->getRoomsMap().getData(m_room_coord)->getEntryPoints().at(Room::LEFT);
+        }
+        else if (m_side == Room::TOP)
+        {
+            target_position
+                = m_level->getRoomsMap().getData(m_room_coord)->getEntryPoints().at(Room::BOTTOM);
+        }
+        else if (m_side == Room::BOTTOM)
+        {
+            target_position
+                = m_level->getRoomsMap().getData(m_room_coord)->getEntryPoints().at(Room::TOP);
+        }
+
+        m_level->enableRoom(m_room_coord, target_position);
         m_need_change_room = false;
     }
 }
 
 void RoomTransition::onEntityEnabled(const Entity &entity)
 {
-    spdlog::debug("Enable transition");
     m_used = false;
 }
 
@@ -47,7 +68,6 @@ void RoomTransition::onEntityCollided(const Entity &entity, const Entity &other)
 
     if (!m_used)
     {
-        spdlog::debug("Move player");
         m_need_change_room = true;
         m_used = true;
     }

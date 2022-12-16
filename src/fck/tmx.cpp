@@ -287,6 +287,22 @@ std::vector<Tmx::Tileset> Tmx::loadTilesets(const pugi::xml_node &node)
             throw Exception{"\"columns\" attribute for \"tileset\" element not found"};
         tileset.columns = tileset_node.attribute("columns").as_int();
 
+        pugi::xpath_node_set tile_nodes = tileset_node.select_nodes("tile");
+        for (pugi::xpath_node tile_xpath_node : tile_nodes)
+        {
+            pugi::xml_node tile_node = tile_xpath_node.node();
+
+            Tile tile;
+
+            if (tile_node.attribute("id").empty())
+                throw Exception{"\"id\" attribute for \"tile\" element not found"};
+            tile.id = tile_node.attribute("id").as_int();
+
+            tile.properties = loadProperties(tile_node);
+
+            tileset.tiles.push_back(tile);
+        }
+
         tileset.properties = loadProperties(tileset_node);
 
         tilesets.push_back(tileset);

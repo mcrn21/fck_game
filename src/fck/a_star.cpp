@@ -5,6 +5,9 @@
 namespace fck
 {
 
+std::vector<sf::Vector2i> PathFinder::m_directions
+    = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}, {-1, -1}, {1, 1}, {-1, 1}, {1, -1}};
+
 PathFinder::Node::Node(const sf::Vector2i coordinates, Node *parent)
     : coordinates{coordinates}, parent{parent}, g{0}, h{0}
 {
@@ -38,16 +41,20 @@ uint32_t PathFinder::Heuristic::octagonal(const sf::Vector2i &source, const sf::
     return 10 * (d.x + d.y) + (-6) * std::min(d.x, d.y);
 }
 
-PathFinder::PathFinder()
-    : m_heuristic{&Heuristic::manhattan},
-      m_directions_count{8},
-      m_directions{{0, 1}, {1, 0}, {0, -1}, {-1, 0}, {-1, -1}, {1, 1}, {-1, 1}, {1, -1}}
+PathFinder::PathFinder(const Grid<int32_t> &walls)
+    : m_heuristic{&Heuristic::manhattan}, m_directions_count{8}
 {
+    setWalls(walls);
 }
 
-Grid<PathFinder::Cell> &PathFinder::getGrid()
+const Grid<int32_t> *PathFinder::getWalls() const
 {
-    return m_grid;
+    return m_walls;
+}
+
+void PathFinder::setWalls(const Grid<int32_t> &grid)
+{
+    m_walls = &grid;
 }
 
 void PathFinder::setHeuristic(
@@ -136,11 +143,7 @@ std::vector<sf::Vector2i> PathFinder::findPath(
 
 bool PathFinder::detectCollision(const sf::Vector2i coordinates)
 {
-    Cell *cell = m_grid.getCell(coordinates);
-    if (cell)
-        return cell->weight > 0;
-
-    return false;
+    return m_walls->getData(coordinates) > 0;
 }
 
 PathFinder::Node *PathFinder::findNodeOnList(

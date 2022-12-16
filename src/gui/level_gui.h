@@ -26,7 +26,7 @@ public:
     void updatePlayerSkills();
     void updateTargetStats();
 
-    void setRoomsMap(const Vector2D<Level::Room *> &rooms_map);
+    void setRoomsMap(const Vector2D<Room *> &rooms_map);
     void setRoomOpended(const sf::Vector2i &room_coord);
     void setCurrentRoom(const sf::Vector2i &room_coord);
 

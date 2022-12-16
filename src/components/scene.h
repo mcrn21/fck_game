@@ -30,7 +30,6 @@ struct Scene
 
     // path finding
     bool path_finder_wall = false;
-    PathFinder *path_finder = nullptr;
 };
 
 } // namespace component

@@ -20,19 +20,19 @@ public:
         sf::Texture &texture,
         const sf::IntRect &frame_texture_rect,
         const std::unordered_map<int32_t, sf::IntRect> &room_texture_rects,
-        const std::unordered_map<Level::Room::Type, sf::IntRect> &room_type_texture_rects,
+        const std::unordered_map<Room::Type, sf::IntRect> &room_type_texture_rects,
         const sf::IntRect &current_room_texture_rect);
     ~Minimap() = default;
 
-    const Vector2D<Level::Room *> *getRoomsMap() const;
-    void setRoomsMap(const Vector2D<Level::Room *> &rooms_map);
+    const Vector2D<Room *> *getRoomsMap() const;
+    void setRoomsMap(const Vector2D<Room *> &rooms_map);
 
     const std::unordered_map<int32_t, sf::IntRect> &roomTextureRects() const;
     void setRoomTextureRects(const std::unordered_map<int32_t, sf::IntRect> &room_texture_rects);
 
-    const std::unordered_map<Level::Room::Type, sf::IntRect> &roomTypeTextureRects() const;
+    const std::unordered_map<Room::Type, sf::IntRect> &roomTypeTextureRects() const;
     void setRoomTypeTextureRects(
-        const std::unordered_map<Level::Room::Type, sf::IntRect> &room_type_texture_rects);
+        const std::unordered_map<Room::Type, sf::IntRect> &room_type_texture_rects);
 
     const sf::IntRect &currentRoomTextureRect() const;
     void setCurrentRoomTextureRect(const sf::IntRect &current_room_texture_rect);
@@ -54,13 +54,13 @@ private:
     void updateCurrentRoomTexCoords();
 
 private:
-    const Vector2D<Level::Room *> *m_rooms_map;
+    const Vector2D<Room *> *m_rooms_map;
 
     sf::Vector2f m_rooms_vertices_offset;
     sf::VertexArray m_rooms_vertices;
     std::unordered_map<int32_t, sf::IntRect> m_room_texture_rects;
     sf::VertexArray m_room_types_vertices;
-    std::unordered_map<Level::Room::Type, sf::IntRect> m_room_type_texture_rects;
+    std::unordered_map<Room::Type, sf::IntRect> m_room_type_texture_rects;
 
     sf::Vector2f m_current_room_offset;
     sf::Vertex m_current_room_vertices[4];

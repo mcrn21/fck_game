@@ -7,7 +7,6 @@
 
 #include "systems/systems.h"
 
-#include "fck/a_star.h"
 #include "fck/b2_dynamic_tree.h"
 #include "fck/base_game.h"
 #include "fck/input_actions_map.h"
@@ -87,6 +86,13 @@ public: // slots
     // drawable
     void entityDrawableSetState(const Entity &entity, const std::string &state);
 
+    // sound
+    void entityPlaySound(const Entity &entity, const std::string &sound);
+    void entityStopSound(const Entity &entity);
+
+    // other
+    void entitySetTileMaterial(const Entity &entity, tile_material_type::Type tile_material);
+
     // level
     void onLevelRoomOpened(const sf::Vector2i &room_coord);
     void onLevelRoomEnabled(const sf::Vector2i &room_coord);
@@ -111,8 +117,6 @@ private:
 
     b2::DynamicTree<Entity> m_render_tree;
     b2::DynamicTree<Entity> m_scene_tree;
-
-    PathFinder m_path_finder;
 
     std::unique_ptr<Level> m_level;
     Entity m_player_entity;

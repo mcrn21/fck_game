@@ -2,7 +2,6 @@
 #define SPRITESTATE_NRQBLMFRMEHP_H
 
 #include "drawable_state.h"
-#include "sprite.h"
 
 #include <SFML/Graphics.hpp>
 
@@ -15,11 +14,11 @@ class SpriteState : public DrawableState
 {
 public:
     SpriteState();
-    SpriteState(Sprite &sprite);
+    SpriteState(sf::Sprite &sprite);
     ~SpriteState() = default;
 
-    Sprite *getSprite() const;
-    void setSprite(Sprite &sprite);
+    sf::Sprite *getSprite() const;
+    void setSprite(sf::Sprite &sprite);
 
     std::string getCurrentState() const;
     void setCurrentState(const std::string &state_name);
@@ -33,7 +32,7 @@ public:
     sf::IntRect getTextureRect(const std::string &state_name) const;
 
 private:
-    Sprite *m_sprite;
+    sf::Sprite *m_sprite;
     std::string m_current_state;
     std::unordered_map<std::string, sf::IntRect> m_states;
 };

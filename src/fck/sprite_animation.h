@@ -2,10 +2,8 @@
 #define SPRITEANIMATION_LMXLBFHBSOLK_H
 
 #include "drawable_animation.h"
-#include "sprite.h"
 
-#include "SFML/Graphics/Rect.hpp"
-#include "SFML/System/Vector2.hpp"
+#include <SFML/Graphics.hpp>
 
 #include <string>
 #include <unordered_map>
@@ -25,11 +23,11 @@ public:
     };
 
     SpriteAnimation();
-    SpriteAnimation(Sprite &sprite);
+    SpriteAnimation(sf::Sprite &sprite);
     ~SpriteAnimation() = default;
 
-    Sprite *getSprite() const;
-    void setSprite(Sprite &sprite);
+    sf::Sprite *getSprite() const;
+    void setSprite(sf::Sprite &sprite);
 
     void setCurrentState(const std::string &state_name);
     std::vector<std::string> getStates() const;
@@ -52,7 +50,7 @@ public:
     void update(const sf::Time &elapsed);
 
 private:
-    Sprite *m_sprite;
+    sf::Sprite *m_sprite;
     std::unordered_multimap<std::string, State> m_states;
     State *m_current_state;
     int32_t m_current_frame;

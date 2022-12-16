@@ -14,7 +14,7 @@ Minimap::Minimap(
     sf::Texture &texture,
     const sf::IntRect &frame_texture_rect,
     const std::unordered_map<int32_t, sf::IntRect> &room_texture_rects,
-    const std::unordered_map<Level::Room::Type, sf::IntRect> &room_type_texture_rects,
+    const std::unordered_map<Room::Type, sf::IntRect> &room_type_texture_rects,
     const sf::IntRect &current_room_texture_rect)
     : Frame{texture, frame_texture_rect},
       m_room_texture_rects{room_texture_rects},
@@ -25,12 +25,12 @@ Minimap::Minimap(
     updateCurrentRoomTexCoords();
 }
 
-const Vector2D<Level::Room *> *Minimap::getRoomsMap() const
+const Vector2D<Room *> *Minimap::getRoomsMap() const
 {
     return m_rooms_map;
 }
 
-void Minimap::setRoomsMap(const Vector2D<Level::Room *> &rooms_map)
+void Minimap::setRoomsMap(const Vector2D<Room *> &rooms_map)
 {
     m_rooms_map = &rooms_map;
 
@@ -86,13 +86,13 @@ void Minimap::setRoomTextureRects(
     updateRoomsTexCoords();
 }
 
-const std::unordered_map<Level::Room::Type, sf::IntRect> &Minimap::roomTypeTextureRects() const
+const std::unordered_map<Room::Type, sf::IntRect> &Minimap::roomTypeTextureRects() const
 {
     return m_room_type_texture_rects;
 }
 
 void Minimap::setRoomTypeTextureRects(
-    const std::unordered_map<Level::Room::Type, sf::IntRect> &room_type_texture_rects)
+    const std::unordered_map<Room::Type, sf::IntRect> &room_type_texture_rects)
 {
     m_room_type_texture_rects = room_type_texture_rects;
 
@@ -203,7 +203,8 @@ void Minimap::updateRoomTexCoords(int32_t index)
 {
     sf::Vertex *room_quad = &m_rooms_vertices[index * 6];
 
-    const sf::IntRect &room_texture_rect = m_room_texture_rects[m_rooms_map->at(index)->neighbors];
+    const sf::IntRect &room_texture_rect
+        = m_room_texture_rects[m_rooms_map->at(index)->getNeighbors()];
 
     float left = float(room_texture_rect.left);
     float right = left + room_texture_rect.width;
@@ -222,9 +223,9 @@ void Minimap::updateRoomTypeTexCoords(int32_t index)
 {
     sf::Vertex *room_type_quad = &m_room_types_vertices[index * 6];
 
-    const sf::IntRect &room_type_texture_rect = m_rooms_map->at(index)->open
-        ? m_room_type_texture_rects[m_rooms_map->at(index)->type]
-        : m_room_type_texture_rects[Level::Room::UNKNOW];
+    const sf::IntRect &room_type_texture_rect = m_rooms_map->at(index)->isOpen()
+        ? m_room_type_texture_rects[m_rooms_map->at(index)->getType()]
+        : m_room_type_texture_rects[Room::UNKNOW];
 
     float left = float(room_type_texture_rect.left);
     float right = left + room_type_texture_rect.width;

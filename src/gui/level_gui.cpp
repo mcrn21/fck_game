@@ -163,7 +163,7 @@ void LevelGui::updateTargetStats()
         {m_target_hp_progress_bar->text().getLocalBounds().width, 0.0f});
 }
 
-void LevelGui::setRoomsMap(const Vector2D<Level::Room *> &rooms_map)
+void LevelGui::setRoomsMap(const Vector2D<Room *> &rooms_map)
 {
     m_minimap->setRoomsMap(rooms_map);
 }

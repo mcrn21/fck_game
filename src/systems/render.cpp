@@ -12,7 +12,7 @@ Render::Render(b2::DynamicTree<Entity> *tree) : m_tree{tree}
 void Render::moveEntity(const Entity &entity, const sf::Vector2f &offset)
 {
     component::Drawable &drawable_component = entity.getComponent<component::Drawable>();
-    if (!drawable_component.drawable)
+    if (!drawable_component.proxy)
         return;
 
     component::Transform &transform_component = entity.getComponent<component::Transform>();
@@ -21,7 +21,7 @@ void Render::moveEntity(const Entity &entity, const sf::Vector2f &offset)
         drawable_component.z_order = transform_component.transform.getPosition().y + Z_ORDER;
 
     drawable_component.global_bounds = transform_component.transform.getTransform().transformRect(
-        drawable_component.drawable->getGlobalBounds());
+        drawable_component.proxy->getGlobalBounds());
 
     if (drawable_component.tree_id > -1)
         drawable_component.tree->moveProxy(

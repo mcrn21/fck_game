@@ -36,11 +36,6 @@ TileMap::TileMap(
     updateTexCoords();
 }
 
-drawable_type::Type TileMap::getType() const
-{
-    return drawable_type::TILE_MAP;
-}
-
 sf::Texture *TileMap::getTexture() const
 {
     return m_texture;
@@ -84,6 +79,16 @@ void TileMap::setTileSize(const sf::Vector2i &tile_size)
     m_tile_size = tile_size;
     updatePositions();
     updateTexCoords();
+}
+
+int32_t TileMap::getTile(const sf::Vector2i &position) const
+{
+    return m_tiles.getData(position);
+}
+
+const Vector2D<int32_t> &TileMap::getTiles() const
+{
+    return m_tiles;
 }
 
 void TileMap::setTile(const sf::Vector2i &position, int32_t tile)

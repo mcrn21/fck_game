@@ -7,16 +7,16 @@ SpriteState::SpriteState() : m_sprite{nullptr}
 {
 }
 
-SpriteState::SpriteState(Sprite &sprite) : m_sprite{&sprite}
+SpriteState::SpriteState(sf::Sprite &sprite) : m_sprite{&sprite}
 {
 }
 
-Sprite *SpriteState::getSprite() const
+sf::Sprite *SpriteState::getSprite() const
 {
     return m_sprite;
 }
 
-void SpriteState::setSprite(Sprite &sprite)
+void SpriteState::setSprite(sf::Sprite &sprite)
 {
     m_sprite = &sprite;
 

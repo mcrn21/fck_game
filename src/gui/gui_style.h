@@ -53,7 +53,7 @@ struct Style
     static uint32_t stats_font_size;
 
     static std::unordered_map<int32_t, sf::IntRect> minimap_room_texture_rects;
-    static std::unordered_map<Level::Room::Type, sf::IntRect> minimap_room_type_texture_rects;
+    static std::unordered_map<Room::Type, sf::IntRect> minimap_room_type_texture_rects;
     static sf::IntRect minimap_current_room_texture_rect;
     static sf::Vector2f minimap_size;
     static sf::Vector2f minimap_text_offset;

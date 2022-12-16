@@ -14,7 +14,6 @@
 #include "fck/clipping.h"
 #include "fck/event_dispatcher.h"
 #include "fck/resource_cache.h"
-#include "fck/sprite.h"
 #include "fck/sprite_animation.h"
 #include "fck/task_sequence.h"
 #include "fck/tile_map.h"
@@ -43,8 +42,7 @@ FckGame::FckGame()
       m_render_window_view{sf::FloatRect(sf::Vector2f(0, 0), sf::Vector2f(1, 1))},
       m_scene_view{sf::FloatRect(sf::Vector2f(0, 0), sf::Vector2f(1, 1))},
       m_render_system{&m_render_tree},
-      m_scene_system{&m_scene_tree, &m_path_finder},
-      m_target_follow_system{&m_path_finder},
+      m_scene_system{&m_scene_tree},
       m_look_around_system{&m_scene_tree},
       m_render_debug{false}
 {
@@ -109,6 +107,17 @@ FckGame::FckGame()
 
     // drawable
     entity::set_drawable_state.connect(this, &FckGame::entityDrawableSetState);
+
+    // drawable
+    entity::play_sound.connect(this, &FckGame::entityPlaySound);
+    entity::stop_sound.connect(this, &FckGame::entityStopSound);
+
+    // other
+    entity::set_tile_material.connect(this, &FckGame::entitySetTileMaterial);
+
+    // Global value
+    sf::Listener::setGlobalVolume(100);
+    //        sf::Listener::setDirection({0.0f, -1.0f, 0.0f});
 }
 
 void FckGame::init()
@@ -268,7 +277,7 @@ void FckGame::draw(const sf::Time &elapsed)
                 }
 
                 if (transparented)
-                    drawable_component.drawable->setColor(sf::Color(255, 255, 255, 150));
+                    drawable_component.proxy->setColor(sf::Color(255, 255, 255, 150));
 
                 sf::RenderStates render_states;
                 render_states.transform *= transform_component.transform.getTransform();
@@ -280,10 +289,10 @@ void FckGame::draw(const sf::Time &elapsed)
                         m_scene_render_texture.draw(*shadow_component.shadow_shape, render_states);
                 }
 
-                m_scene_render_texture.draw(*drawable_component.drawable, render_states);
+                m_scene_render_texture.draw(*drawable_component.proxy->toDrawable(), render_states);
 
                 if (transparented)
-                    drawable_component.drawable->setColor(sf::Color(255, 255, 255, 255));
+                    drawable_component.proxy->setColor(sf::Color(255, 255, 255, 255));
             }
         }
 
@@ -301,11 +310,19 @@ void FckGame::draw(const sf::Time &elapsed)
                 debug_draw::drawDrawableBounds(entity, m_scene_render_texture);
                 //                debug_draw::drawSceneTreeAABB(entity, m_scene_render_texture);
                 debug_draw::drawSceneBounds(entity, m_scene_render_texture);
-                debug_draw::drawVelocity(entity, m_scene_render_texture);
+                debug_draw::drawVelocity(entity, m_scene_render_texture); /*
                 debug_draw::drawPathFinderCellsBounds(
-                    entity, m_path_finder.getGrid().getCellSize(), m_scene_render_texture);
-                debug_draw::drawTargetFollowPath(
-                    entity, m_path_finder.getGrid().getCellSize(), m_scene_render_texture);
+                    entity, m_path_finder.getGrid().getCellSize(), m_scene_render_texture);*/
+                if (m_level && m_level->getCurrentRoomCoord() != sf::Vector2i{-1, -1})
+                {
+                    debug_draw::drawTargetFollowPath(
+                        entity,
+                        m_level->getRoomsMap()
+                            .getData(m_level->getCurrentRoomCoord())
+                            ->getWalls()
+                            .getTileSize(),
+                        m_scene_render_texture);
+                }
                 debug_draw::drawLookAroundBound(entity, m_scene_render_texture);
                 debug_draw::drawLookAroundLookBound(entity, m_scene_render_texture);
 
@@ -539,10 +556,10 @@ void FckGame::newGame()
     loading_new_game_tasks->setTasks(
         {[this]() { setState(game_state::LOADING); },
          [this]() {
-             m_level = std::make_unique<Level>(&m_world, &m_scene_tree, &m_path_finder);
+             m_level = std::make_unique<Level>(&m_world, &m_scene_tree);
              m_level->room_opened.connect(this, &FckGame::onLevelRoomOpened);
              m_level->room_enabled.connect(this, &FckGame::onLevelRoomEnabled);
-             m_level->loadFromFile("resources/levels/level3.tmx");
+             m_level->loadFromFile("resources/levels/level2.tmx");
          },
          [this]() { m_level->generateRoomsMap(); },
          [this]() { m_level->generateRoomsContent(); },
@@ -559,7 +576,7 @@ void FckGame::newGame()
 
              Entity kyoshi_2 = KnowledgeBase::createEntity(
                  "kyoshi_2", &m_world); //m_entity_db.createPlayer(&m_world);
-             entityMove(kyoshi_2, {400.0f, 400.0f});
+             entityMove(kyoshi_2, {100.0f, 100.0f});
              entitySetState(kyoshi_2, entity_state::IDLE);
              entitySetDirection(kyoshi_2, entity_state::RIGHT);
              kyoshi_2.enable();
@@ -582,9 +599,9 @@ void FckGame::returnToMainMenu()
     TaskSequence *return_to_main_menu_tasks = new TaskSequence();
     return_to_main_menu_tasks->setTasks(
         {[this]() { setState(game_state::LOADING); },
+         [this]() { m_target_follow_system.setWalls(nullptr); },
          [this]() { m_level.reset(); },
          [this]() { m_world.destroyAllEntities(); },
-         [this]() { m_path_finder.getGrid().clear(); },
          [this]() { m_visible_entities.clear(); },
          [this, return_to_main_menu_tasks]() {
              setState(game_state::MAIN_MENU);
@@ -648,6 +665,9 @@ void FckGame::onWorldEntityDisabled(const Entity &entity)
         if (script_component.entity_script)
             script_component.entity_script->onEntityDisabled(entity);
     }
+
+    if (entity.hasComponent<component::Sound>())
+        entityStopSound(entity);
 }
 
 void FckGame::onWorldEntityDestroyed(const Entity &entity)
@@ -699,6 +719,33 @@ void FckGame::entityMove(const Entity &entity, const sf::Vector2f &offset)
 
     if (entity.hasComponent<component::LookAround>())
         m_look_around_system.updateBounds(entity);
+
+    if (entity == m_player_entity)
+        sf::Listener::setPosition(
+            {transform_component.transform.getPosition().x,
+             0,
+             transform_component.transform.getPosition().y});
+
+    if (entity.hasComponent<component::Sound>())
+    {
+        component::Sound &sound_component = entity.getComponent<component::Sound>();
+        sound_component.sound.setPosition(sf::Vector3f{
+            transform_component.transform.getPosition().x,
+            0,
+            transform_component.transform.getPosition().y});
+    }
+
+    // get tile material under entity
+    if (m_level && m_level->getCurrentRoomCoord() != sf::Vector2i{-1, -1})
+    {
+        tile_material_type::Type type
+            = m_level->getRoomsMap()
+                  .getData(m_level->getCurrentRoomCoord())
+                  ->getTileMaterials()
+                  .getDataByPosition(transform_component.transform.getPosition());
+
+        entitySetTileMaterial(entity, type);
+    }
 }
 
 void FckGame::entitySetPosition(const Entity &entity, const sf::Vector2f &position)
@@ -742,8 +789,8 @@ void FckGame::entitySetState(const Entity &entity, entity_state::State state)
 {
     component::State &state_component = entity.getComponent<component::State>();
 
-    //    if (state_component.state == state)
-    //        return;
+    if (state_component.state == state)
+        return;
 
     state_component.state = state;
     std::string state_string = entity_state::stateToString(state_component.state);
@@ -762,11 +809,15 @@ void FckGame::entitySetState(const Entity &entity, entity_state::State state)
 
         if (state_component.state == entity_state::MOVE)
         {
-            sound_component.sound.play();
+            std::string sound_name = "default_move";
+            if (sound_component.tile_material != tile_material_type::NO_TYPE)
+                sound_name = tile_material_type::toString(sound_component.tile_material) + "_move";
+
+            entityPlaySound(entity, sound_name);
         }
         else
         {
-            sound_component.sound.stop();
+            entityStopSound(entity);
         }
     }
 
@@ -988,6 +1039,61 @@ void FckGame::entityDrawableSetState(const Entity &entity, const std::string &st
     }
 }
 
+void FckGame::entityPlaySound(const Entity &entity, const std::string &sound)
+{
+    if (!entity.hasComponent<component::Sound>())
+        return;
+
+    component::Sound &sound_component = entity.getComponent<component::Sound>();
+
+    if (sound_component.current_sound == sound)
+        return;
+
+    auto sound_buffer_found = sound_component.sound_buffers.find(sound);
+    if (sound_buffer_found == sound_component.sound_buffers.end())
+        return;
+
+    sound_component.sound.setBuffer(*sound_buffer_found->second.sound_buffer);
+    sound_component.sound.setVolume(100);
+    sound_component.sound.setLoop(sound_buffer_found->second.loop);
+    sound_component.sound.setPitch(sound_buffer_found->second.pitch);
+    sound_component.sound.setMinDistance(5.0f);
+    sound_component.sound.setAttenuation(0.12f);
+
+    sound_component.sound.play();
+    spdlog::debug("Play sound: {}", sound);
+}
+
+void FckGame::entityStopSound(const Entity &entity)
+{
+    if (!entity.hasComponent<component::Sound>())
+        return;
+
+    component::Sound &sound_component = entity.getComponent<component::Sound>();
+    sound_component.sound.stop();
+}
+
+void FckGame::entitySetTileMaterial(const Entity &entity, tile_material_type::Type tile_material)
+{
+    if (entity.hasComponent<component::Sound>())
+    {
+        component::Sound &sound_component = entity.getComponent<component::Sound>();
+
+        if (tile_material != sound_component.tile_material)
+        {
+            sound_component.tile_material = tile_material;
+
+            if (entity.hasComponent<component::State>())
+            {
+                component::State &state_component = entity.getComponent<component::State>();
+                if (state_component.state == entity_state::MOVE
+                    && sound_component.sound.getStatus() == sf::Sound::Playing)
+                    entityPlaySound(entity, tile_material_type::toString(tile_material) + "_move");
+            }
+        }
+    }
+}
+
 void FckGame::onLevelRoomOpened(const sf::Vector2i &room_coord)
 {
     if (m_state == game_state::LEVEL)
@@ -998,6 +1104,8 @@ void FckGame::onLevelRoomOpened(const sf::Vector2i &room_coord)
 
 void FckGame::onLevelRoomEnabled(const sf::Vector2i &room_coord)
 {
+    m_target_follow_system.setWalls(&m_level->getRoomsMap().getData(room_coord)->getWalls());
+
     if (m_state == game_state::LEVEL)
     {
         m_gui_manager.getBack<gui::LevelGui>()->setCurrentRoom(room_coord);

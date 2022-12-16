@@ -40,7 +40,6 @@ Frame::Frame(sf::Texture &texture, const sf::IntRect &frame_texture_rect)
 
 Frame::~Frame()
 {
-    spdlog::debug("Remove frame");
     if (m_gui_base && !m_gui_base->m_destroy)
     {
         m_gui_base->removeFrame(this);

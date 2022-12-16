@@ -146,6 +146,24 @@ std::string toString(Type type);
 Type fromString(const std::string &string);
 } // namespace entity_type
 
+namespace tile_material_type
+{
+
+enum Type
+{
+    NO_TYPE,
+    TILE,
+    WOOD,
+    METAL,
+    LIQUID,
+    GRASS
+};
+
+std::string toString(Type type);
+Type fromString(const std::string &string);
+
+} // namespace tile_material_type
+
 } // namespace fck
 
 #endif // FCKCOMMON_EYDTOGULVZIV_H

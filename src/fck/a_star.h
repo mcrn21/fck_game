@@ -36,15 +36,11 @@ public:
         static uint32_t octagonal(const sf::Vector2i &source, const sf::Vector2i &target);
     };
 
-    struct Cell
-    {
-        int32_t weight = 0;
-    };
-
-    PathFinder();
+    PathFinder(const Grid<int32_t> &walls);
     ~PathFinder() = default;
 
-    Grid<Cell> &getGrid();
+    const Grid<int32_t> *getWalls() const;
+    void setWalls(const Grid<int32_t> &grid);
 
     void setHeuristic(
         const std::function<uint32_t(const sf::Vector2i &, const sf::Vector2i &)> &heuristic);
@@ -58,9 +54,10 @@ private:
     void releaseNodes(std::vector<Node *> &nodes);
 
 private:
-    Grid<Cell> m_grid;
+    static std::vector<sf::Vector2i> m_directions;
+
+    const Grid<int32_t> *m_walls;
     std::function<uint32_t(const sf::Vector2i &, const sf::Vector2i &)> m_heuristic;
-    std::vector<sf::Vector2i> m_directions;
     int32_t m_directions_count;
 };
 

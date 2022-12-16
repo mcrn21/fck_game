@@ -12,7 +12,7 @@ namespace fck::system
 
 struct Sweep
 {
-    void setHit(const std::optional<collisions::Hit> &new_hit)
+    void setHit(const std::optional<collisions::Hit> &new_hit, const Entity &collided)
     {
         if (new_hit && new_hit->time != 0)
         {
@@ -20,6 +20,7 @@ struct Sweep
             {
                 time = new_hit->time;
                 hit = new_hit;
+                entity = collided;
             }
         }
     }
@@ -38,8 +39,7 @@ void Collision::update(double delta_time)
     for (Entity &entity : getEntities())
     {
         component::Scene &scene_component = entity.getComponent<component::Scene>();
-        component::Velocity &velocity_component
-            = entity.getComponent<component::Velocity>();
+        component::Velocity &velocity_component = entity.getComponent<component::Velocity>();
         component::Transform &transform_component = entity.getComponent<component::Transform>();
         component::Collision &collision_component = entity.getComponent<component::Collision>();
 
@@ -74,7 +74,8 @@ void Collision::update(double delta_time)
                     component::Collision &other_collision_component
                         = other.getComponent<component::Collision>();
 
-                    collisions::AABB other_aabb{other.getComponent<component::Scene>().global_bounds};
+                    collisions::AABB other_aabb{
+                        other.getComponent<component::Scene>().global_bounds};
                     other_aabb.half += scene_component.global_bounds.getSize() / 2.0f;
 
                     auto hit = other_aabb.intersectSegment(position, delta);
@@ -91,8 +92,7 @@ void Collision::update(double delta_time)
                             return true;
                         }
 
-                        sweep.setHit(hit);
-                        sweep.entity = other;
+                        sweep.setHit(hit, other);
                     }
                 }
                 return true;

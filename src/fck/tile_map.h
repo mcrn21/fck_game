@@ -1,14 +1,10 @@
 #ifndef TILEMAP_MJXAZIMCABMI_H
 #define TILEMAP_MJXAZIMCABMI_H
 
-#include "drawable.h"
 #include "tmx.h"
 #include "vector_2d.h"
 
-#include <SFML/Graphics/RenderStates.hpp>
-#include <SFML/Graphics/RenderTarget.hpp>
-#include <SFML/Graphics/Texture.hpp>
-#include <SFML/Graphics/VertexArray.hpp>
+#include <SFML/Graphics.hpp>
 
 #include <vector>
 
@@ -17,7 +13,7 @@ namespace fck
 
 class ResourceCache;
 
-class TileMap : public Drawable
+class TileMap : public sf::Drawable, public sf::Transformable
 {
 public:
     static TileMap *createFromTmxLayer(
@@ -31,8 +27,6 @@ public:
     TileMap(sf::Texture &texture, const sf::Vector2i &tile_size, const Vector2D<int32_t> &tiles);
     ~TileMap() = default;
 
-    drawable_type::Type getType() const;
-
     sf::Texture *getTexture() const;
     void setTexture(sf::Texture &texture, const sf::Vector2i &tile_size = sf::Vector2i());
 
@@ -44,6 +38,9 @@ public:
 
     sf::Vector2i getTileSize() const;
     void setTileSize(const sf::Vector2i &tile_size);
+
+    int32_t getTile(const sf::Vector2i &position) const;
+    const Vector2D<int32_t> &getTiles() const;
 
     void setTile(const sf::Vector2i &position, int32_t tile);
     void setTiles(const Vector2D<int32_t> &tiles);

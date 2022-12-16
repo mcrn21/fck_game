@@ -79,12 +79,10 @@ void drawSceneBounds(const Entity &entity, sf::RenderTarget &target, const sf::R
 
 void drawVelocity(const Entity &entity, sf::RenderTarget &target, const sf::RenderStates &states)
 {
-    if (!entity.hasComponent<component::Velocity>()
-        || !entity.hasComponent<component::Transform>())
+    if (!entity.hasComponent<component::Velocity>() || !entity.hasComponent<component::Transform>())
         return;
 
-    component::Velocity &velocity_component
-        = entity.getComponent<component::Velocity>();
+    component::Velocity &velocity_component = entity.getComponent<component::Velocity>();
     component::Transform &transform_component = entity.getComponent<component::Transform>();
 
     float d = std::abs(vector2::distance(
@@ -109,24 +107,24 @@ void drawPathFinderCellsBounds(
     sf::RenderTarget &target,
     const sf::RenderStates &states)
 {
-    if (!entity.hasComponent<component::Scene>() || !entity.hasComponent<component::Transform>())
-        return;
+    //    if (!entity.hasComponent<component::Scene>() || !entity.hasComponent<component::Transform>())
+    //        return;
 
-    component::Scene &scene_component = entity.getComponent<component::Scene>();
-    component::Transform &transform_component = entity.getComponent<component::Transform>();
+    //    component::Scene &scene_component = entity.getComponent<component::Scene>();
+    //    component::Transform &transform_component = entity.getComponent<component::Transform>();
 
-    sf::RectangleShape rectangle(sf::Vector2f(cell_size.x, cell_size.y));
-    rectangle.setFillColor(sf::Color::Transparent);
-    rectangle.setOutlineColor(sf::Color::Cyan);
-    rectangle.setOutlineThickness(0.5f);
+    //    sf::RectangleShape rectangle(sf::Vector2f(cell_size.x, cell_size.y));
+    //    rectangle.setFillColor(sf::Color::Transparent);
+    //    rectangle.setOutlineColor(sf::Color::Cyan);
+    //    rectangle.setOutlineThickness(0.5f);
 
-    sf::Vector2i path_finder_pos = scene_component.path_finder->getGrid().transformPosition(
-        transform_component.transform.getPosition());
+    //    sf::Vector2i path_finder_pos = scene_component.path_finder->getGrid().transformPosition(
+    //        transform_component.transform.getPosition());
 
-    rectangle.setPosition(
-        sf::Vector2f(path_finder_pos.x * cell_size.x, path_finder_pos.y * cell_size.y));
+    //    rectangle.setPosition(
+    //        sf::Vector2f(path_finder_pos.x * cell_size.x, path_finder_pos.y * cell_size.y));
 
-    target.draw(rectangle, states);
+    //    target.draw(rectangle, states);
 }
 
 void drawTargetFollowPath(
@@ -138,7 +136,8 @@ void drawTargetFollowPath(
     if (!entity.hasComponent<component::TargetFollow>())
         return;
 
-    component::TargetFollow &target_follow_component = entity.getComponent<component::TargetFollow>();
+    component::TargetFollow &target_follow_component
+        = entity.getComponent<component::TargetFollow>();
 
     for (const sf::Vector2i &point : target_follow_component.path)
     {

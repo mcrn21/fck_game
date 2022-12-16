@@ -8,17 +8,17 @@ SpriteAnimation::SpriteAnimation()
 {
 }
 
-SpriteAnimation::SpriteAnimation(Sprite &sprite)
+SpriteAnimation::SpriteAnimation(sf::Sprite &sprite)
     : m_sprite{&sprite}, m_current_state{nullptr}, m_current_frame{0}, m_playing{false}
 {
 }
 
-Sprite *SpriteAnimation::getSprite() const
+sf::Sprite *SpriteAnimation::getSprite() const
 {
     return m_sprite;
 }
 
-void SpriteAnimation::setSprite(Sprite &sprite)
+void SpriteAnimation::setSprite(sf::Sprite &sprite)
 {
     m_sprite = &sprite;
     stop();

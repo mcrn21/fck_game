@@ -5,28 +5,26 @@
 
 #include "../components/components.h"
 
-#include "../fck/a_star.h"
+#include "../fck/grid.h"
 #include "../fck/system.h"
 
 namespace fck::system
 {
 
-class TargetFollow : public System<
-                         component::Target,
-                         component::Velocity,
-                         component::Transform,
-                         component::State,
-                         component::TargetFollow,
-                         component::Scene>
+class TargetFollow
+    : public System<component::Velocity, component::Transform, component::TargetFollow>
 {
 public:
-    TargetFollow(PathFinder *path_finder);
+    TargetFollow();
     ~TargetFollow() = default;
+
+    const Grid<int32_t> *getWalls() const;
+    void setWalls(const Grid<int32_t> *walls);
 
     void update(double delta_time);
 
 private:
-    PathFinder *m_path_finder;
+    const Grid<int32_t> *m_walls;
 };
 
 } // namespace fck::system

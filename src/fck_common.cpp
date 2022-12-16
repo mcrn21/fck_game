@@ -158,4 +158,39 @@ Type fromString(const std::string &string)
 
 } // namespace entity_type
 
+namespace tile_material_type
+{
+
+std::string toString(Type type)
+{
+    static std::unordered_map<Type, std::string> strings
+        = {{Type::GRASS, "grass"},
+           {Type::LIQUID, "liquid"},
+           {Type::METAL, "metal"},
+           {Type::TILE, "tile"},
+           {Type::WOOD, "wood"}};
+
+    auto strings_found = strings.find(type);
+    if (strings_found != strings.end())
+        return strings_found->second;
+    return "unknow";
+}
+
+Type fromString(const std::string &string)
+{
+    static std::unordered_map<std::string, Type> types
+        = {{"grass", Type::GRASS},
+           {"liquid", Type::LIQUID},
+           {"metal", Type::METAL},
+           {"tile", Type::TILE},
+           {"wood", Type::WOOD}};
+
+    auto types_found = types.find(string);
+    if (types_found != types.end())
+        return types_found->second;
+    return Type::NO_TYPE;
+}
+
+} // namespace tile_material_type
+
 } // namespace fck

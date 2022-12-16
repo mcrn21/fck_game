@@ -16,10 +16,145 @@
 namespace fck
 {
 
-Level::Level(World *world, b2::DynamicTree<Entity> *scene_tree, PathFinder *path_finder)
+namespace level_helpers
+{
+
+sf::IntRect gridBoundsBySceneBounds(
+    const sf::FloatRect &scene_bounds, const sf::Vector2i &cell_size)
+{
+    sf::Vector2i lower_point = {int32_t(scene_bounds.left), int32_t(scene_bounds.top)};
+
+    sf::Vector2i upper_point
+        = {int32_t(scene_bounds.left + scene_bounds.width),
+           int32_t(scene_bounds.top + scene_bounds.height)};
+
+    sf::Vector2i lower_cell = {lower_point.x / cell_size.x, lower_point.y / cell_size.y};
+
+    if (lower_point.x % cell_size.x > cell_size.x * 0.8)
+        ++lower_cell.x;
+
+    if (lower_point.y % cell_size.y > cell_size.y * 0.8)
+        ++lower_cell.y;
+
+    sf::Vector2i upper_cell = {upper_point.x / cell_size.x, upper_point.y / cell_size.y};
+
+    if (upper_point.x % cell_size.x > cell_size.x * 0.2)
+        ++upper_cell.x;
+
+    if (upper_point.y % cell_size.y > cell_size.y * 0.2)
+        ++upper_cell.y;
+
+    sf::IntRect grid_bounds;
+
+    grid_bounds.left = lower_cell.x;
+    grid_bounds.top = lower_cell.y;
+
+    grid_bounds.width = upper_cell.x - lower_cell.x;
+    grid_bounds.height = upper_cell.y - lower_cell.y;
+
+    grid_bounds = rect::extends(grid_bounds, {1, 1});
+
+    return grid_bounds;
+}
+
+void updateCellWeight(Grid<int32_t> &grid, const sf::IntRect &bounds, bool reduce)
+{
+    for (int32_t i = 0; i < bounds.width; ++i)
+    {
+        for (int32_t j = 0; j < bounds.height; ++j)
+        {
+            sf::Vector2i coord = {bounds.left + i, bounds.top + j};
+            if (coord.x < 0 || coord.y < 0 || coord.x >= grid.getSize2D().x
+                || coord.y >= grid.getSize2D().y)
+                continue;
+
+            int32_t &tile_weight = grid.getData(coord);
+            tile_weight += reduce ? -1 : 1;
+        }
+    }
+}
+
+} // namespace level_helpers
+
+Room::Side Room::sideFromString(const std::string &side_string)
+{
+    if (side_string == "left")
+        return LEFT;
+    else if (side_string == "top")
+        return TOP;
+    else if (side_string == "right")
+        return RIGHT;
+    else if (side_string == "bottom")
+        return BOTTOM;
+}
+
+Room::Room() : m_neighbors{0}, m_type{UNKNOW}, m_open{false}
+{
+}
+
+int32_t Room::getNeighbors() const
+{
+    return m_neighbors;
+}
+
+void Room::setNeighbors(int32_t neighbors)
+{
+    m_neighbors = neighbors;
+}
+
+Room::Type Room::getType() const
+{
+    return m_type;
+}
+
+void Room::setType(Type type)
+{
+    m_type = type;
+}
+
+const std::unordered_map<Room::Side, sf::Vector2f> &Room::getEntryPoints() const
+{
+    return m_entry_points;
+}
+
+void Room::setEntryPoints(const std::unordered_map<Side, sf::Vector2f> &entry_points)
+{
+    m_entry_points = entry_points;
+}
+
+const Grid<int32_t> &Room::getWalls() const
+{
+    return m_walls;
+}
+
+void Room::setWalls(const Grid<int32_t> &walls)
+{
+    m_walls = walls;
+}
+
+const Grid<tile_material_type::Type> &Room::getTileMaterials() const
+{
+    return m_tile_materials;
+}
+
+void Room::setTileMaterials(const Grid<tile_material_type::Type> &tile_materials)
+{
+    m_tile_materials = tile_materials;
+}
+
+bool Room::isOpen() const
+{
+    return m_open;
+}
+
+void Room::setOpen(bool open)
+{
+    m_open = open;
+}
+
+Level::Level(World *world, b2::DynamicTree<Entity> *scene_tree)
     : m_world{world},
       m_scene_tree{scene_tree},
-      m_path_finder{path_finder},
       m_level_tmx{std::make_unique<Tmx>()},
       m_current_room_coord{-1, -1}
 {
@@ -32,14 +167,7 @@ Level::~Level()
 
 bool Level::loadFromFile(const std::string &file_name)
 {
-    if (!m_level_tmx->loadFromFile(file_name))
-        return false;
-
-    m_path_finder->getGrid().clear();
-    m_path_finder->getGrid().setCellSize(m_level_tmx->getTileSize());
-    m_path_finder->getGrid().resize(m_level_tmx->getSize());
-
-    return true;
+    return m_level_tmx->loadFromFile(file_name);
 }
 
 void Level::generateRoomsMap()
@@ -178,19 +306,23 @@ void Level::generateRoomsMap()
         if (min_room_coord.x == -1)
             min_room_coord = coord;
 
+        int32_t neighbors = m_rooms_cache.map[i]->getNeighbors();
+
         if (coord.x - 1 >= 0 && m_rooms_cache.map.getData({coord.x - 1, coord.y}))
-            m_rooms_cache.map[i]->neighbors |= Room::LEFT;
+            neighbors |= Room::LEFT;
 
         if (coord.x + 1 < m_rooms_cache.map.getSize2D().x
             && m_rooms_cache.map.getData({coord.x + 1, coord.y}))
-            m_rooms_cache.map[i]->neighbors |= Room::RIGHT;
+            neighbors |= Room::RIGHT;
 
         if (coord.y - 1 >= 0 && m_rooms_cache.map.getData({coord.x, coord.y - 1}))
-            m_rooms_cache.map[i]->neighbors |= Room::TOP;
+            neighbors |= Room::TOP;
 
         if (coord.y + 1 < m_rooms_cache.map.getSize2D().y
             && m_rooms_cache.map.getData({coord.x, coord.y + 1}))
-            m_rooms_cache.map[i]->neighbors |= Room::BOTTOM;
+            neighbors |= Room::BOTTOM;
+
+        m_rooms_cache.map[i]->setNeighbors(neighbors);
     }
 
     m_rooms_cache.m_first_room_coord = min_room_coord;
@@ -214,46 +346,17 @@ void Level::generateRoomsContent()
                 for (std::string room_group_name : room_group_name_strs)
                 {
                     string::trim(room_group_name);
-                    if (room_group_name == "left")
-                        neighbors |= Room::LEFT;
-                    else if (room_group_name == "top")
-                        neighbors |= Room::TOP;
-                    else if (room_group_name == "right")
-                        neighbors |= Room::RIGHT;
-                    else if (room_group_name == "bottom")
-                        neighbors |= Room::BOTTOM;
+                    neighbors |= Room::sideFromString(room_group_name);
                 }
 
-                if (m_rooms_cache.map[i]->neighbors == neighbors)
-                {
-                    std::vector<Entity> room_entities = createRoom(room_group);
-                    m_rooms_cache.entities[i]->insert(
-                        m_rooms_cache.entities[i]->end(),
-                        room_entities.begin(),
-                        room_entities.end());
-                }
+                if (m_rooms_cache.map[i]->getNeighbors() == neighbors)
+                    createRoom(i, room_group);
             }
-
-            if (m_rooms_cache.map[i]->neighbors & Room::LEFT)
-                m_rooms_cache.entities[i]->push_back(
-                    createRoomTransition(Room::LEFT, m_rooms_cache.map.transformIndex(i)));
-
-            if (m_rooms_cache.map[i]->neighbors & Room::TOP)
-                m_rooms_cache.entities[i]->push_back(
-                    createRoomTransition(Room::TOP, m_rooms_cache.map.transformIndex(i)));
-
-            if (m_rooms_cache.map[i]->neighbors & Room::RIGHT)
-                m_rooms_cache.entities[i]->push_back(
-                    createRoomTransition(Room::RIGHT, m_rooms_cache.map.transformIndex(i)));
-
-            if (m_rooms_cache.map[i]->neighbors & Room::BOTTOM)
-                m_rooms_cache.entities[i]->push_back(
-                    createRoomTransition(Room::BOTTOM, m_rooms_cache.map.transformIndex(i)));
         }
     }
 }
 
-const Vector2D<Level::Room *> &Level::getRoomsMap() const
+const Vector2D<Room *> &Level::getRoomsMap() const
 {
     return m_rooms_cache.map;
 }
@@ -283,9 +386,9 @@ void Level::enableRoom(const sf::Vector2i &coord, const sf::Vector2f &target_pos
         m_rooms_cache.entities.getData(m_current_room_coord)->clear();
 
         sf::FloatRect bounds
-            = {{-10.0f, 10.0f},
+            = {sf::Vector2f{m_level_tmx->getTileSize()} * -1.0f,
                sf::Vector2f{vector2::mult(m_level_tmx->getSize(), m_level_tmx->getTileSize())}
-                   + sf::Vector2f{20.0f, 20.0f}};
+                   + sf::Vector2f{m_level_tmx->getTileSize()} * 2.0f};
         m_scene_tree->querry(bounds, [this](int32_t proxy_id) {
             Entity entity = m_scene_tree->getUserData(proxy_id);
 
@@ -319,9 +422,9 @@ void Level::enableRoom(const sf::Vector2i &coord, const sf::Vector2f &target_pos
                  m_rooms_cache.enableRoom(coord);
                  m_current_room_coord = coord;
 
-                 if (!m_rooms_cache.map.getData(coord)->open)
+                 if (!m_rooms_cache.map.getData(coord)->isOpen())
                  {
-                     m_rooms_cache.map.getData(coord)->open = true;
+                     m_rooms_cache.map.getData(coord)->setOpen(true);
                      room_opened.emit(coord);
                  }
 
@@ -332,62 +435,152 @@ void Level::enableRoom(const sf::Vector2i &coord, const sf::Vector2f &target_pos
          }});
 }
 
+void Level::createRoom(int32_t index, const Tmx::Group &rooms_group)
+{
+    std::random_device dev;
+    std::mt19937 rng(dev());
+    std::uniform_int_distribution<int32_t> dist(0, rooms_group.groups.size() - 1);
+
+    const Tmx::Group &room_group = rooms_group.groups[dist(rng)];
+
+    int32_t z_order = 0;
+    std::vector<Entity> entities;
+
+    Grid<tile_material_type::Type> tile_material_types(
+        m_level_tmx->getTileSize(), m_level_tmx->getSize(), tile_material_type::NO_TYPE);
+
+    for (int32_t i = 0; i < room_group.layers.size(); ++i)
+    {
+        auto entity_tilemap = createTileMapFromLayer(room_group.layers[i]);
+        if (entity_tilemap.first.isValid())
+        {
+            component::Drawable &drawable_component
+                = entity_tilemap.first.getComponent<component::Drawable>();
+            drawable_component.z_order = z_order++;
+
+            // set tile materials
+            TileMap *tile_map = static_cast<TileMap *>(drawable_component.proxy->data());
+            for (int32_t j = 0; j < tile_material_types.getSize(); ++j)
+            {
+                if (tile_map->getTiles().at(j) > 0)
+                {
+                    int32_t tile_id = tile_map->getTiles().at(j);
+                    auto tiles_found = std::find_if(
+                        entity_tilemap.second->tiles.begin(),
+                        entity_tilemap.second->tiles.end(),
+                        [tile_id](const Tmx::Tile &tile) { return tile.id == tile_id; });
+
+                    if (tiles_found != entity_tilemap.second->tiles.end())
+                        tile_material_types[j] = tile_material_type::fromString(
+                            tiles_found->properties.at("material"));
+                }
+            }
+
+            entities.push_back(entity_tilemap.first);
+        }
+    }
+
+    m_rooms_cache.map[index]->setTileMaterials(tile_material_types);
+
+    for (const Tmx::ObjectGroup &object_group : room_group.object_groups)
+    {
+        if (object_group.name == "collisions")
+        {
+            std::vector<Entity> collision_entities = createRoomCollisions(object_group);
+            entities.insert(entities.end(), collision_entities.begin(), collision_entities.end());
+        }
+
+        if (object_group.name == "entities")
+        {
+            std::vector<Entity> room_entities = createRoomEntities(object_group);
+            entities.insert(entities.end(), room_entities.begin(), room_entities.end());
+        }
+
+        if (object_group.name == "entry_points")
+        {
+            std::unordered_map<Room::Side, sf::Vector2f> entry_points;
+
+            for (const Tmx::Object &entry_point_object : object_group.objects)
+                entry_points.emplace(
+                    Room::sideFromString(entry_point_object.name),
+                    entry_point_object.rect.getPosition());
+
+            m_rooms_cache.map[index]->setEntryPoints(entry_points);
+        }
+    }
+
+    m_rooms_cache.entities[index]->insert(
+        m_rooms_cache.entities[index]->end(), entities.begin(), entities.end());
+
+    if (m_rooms_cache.map[index]->getNeighbors() & Room::LEFT)
+        m_rooms_cache.entities[index]->push_back(
+            createRoomTransition(Room::LEFT, m_rooms_cache.map.transformIndex(index)));
+
+    if (m_rooms_cache.map[index]->getNeighbors() & Room::TOP)
+        m_rooms_cache.entities[index]->push_back(
+            createRoomTransition(Room::TOP, m_rooms_cache.map.transformIndex(index)));
+
+    if (m_rooms_cache.map[index]->getNeighbors() & Room::RIGHT)
+        m_rooms_cache.entities[index]->push_back(
+            createRoomTransition(Room::RIGHT, m_rooms_cache.map.transformIndex(index)));
+
+    if (m_rooms_cache.map[index]->getNeighbors() & Room::BOTTOM)
+        m_rooms_cache.entities[index]->push_back(
+            createRoomTransition(Room::BOTTOM, m_rooms_cache.map.transformIndex(index)));
+
+    // Make walls grid
+    Grid<int32_t> walls = Grid<int32_t>(
+        m_level_tmx->getTileSize() / 2,
+        vector2::mult(m_level_tmx->getTileSize(), m_level_tmx->getSize()),
+        0);
+
+    for (const Entity &entity : *m_rooms_cache.entities[index])
+    {
+        component::Scene &scene_component = entity.getComponent<component::Scene>();
+        if (scene_component.path_finder_wall)
+        {
+            sf::IntRect grid_bound = level_helpers::gridBoundsBySceneBounds(
+                scene_component.global_bounds, m_level_tmx->getTileSize() / 2);
+            level_helpers::updateCellWeight(walls, grid_bound, false);
+        }
+    }
+
+    m_rooms_cache.map[index]->setWalls(walls);
+}
+
 Entity Level::createRoomTransition(Room::Side side, const sf::Vector2i &room_coord)
 {
     std::unordered_map<Room::Side, sf::FloatRect> room_transtion_bounds;
+
+    sf::Vector2f tile_half_size = sf::Vector2f{m_level_tmx->getTileSize()} / 2.0f;
+    sf::Vector2f room_pixels_size
+        = sf::Vector2f{vector2::mult(m_level_tmx->getSize(), m_level_tmx->getTileSize())};
+
     room_transtion_bounds[Room::LEFT]
-        = {{0, float(m_level_tmx->getTileSize().y)},
-           {float(m_level_tmx->getTileSize().x),
-            float(
-                m_level_tmx->getSize().y * m_level_tmx->getTileSize().y
-                - m_level_tmx->getTileSize().y * 2)}};
+        = {{0, tile_half_size.y}, {tile_half_size.x, room_pixels_size.y - tile_half_size.y * 2}};
 
     room_transtion_bounds[Room::RIGHT]
-        = {{float(
-                m_level_tmx->getSize().x * m_level_tmx->getTileSize().x
-                - m_level_tmx->getTileSize().x),
-            float(m_level_tmx->getTileSize().y)},
-           {float(m_level_tmx->getTileSize().x),
-            float(
-                m_level_tmx->getSize().y * m_level_tmx->getTileSize().y
-                - m_level_tmx->getTileSize().y * 2)}};
+        = {{room_pixels_size.x - tile_half_size.x, tile_half_size.y},
+           {tile_half_size.x, room_pixels_size.y - tile_half_size.y * 2}};
 
     room_transtion_bounds[Room::TOP]
-        = {{float(m_level_tmx->getTileSize().x), 0},
-           {float(
-                m_level_tmx->getSize().x * m_level_tmx->getTileSize().x
-                - m_level_tmx->getTileSize().x * 2),
-            float(m_level_tmx->getTileSize().y)}};
+        = {{tile_half_size.x, 0}, {room_pixels_size.x - tile_half_size.x * 2, tile_half_size.y}};
 
     room_transtion_bounds[Room::BOTTOM]
-        = {{float(m_level_tmx->getTileSize().x),
-            float(
-                m_level_tmx->getSize().y * m_level_tmx->getTileSize().y
-                - m_level_tmx->getTileSize().y)},
-           {float(
-                m_level_tmx->getSize().x * m_level_tmx->getTileSize().x
-                - m_level_tmx->getTileSize().x * 2),
-            float(m_level_tmx->getTileSize().y)}};
+        = {{tile_half_size.x, room_pixels_size.y - tile_half_size.y},
+           {room_pixels_size.x - tile_half_size.x * 2, tile_half_size.y}};
 
-    std::unordered_map<Room::Side, sf::Vector2f> target_positions;
+    //    std::unordered_map<Room::Side, sf::Vector2f> target_positions;
 
-    target_positions[Room::LEFT]
-        = {m_level_tmx->getSize().x * m_level_tmx->getTileSize().x
-               - m_level_tmx->getTileSize().x * 2.0f,
-           m_level_tmx->getSize().y * m_level_tmx->getTileSize().y / 2.0f};
+    //    target_positions[Room::LEFT]
+    //        = {room_pixels_size.x - tile_half_size.x * 2, room_pixels_size.y / 2.0f};
 
-    target_positions[Room::RIGHT]
-        = {m_level_tmx->getTileSize().x * 2.0f,
-           m_level_tmx->getSize().y * m_level_tmx->getTileSize().y / 2.0f};
+    //    target_positions[Room::RIGHT] = {tile_half_size.x * 2, room_pixels_size.y / 2.0f};
 
-    target_positions[Room::TOP]
-        = {m_level_tmx->getSize().x * m_level_tmx->getTileSize().x / 2.0f,
-           m_level_tmx->getSize().y * m_level_tmx->getTileSize().y
-               - m_level_tmx->getTileSize().y * 2.0f};
+    //    target_positions[Room::TOP]
+    //        = {room_pixels_size.x / 2.0f, room_pixels_size.y - tile_half_size.y * 2};
 
-    target_positions[Room::BOTTOM]
-        = {m_level_tmx->getSize().x * m_level_tmx->getTileSize().x / 2.0f,
-           m_level_tmx->getTileSize().y * 2.0f};
+    //    target_positions[Room::BOTTOM] = {room_pixels_size.x / 2.0f, tile_half_size.y * 2};
 
     std::unordered_map<Room::Side, sf::Vector2i> neighbor_rooms;
 
@@ -410,53 +603,16 @@ Entity Level::createRoomTransition(Room::Side side, const sf::Vector2i &room_coo
 
     entity_script::RoomTransition *room_transition_script = new entity_script::RoomTransition{this};
 
+    room_transition_script->setSide(side);
+
     sf::Vector2i target_room_coord = room_coord + neighbor_rooms[side];
     room_transition_script->setRoomCoord(target_room_coord);
 
-    room_transition_script->setTargetPosition(target_positions[side]);
+    //    room_transition_script->setTargetPosition(target_positions[side]);
 
     script_component.entity_script.reset(room_transition_script);
 
     return entity;
-}
-
-std::vector<Entity> Level::createRoom(const Tmx::Group &rooms_group)
-{
-    std::vector<Entity> entities;
-    int32_t z_order = 0;
-
-    std::random_device dev;
-    std::mt19937 rng(dev());
-    std::uniform_int_distribution<int32_t> dist(0, rooms_group.groups.size() - 1);
-
-    const Tmx::Group &room_group = rooms_group.groups[dist(rng)];
-
-    for (int32_t i = 0; i < room_group.layers.size(); ++i)
-    {
-        Entity entity = createTileMapFromLayer(room_group.layers[i]);
-        if (entity.isValid())
-        {
-            entity.getComponent<component::Drawable>().z_order = z_order++;
-            entities.push_back(entity);
-        }
-    }
-
-    for (const Tmx::ObjectGroup &object_group : room_group.object_groups)
-    {
-        if (object_group.name == "collisions")
-        {
-            std::vector<Entity> collision_entities = createRoomCollisions(object_group);
-            entities.insert(entities.end(), collision_entities.begin(), collision_entities.end());
-        }
-
-        if (object_group.name == "entities")
-        {
-            std::vector<Entity> room_entities = createRoomEntities(object_group);
-            entities.insert(entities.end(), room_entities.begin(), room_entities.end());
-        }
-    }
-
-    return entities;
 }
 
 std::vector<Entity> Level::createRoomCollisions(const Tmx::ObjectGroup &collisions_object_group)
@@ -474,15 +630,16 @@ std::vector<Entity> Level::createRoomCollisions(const Tmx::ObjectGroup &collisio
         Entity entity = m_world->createEntity();
 
         component::Transform &transform_component = entity.addComponent<component::Transform>();
-        transform_component.transform.setPosition(
-            sf::Vector2f{collision_object.rect.getPosition()});
 
         component::Scene &scene_component = entity.addComponent<component::Scene>();
         scene_component.local_bounds
             = {{0.0f, 0.0f}, sf::Vector2f{collision_object.rect.getSize()}};
+        scene_component.path_finder_wall = true;
 
         component::Collision &collision_component = entity.addComponent<component::Collision>();
         collision_component.wall = true;
+
+        entity::set_position.emit(entity, sf::Vector2f{collision_object.rect.getPosition()});
 
         entities.push_back(entity);
     }
@@ -528,12 +685,15 @@ std::vector<Entity> Level::createRoomEntities(const Tmx::ObjectGroup &entities_o
                         if (state_strs.empty())
                             state_strs = entity::getDrawableStates(entity);
 
-                        std::random_device dev;
-                        std::mt19937 rng(dev());
-                        std::uniform_int_distribution<int32_t> dist(0, state_strs.size() - 1);
+                        if (!state_strs.empty())
+                        {
+                            std::random_device dev;
+                            std::mt19937 rng(dev());
+                            std::uniform_int_distribution<int32_t> dist(0, state_strs.size() - 1);
 
-                        entity::set_drawable_state.emit(
-                            entity, string::trimCopy(state_strs[dist(rng)]));
+                            entity::set_drawable_state.emit(
+                                entity, string::trimCopy(state_strs[dist(rng)]));
+                        }
                     }
                     else
                     {
@@ -554,7 +714,7 @@ std::vector<Entity> Level::createRoomEntities(const Tmx::ObjectGroup &entities_o
     return entities;
 }
 
-Entity Level::createTileMapFromLayer(const Tmx::Layer &layer)
+std::pair<Entity, const Tmx::Tileset *> Level::createTileMapFromLayer(const Tmx::Layer &layer)
 {
     Entity entity = m_world->createEntity();
 
@@ -597,14 +757,14 @@ Entity Level::createTileMapFromLayer(const Tmx::Layer &layer)
         return {};
     }
 
-    drawable_component.drawable.reset(tile_map);
+    drawable_component.proxy.reset(new DrawableProxy(tile_map));
 
     drawable_component.global_bounds = sf::FloatRect(
         transform_component.transform.getPosition(), tile_map->getGlobalBounds().getSize());
 
     drawable_component.z_order_fill_y_coordinate = false;
 
-    return entity;
+    return {entity, tileset};
 }
 
 const Tmx::Tileset *Level::getTilesetByGid(int32_t gid)
@@ -616,6 +776,37 @@ const Tmx::Tileset *Level::getTilesetByGid(int32_t gid)
     }
 
     return nullptr;
+}
+
+void Level::RoomsCache::clear()
+{
+    for (int32_t i = 0; i < map.getSize(); ++i)
+        delete map[i];
+    map.clear();
+
+    for (int32_t i = 0; i < entities.getSize(); ++i)
+        delete entities[i];
+    entities.clear();
+
+    m_first_room_coord = {0, 0};
+}
+
+void Level::RoomsCache::enableRoom(const sf::Vector2i &room_coord)
+{
+    if (entities.getData(room_coord))
+    {
+        for (Entity &entity : *entities.getData(room_coord))
+            entity.enable();
+    }
+}
+
+void Level::RoomsCache::disableRoom(const sf::Vector2i &room_coord)
+{
+    if (entities.getData(room_coord))
+    {
+        for (Entity &entity : *entities.getData(room_coord))
+            entity.disable();
+    }
 }
 
 } // namespace fck

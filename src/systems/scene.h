@@ -13,7 +13,7 @@ namespace fck::system
 class Scene : public System<component::Scene, component::Transform>
 {
 public:
-    Scene(b2::DynamicTree<Entity> *tree, PathFinder *path_finder);
+    Scene(b2::DynamicTree<Entity> *tree);
     ~Scene() = default;
 
     void moveEntity(const Entity &entity, const sf::Vector2f &offset);
@@ -24,7 +24,6 @@ protected:
 
 private:
     b2::DynamicTree<Entity> *m_tree;
-    PathFinder *m_path_finder;
 };
 
 } // namespace fck::system

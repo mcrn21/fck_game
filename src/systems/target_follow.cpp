@@ -2,146 +2,151 @@
 
 #include "../entity_utils.h"
 
+#include "../fck/a_star.h"
 #include "../fck/utilities.h"
 
 namespace fck::system
 {
 
-TargetFollow::TargetFollow(PathFinder *path_finder) : m_path_finder{path_finder}
+TargetFollow::TargetFollow() : m_walls{nullptr}
 {
+}
+
+const Grid<int32_t> *TargetFollow::getWalls() const
+{
+    return m_walls;
+}
+
+void TargetFollow::setWalls(const Grid<int32_t> *walls)
+{
+    m_walls = walls;
 }
 
 void TargetFollow::update(double delta_time)
 {
     for (Entity &entity : getEntities())
     {
-        component::Target &target_component = entity.getComponent<component::Target>();
-        component::Velocity &velocity_component
-            = entity.getComponent<component::Velocity>();
-        component::Transform &transform_component = entity.getComponent<component::Transform>();
-        component::State &state_component = entity.getComponent<component::State>();
         component::TargetFollow &target_follow_component
             = entity.getComponent<component::TargetFollow>();
-        component::Scene &scene_component = entity.getComponent<component::Scene>();
+        component::Transform &transform_component = entity.getComponent<component::Transform>();
+        component::Velocity &velocity_component = entity.getComponent<component::Velocity>();
 
-        if (!target_component.target.isValid())
+        if (!target_follow_component.follow || !m_walls)
         {
-            target_follow_component.follow = false;
-            target_follow_component.state = component::TargetFollow::NO_FOLLOWING;
+            if (!target_follow_component.path.empty())
+            {
+                target_follow_component.path.clear();
+                target_follow_component.state = component::TargetFollow::LOST;
+                velocity_component.velocity = {0.0f, 0.0f};
+                entity::set_state.emit(entity, entity_state::IDLE);
+            }
             continue;
         }
 
-        if (!target_follow_component.follow)
-        {
-            target_follow_component.state = component::TargetFollow::NO_FOLLOWING;
+        float dist_to_target = vector2::distance(
+            transform_component.transform.getPosition(), target_follow_component.target);
+
+        if (target_follow_component.state == component::TargetFollow::RICHED
+            && dist_to_target < target_follow_component.min_distance * 1.5f)
             continue;
-        }
 
-        //        if (target_component.target.component<StateComponent>().state == entity_state::DEATH)
-        //        {
-        //            target_follow_component.follow = false;
-        //            target_follow_component.state = TargetFollowComponent::NO_FOLLOWING;
-        //            continue;
-        //        }
-
+        target_follow_component.state = component::TargetFollow::LOST;
         velocity_component.velocity = {0.0f, 0.0f};
 
-        if (entity_state::NOT_AVALIBLE & state_component.state)
-            continue;
+        sf::Vector2i target_coord = m_walls->transformPosition(target_follow_component.target);
 
-        component::TargetFollow::State old_state = target_follow_component.state;
-
-        component::Transform &target_transform_component
-            = target_component.target.getComponent<component::Transform>();
-
-        PathFinder::Cell *target_cell = m_path_finder->getGrid().getCellByPosition(
-            target_transform_component.transform.getPosition());
-
-        if (target_cell && target_cell->weight == 0)
+        // Need update path
+        if ((target_follow_component.path.empty()
+             || target_follow_component.path.front() != target_coord)
+            && dist_to_target > target_follow_component.min_distance)
         {
-            float dist = vector2::distance(
-                transform_component.transform.getPosition(),
-                target_transform_component.transform.getPosition());
-
-            if (target_follow_component.state != component::TargetFollow::FOLLOW
-                && dist > target_follow_component.min_distance * 1.5
-                && dist < target_follow_component.max_distance)
-                target_follow_component.state = component::TargetFollow::FOLLOW;
-
-            if (target_follow_component.state == component::TargetFollow::FOLLOW
-                && dist > target_follow_component.min_distance
-                && dist < target_follow_component.max_distance)
+            // Check cell reachable
+            int32_t cell_weight = m_walls->getData(target_coord);
+            if (cell_weight != 0)
             {
-                target_follow_component.path = m_path_finder->findPath(
-                    m_path_finder->getGrid().transformPosition(
-                        transform_component.transform.getPosition()),
-                    m_path_finder->getGrid().transformPosition(
-                        target_transform_component.transform.getPosition()));
-
-                if (!target_follow_component.path.empty())
+                static std::vector<sf::Vector2i> neighbor_coords
+                    = {{-1, 0}, {0, -1}, {0, 1}, {0, 1}};
+                for (const sf::Vector2i &neighbor_coord : neighbor_coords)
                 {
-                    int32_t point_index = target_follow_component.path.size() == 1
-                        ? 0
-                        : target_follow_component.path.size() - 2;
-
-                    sf::Vector2f point = sf::Vector2f{
-                        sf::Vector2i{
-                            target_follow_component.path[point_index].x
-                                * m_path_finder->getGrid().getCellSize().x,
-                            target_follow_component.path[point_index].y
-                                * m_path_finder->getGrid().getCellSize().y}
-                        + m_path_finder->getGrid().getCellSize() / 2};
-
-                    float angle
-                        = vector2::angleTo(transform_component.transform.getPosition(), point);
-
-                    sf::Vector2f velocity(
-                        -velocity_component.max_velocity.x * std::cos(angle),
-                        -velocity_component.max_velocity.y * std::sin(angle));
-
-                    velocity_component.velocity = velocity;
+                    const int32_t &neighbor_cell_weight
+                        = m_walls->getData(target_coord + neighbor_coord);
+                    if (neighbor_cell_weight == 0)
+                    {
+                        target_coord = target_coord + neighbor_coord;
+                        cell_weight = neighbor_cell_weight;
+                        break;
+                    }
                 }
             }
-            else
+
+            if (cell_weight == 0)
             {
-                if (target_follow_component.state == component::TargetFollow::FOLLOW)
+                PathFinder path_finder{*m_walls};
+                target_follow_component.path = path_finder.findPath(
+                    m_walls->transformPosition(transform_component.transform.getPosition()),
+                    target_coord);
+
+                if (!target_follow_component.path.empty())
+                    target_follow_component.path.erase(target_follow_component.path.end() - 1);
+            }
+        }
+
+        if (target_follow_component.path.empty())
+        {
+            entity::set_state.emit(entity, entity_state::IDLE);
+            continue;
+        }
+
+        if (dist_to_target > target_follow_component.min_distance)
+        {
+            sf::Vector2f path_point = {-1, -1};
+            while (!target_follow_component.path.empty())
+            {
+                sf::Vector2f next_path_point = sf::Vector2f{
+                    sf::Vector2i{
+                        target_follow_component.path.back().x * m_walls->getTileSize().x,
+                        target_follow_component.path.back().y * m_walls->getTileSize().y}
+                    + m_walls->getTileSize() / 2};
+
+                float dist_to_next_point = vector2::distance(
+                    transform_component.transform.getPosition(), next_path_point);
+
+                if (dist_to_next_point < (m_walls->getTileSize().x / 4))
                 {
-                    target_follow_component.path.clear();
-
-                    if (dist < target_follow_component.min_distance)
-                        target_follow_component.state = component::TargetFollow::RICHED;
-
-                    if (dist > target_follow_component.max_distance)
-                        target_follow_component.state = component::TargetFollow::LOST;
+                    target_follow_component.path.erase(target_follow_component.path.end() - 1);
                 }
+                else
+                {
+                    path_point = next_path_point;
+                    break;
+                }
+            }
+
+            if (path_point != sf::Vector2f{-1, -1})
+            {
+                float angle
+                    = vector2::angleTo(transform_component.transform.getPosition(), path_point);
+
+                velocity_component.velocity
+                    = {-velocity_component.max_velocity.x * std::cos(angle),
+                       -velocity_component.max_velocity.y * std::sin(angle)};
+
+                if (velocity_component.velocity.x != 0 || velocity_component.velocity.y != 0)
+                    entity::set_state.emit(entity, entity_state::MOVE);
+                else
+                    entity::set_state.emit(entity, entity_state::IDLE);
+
+                if (velocity_component.velocity.x > 0)
+                    entity::set_direction.emit(entity, entity_state::RIGHT);
+                else if (velocity_component.velocity.x < 0)
+                    entity::set_direction.emit(entity, entity_state::LEFT);
             }
         }
         else
         {
-            if (target_follow_component.state == component::TargetFollow::FOLLOW)
-            {
-                target_follow_component.path.clear();
-                target_follow_component.state = component::TargetFollow::LOST;
-            }
-        }
-
-        if (old_state != target_follow_component.state)
-        {
-            if (velocity_component.velocity.x != 0 || velocity_component.velocity.y != 0)
-                entity::set_state.emit(entity, entity_state::MOVE);
-            else
-                entity::set_state.emit(entity, entity_state::IDLE);
-        }
-
-        if (target_follow_component.state == component::TargetFollow::FOLLOW)
-        {
-            if (target_transform_component.transform.getPosition().x
-                > transform_component.transform.getPosition().x)
-                entity::set_direction.emit(entity, entity_state::RIGHT);
-            else if (
-                target_transform_component.transform.getPosition().x
-                < transform_component.transform.getPosition().x)
-                entity::set_direction.emit(entity, entity_state::LEFT);
+            target_follow_component.path.clear();
+            target_follow_component.state = component::TargetFollow::RICHED;
+            entity::set_state.emit(entity, entity_state::IDLE);
         }
     }
 }

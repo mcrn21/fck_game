@@ -44,28 +44,27 @@ uint32_t Style::stats_font_size = 24;
 
 std::unordered_map<int32_t, sf::IntRect> Style::minimap_room_texture_rects
     = {{0, {{1, 72}, {11, 11}}},
-       {Level::Room::LEFT, {{1, 17}, {11, 11}}},
-       {Level::Room::LEFT | Level::Room::TOP, {{12, 17}, {11, 11}}},
-       {Level::Room::LEFT | Level::Room::TOP | Level::Room::RIGHT, {{23, 17}, {11, 11}}},
-       {Level::Room::TOP, {{1, 28}, {11, 11}}},
-       {Level::Room::TOP | Level::Room::RIGHT, {{12, 28}, {11, 11}}},
-       {Level::Room::TOP | Level::Room::RIGHT | Level::Room::BOTTOM, {{23, 28}, {11, 11}}},
-       {Level::Room::RIGHT, {{1, 39}, {11, 11}}},
-       {Level::Room::RIGHT | Level::Room::BOTTOM, {{12, 39}, {11, 11}}},
-       {Level::Room::RIGHT | Level::Room::BOTTOM | Level::Room::LEFT, {{23, 39}, {11, 11}}},
-       {Level::Room::BOTTOM, {{1, 50}, {11, 11}}},
-       {Level::Room::BOTTOM | Level::Room::LEFT, {{12, 50}, {11, 11}}},
-       {Level::Room::BOTTOM | Level::Room::LEFT | Level::Room::TOP, {{23, 50}, {11, 11}}},
-       {Level::Room::TOP | Level::Room::BOTTOM, {{1, 61}, {11, 11}}},
-       {Level::Room::LEFT | Level::Room::RIGHT, {{12, 61}, {11, 11}}},
-       {Level::Room::LEFT | Level::Room::TOP | Level::Room::RIGHT | Level::Room::BOTTOM,
-        {{23, 61}, {11, 11}}}};
+       {Room::LEFT, {{1, 17}, {11, 11}}},
+       {Room::LEFT | Room::TOP, {{12, 17}, {11, 11}}},
+       {Room::LEFT | Room::TOP | Room::RIGHT, {{23, 17}, {11, 11}}},
+       {Room::TOP, {{1, 28}, {11, 11}}},
+       {Room::TOP | Room::RIGHT, {{12, 28}, {11, 11}}},
+       {Room::TOP | Room::RIGHT | Room::BOTTOM, {{23, 28}, {11, 11}}},
+       {Room::RIGHT, {{1, 39}, {11, 11}}},
+       {Room::RIGHT | Room::BOTTOM, {{12, 39}, {11, 11}}},
+       {Room::RIGHT | Room::BOTTOM | Room::LEFT, {{23, 39}, {11, 11}}},
+       {Room::BOTTOM, {{1, 50}, {11, 11}}},
+       {Room::BOTTOM | Room::LEFT, {{12, 50}, {11, 11}}},
+       {Room::BOTTOM | Room::LEFT | Room::TOP, {{23, 50}, {11, 11}}},
+       {Room::TOP | Room::BOTTOM, {{1, 61}, {11, 11}}},
+       {Room::LEFT | Room::RIGHT, {{12, 61}, {11, 11}}},
+       {Room::LEFT | Room::TOP | Room::RIGHT | Room::BOTTOM, {{23, 61}, {11, 11}}}};
 
-std::unordered_map<Level::Room::Type, sf::IntRect> Style::minimap_room_type_texture_rects
-    = {{Level::Room::UNKNOW, {{1, 83}, {11, 11}}},
-       {Level::Room::DEFAULT, {{0, 0}, {0, 0}}},
-       {Level::Room::BOSS, {{12, 83}, {11, 11}}},
-       {Level::Room::TRADER, {{23, 83}, {11, 11}}}};
+std::unordered_map<Room::Type, sf::IntRect> Style::minimap_room_type_texture_rects
+    = {{Room::UNKNOW, {{1, 83}, {11, 11}}},
+       {Room::DEFAULT, {{0, 0}, {0, 0}}},
+       {Room::BOSS, {{12, 83}, {11, 11}}},
+       {Room::TRADER, {{23, 83}, {11, 11}}}};
 
 sf::IntRect Style::minimap_current_room_texture_rect = {{12, 72}, {11, 11}};
 sf::Vector2f Style::minimap_size = {30.0f, 30.0f};

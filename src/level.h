@@ -1,9 +1,11 @@
 #ifndef LEVEL_ZKKSOSIXHXVE_H
 #define LEVEL_ZKKSOSIXHXVE_H
 
-#include "fck/a_star.h"
+#include "fck_common.h"
+
 #include "fck/b2_dynamic_tree.h"
 #include "fck/entity.h"
+#include "fck/grid.h"
 #include "fck/sigslot.h"
 #include "fck/tmx.h"
 #include "fck/vector_2d.h"
@@ -18,33 +20,61 @@
 namespace fck
 {
 
+class Room
+{
+public:
+    enum Side
+    {
+        LEFT = 1,
+        TOP = 2,
+        RIGHT = 4,
+        BOTTOM = 8
+    };
+
+    static Side sideFromString(const std::string &side_string);
+
+    enum Type
+    {
+        UNKNOW,
+        DEFAULT,
+        BOSS,
+        TRADER
+    };
+
+    Room();
+    ~Room() = default;
+
+    int32_t getNeighbors() const;
+    void setNeighbors(int32_t neighbors);
+
+    Type getType() const;
+    void setType(Type type);
+
+    const std::unordered_map<Side, sf::Vector2f> &getEntryPoints() const;
+    void setEntryPoints(const std::unordered_map<Side, sf::Vector2f> &entry_points);
+
+    const Grid<int32_t> &getWalls() const;
+    void setWalls(const Grid<int32_t> &walls);
+
+    const Grid<tile_material_type::Type> &getTileMaterials() const;
+    void setTileMaterials(const Grid<tile_material_type::Type> &tile_materials);
+
+    bool isOpen() const;
+    void setOpen(bool open);
+
+private:
+    int32_t m_neighbors;
+    Type m_type;
+    std::unordered_map<Side, sf::Vector2f> m_entry_points;
+    Grid<int32_t> m_walls;
+    Grid<tile_material_type::Type> m_tile_materials;
+    bool m_open;
+};
+
 class Level
 {
 public:
-    struct Room
-    {
-        enum Side
-        {
-            LEFT = 1,
-            TOP = 2,
-            RIGHT = 4,
-            BOTTOM = 8
-        };
-
-        enum Type
-        {
-            UNKNOW,
-            DEFAULT,
-            BOSS,
-            TRADER
-        };
-
-        int32_t neighbors = 0;
-        Type type = DEFAULT;
-        bool open = false;
-    };
-
-    Level(World *world, b2::DynamicTree<Entity> *scene_tree, PathFinder *path_finder);
+    Level(World *world, b2::DynamicTree<Entity> *scene_tree);
     ~Level();
 
     bool loadFromFile(const std::string &file_name);
@@ -60,11 +90,11 @@ public:
     void enableRoom(const sf::Vector2i &coord, const sf::Vector2f &target_position);
 
 private:
+    void createRoom(int32_t index, const Tmx::Group &rooms_group);
     Entity createRoomTransition(Room::Side side, const sf::Vector2i &room_coord);
-    std::vector<Entity> createRoom(const Tmx::Group &room_group);
     std::vector<Entity> createRoomCollisions(const Tmx::ObjectGroup &collisions_object_group);
     std::vector<Entity> createRoomEntities(const Tmx::ObjectGroup &entities_object_group);
-    Entity createTileMapFromLayer(const Tmx::Layer &layer);
+    std::pair<Entity, const Tmx::Tileset *> createTileMapFromLayer(const Tmx::Layer &layer);
 
     const Tmx::Tileset *getTilesetByGid(int32_t gid);
 
@@ -75,44 +105,14 @@ public:
 private:
     World *m_world;
     b2::DynamicTree<Entity> *m_scene_tree;
-    PathFinder *m_path_finder;
 
     std::unique_ptr<Tmx> m_level_tmx;
 
     struct RoomsCache
     {
-        void clear()
-        {
-            for (int32_t i = 0; i < map.getSize(); ++i)
-                delete map[i];
-            map.clear();
-
-            for (int32_t i = 0; i < entities.getSize(); ++i)
-                delete entities[i];
-            entities.clear();
-
-            m_first_room_coord = {0, 0};
-
-            spdlog::info("Rooms cleared");
-        }
-
-        void enableRoom(const sf::Vector2i &room_coord)
-        {
-            if (entities.getData(room_coord))
-            {
-                for (Entity &entity : *entities.getData(room_coord))
-                    entity.enable();
-            }
-        }
-
-        void disableRoom(const sf::Vector2i &room_coord)
-        {
-            if (entities.getData(room_coord))
-            {
-                for (Entity &entity : *entities.getData(room_coord))
-                    entity.disable();
-            }
-        }
+        void clear();
+        void enableRoom(const sf::Vector2i &room_coord);
+        void disableRoom(const sf::Vector2i &room_coord);
 
         Vector2D<Room *> map;
         Vector2D<std::vector<Entity> *> entities;

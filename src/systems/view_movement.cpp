@@ -2,6 +2,8 @@
 
 #include "../fck/utilities.h"
 
+#include <SFML/Audio.hpp>
+
 #include <spdlog/spdlog.h>
 
 namespace fck::system

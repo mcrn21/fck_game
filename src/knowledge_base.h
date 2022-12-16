@@ -6,17 +6,18 @@
 #include "skill_base.h"
 
 #include "fck/common.h"
-#include "fck/drawable.h"
 #include "fck/drawable_animation.h"
+#include "fck/drawable_proxy.h"
 #include "fck/drawable_state.h"
 #include "fck/entity.h"
 #include "fck/resource_cache.h"
-#include "fck/sprite.h"
 #include "fck/sprite_animation.h"
 #include "fck/sprite_state.h"
 #include "fck/utilities.h"
 
 #include "sqlite/sqlite3.h"
+
+#include <SFML/Graphics.hpp>
 
 #include <toml++/toml.h>
 
@@ -52,7 +53,7 @@ public:
     struct DrawableItemBase
     {
         virtual void init(toml::table *table) = 0;
-        virtual std::tuple<Drawable *, DrawableState *, DrawableAnimation *> create() = 0;
+        virtual std::tuple<DrawableProxyBase *, DrawableState *, DrawableAnimation *> create() = 0;
     };
 
     template<typename T, typename U, typename V>
@@ -66,7 +67,7 @@ public:
 
     template<typename T, typename U, typename V>
     static std::tuple<T *, U *, V *> createDrawable(const std::string &drawable_name);
-    static std::tuple<Drawable *, DrawableState *, DrawableAnimation *> createDrawable(
+    static std::tuple<DrawableProxyBase *, DrawableState *, DrawableAnimation *> createDrawable(
         const std::string &drawable_name);
 
     template<typename T, typename U, typename V>
@@ -246,7 +247,7 @@ bool KnowledgeBase::registerBaseEntityScript(const std::string &base_entity_scri
 
 // Drawables
 template<>
-struct KnowledgeBase::DrawableItem<Sprite, SpriteState, SpriteAnimation> : DrawableItemBase
+struct KnowledgeBase::DrawableItem<sf::Sprite, SpriteState, SpriteAnimation> : DrawableItemBase
 {
     static drawable_type::Type drawableType()
     {
@@ -308,10 +309,10 @@ struct KnowledgeBase::DrawableItem<Sprite, SpriteState, SpriteAnimation> : Drawa
             states.clear();
     }
 
-    std::tuple<Drawable *, DrawableState *, DrawableAnimation *> create()
+    std::tuple<DrawableProxyBase *, DrawableState *, DrawableAnimation *> create()
     {
 
-        Sprite *sprite = new Sprite{*texture, texture_rect};
+        sf::Sprite *sprite = new sf::Sprite{*texture, texture_rect};
 
         SpriteState *sprite_state = nullptr;
         if (!states.empty())
@@ -336,7 +337,7 @@ struct KnowledgeBase::DrawableItem<Sprite, SpriteState, SpriteAnimation> : Drawa
             }
         }
 
-        return {sprite, sprite_state, sprite_animation};
+        return {new DrawableProxy(sprite), sprite_state, sprite_animation};
     }
 
     struct State
@@ -358,7 +359,10 @@ struct KnowledgeBase::DrawableItem<Sprite, SpriteState, SpriteAnimation> : Drawa
     std::unordered_map<std::string, Animation> animations;
 };
 
-KNOWLEDGE_BASE_REGISTER_DRAWABLE(Sprite, SpriteState, SpriteAnimation);
+inline const bool knowledge_base_drawable_sprite
+    = ::fck::KnowledgeBase::registerDrawable<sf::Sprite, SpriteState, SpriteAnimation>();
+
+//KNOWLEDGE_BASE_REGISTER_DRAWABLE(sf::Sprite, SpriteState, SpriteAnimation);
 
 } // namespace fck
 

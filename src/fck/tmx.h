@@ -27,6 +27,12 @@ public:
         RIGHT_DOWN
     };
 
+    struct Tile
+    {
+        int32_t id;
+        std::map<std::string, std::string> properties;
+    };
+
     struct Tileset
     {
         int32_t first_gid = 0;
@@ -34,6 +40,7 @@ public:
         sf::Vector2i tile_size;
         int32_t tile_count = 0;
         int32_t columns = 0;
+        std::vector<Tile> tiles;
         std::map<std::string, std::string> properties;
     };
 

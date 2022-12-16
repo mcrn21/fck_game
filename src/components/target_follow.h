@@ -3,8 +3,11 @@
 
 #include "../knowledge_base.h"
 
+#include "../fck/entity.h"
+
 #include "SFML/System/Vector2.hpp"
 
+#include <variant>
 #include <vector>
 
 namespace fck
@@ -17,18 +20,15 @@ struct TargetFollow
 {
     enum State
     {
-        NO_FOLLOWING,
-        FOLLOW,
         LOST,
         RICHED
     };
 
     bool follow = false;
     float min_distance = 0.0f;
-    float max_distance = 0.0f;
-
-    State state = NO_FOLLOWING;
+    State state = LOST;
     std::vector<sf::Vector2i> path;
+    sf::Vector2f target;
 };
 
 } // namespace component
@@ -45,9 +45,6 @@ struct KnowledgeBase::ComponentItem<component::TargetFollow> : ComponentItemBase
     {
         if (table->contains("min_distance"))
             min_distance = table->at("min_distance").as_floating_point()->get();
-
-        if (table->contains("max_distance"))
-            max_distance = table->at("max_distance").as_floating_point()->get();
     }
 
     void create(Entity &entity)
@@ -55,7 +52,6 @@ struct KnowledgeBase::ComponentItem<component::TargetFollow> : ComponentItemBase
         component::TargetFollow &component = entity.addComponent<component::TargetFollow>();
 
         component.min_distance = min_distance;
-        component.max_distance = max_distance;
     }
 
     float min_distance = 0.0f;

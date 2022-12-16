@@ -10,7 +10,7 @@
 namespace fck
 {
 
-std::tuple<Drawable *, DrawableState *, DrawableAnimation *> KnowledgeBase::createDrawable(
+std::tuple<DrawableProxyBase *, DrawableState *, DrawableAnimation *> KnowledgeBase::createDrawable(
     const std::string &drawable_name)
 {
     auto drawables_found = instance().m_drawables.find(drawable_name);
