@@ -30,6 +30,7 @@ void TargetFollow::update(double delta_time)
             = entity.getComponent<component::TargetFollow>();
         component::Transform &transform_component = entity.getComponent<component::Transform>();
         component::Velocity &velocity_component = entity.getComponent<component::Velocity>();
+        component::State &state_component = entity.getComponent<component::State>();
 
         if (!target_follow_component.follow || !m_walls)
         {
@@ -39,6 +40,9 @@ void TargetFollow::update(double delta_time)
                 target_follow_component.state = component::TargetFollow::LOST;
                 velocity_component.velocity = {0.0f, 0.0f};
                 entity::set_state.emit(entity, entity_state::IDLE);
+                entity::set_drawable_state.emit(
+                    entity, entity_state::stateToString(entity_state::IDLE));
+                entity::stop_sound.emit(entity, entity_state::stateToString(entity_state::MOVE));
             }
             continue;
         }
@@ -131,10 +135,25 @@ void TargetFollow::update(double delta_time)
                     = {-velocity_component.max_velocity.x * std::cos(angle),
                        -velocity_component.max_velocity.y * std::sin(angle)};
 
-                if (velocity_component.velocity.x != 0 || velocity_component.velocity.y != 0)
+                if ((velocity_component.velocity.x != 0 || velocity_component.velocity.y != 0)
+                    && state_component.state != entity_state::MOVE)
+                {
                     entity::set_state.emit(entity, entity_state::MOVE);
-                else
+                    entity::set_drawable_state.emit(
+                        entity, entity_state::stateToString(entity_state::MOVE));
+                    entity::play_sound.emit(
+                        entity, entity_state::stateToString(entity_state::MOVE));
+                }
+                else if (
+                    !vector2::isValid(velocity_component.velocity)
+                    && state_component.state != entity_state::IDLE)
+                {
                     entity::set_state.emit(entity, entity_state::IDLE);
+                    entity::set_drawable_state.emit(
+                        entity, entity_state::stateToString(entity_state::IDLE));
+                    entity::stop_sound.emit(
+                        entity, entity_state::stateToString(entity_state::MOVE));
+                }
 
                 if (velocity_component.velocity.x > 0)
                     entity::set_direction.emit(entity, entity_state::RIGHT);
@@ -147,6 +166,9 @@ void TargetFollow::update(double delta_time)
             target_follow_component.path.clear();
             target_follow_component.state = component::TargetFollow::RICHED;
             entity::set_state.emit(entity, entity_state::IDLE);
+            entity::set_drawable_state.emit(
+                entity, entity_state::stateToString(entity_state::IDLE));
+            entity::stop_sound.emit(entity, entity_state::stateToString(entity_state::MOVE));
         }
     }
 }

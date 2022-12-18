@@ -87,8 +87,9 @@ public: // slots
     void entityDrawableSetState(const Entity &entity, const std::string &state);
 
     // sound
-    void entityPlaySound(const Entity &entity, const std::string &sound);
-    void entityStopSound(const Entity &entity);
+    void entityPlaySound(const Entity &entity, const std::string &sound_name);
+    void entityStopSound(const Entity &entity, const std::string &sound_name);
+    void entityStopAllSound(const Entity &entity);
 
     // other
     void entitySetTileMaterial(const Entity &entity, tile_material_type::Type tile_material);

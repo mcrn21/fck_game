@@ -1,7 +1,6 @@
 #ifndef SIGSLOT_YJRUCYUGXUTI_H
 #define SIGSLOT_YJRUCYUGXUTI_H
 
-#include "event_dispatcher.h"
 #include "id_storage.h"
 
 #include <functional>

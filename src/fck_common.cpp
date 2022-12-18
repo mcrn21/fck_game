@@ -13,8 +13,7 @@ std::string stateToString(State state)
     static std::unordered_map<State, std::string> strings
         = {{State::IDLE, "idle"},
            {State::MOVE, "move"},
-           {State::BASE_ATTACK, "base_attack"},
-           {State::ULTIMATE_ATTACK, "ultimate_attack"},
+           {State::ATTACK, "attack"},
            {State::DAMAGED, "damage"},
            {State::DODGE, "dodge"},
            {State::DEATH, "death"}};
@@ -22,7 +21,7 @@ std::string stateToString(State state)
     auto strings_found = strings.find(state);
     if (strings_found != strings.end())
         return strings_found->second;
-    return "idle";
+    return "no_state";
 }
 
 State stateFromString(const std::string &string)
@@ -30,8 +29,7 @@ State stateFromString(const std::string &string)
     static std::unordered_map<std::string, State> states
         = {{"idle", State::IDLE},
            {"move", State::MOVE},
-           {"base_attack", State::BASE_ATTACK},
-           {"ultimate_attack", State::ULTIMATE_ATTACK},
+           {"attack", State::ATTACK},
            {"damage", State::DAMAGED},
            {"dodge", State::DODGE},
            {"death", State::DEATH}};
@@ -39,7 +37,7 @@ State stateFromString(const std::string &string)
     auto states_found = states.find(string);
     if (states_found != states.end())
         return states_found->second;
-    return State::IDLE;
+    return State::NO_STATE;
 }
 
 std::string directionToString(Direction direction)
@@ -50,7 +48,7 @@ std::string directionToString(Direction direction)
     auto strings_found = strings.find(direction);
     if (strings_found != strings.end())
         return strings_found->second;
-    return "no_state";
+    return "no_direction";
 }
 
 Direction directionFromString(const std::string &string)
@@ -61,7 +59,7 @@ Direction directionFromString(const std::string &string)
     auto directions_found = directions.find(string);
     if (directions_found != directions.end())
         return directions_found->second;
-    return Direction::RIGHT;
+    return Direction::NO_DIRECTION;
 }
 
 } // namespace entity_state
@@ -142,7 +140,7 @@ std::string toString(Type type)
     auto strings_found = strings.find(type);
     if (strings_found != strings.end())
         return strings_found->second;
-    return "unknow";
+    return "no_type";
 }
 
 Type fromString(const std::string &string)
@@ -173,7 +171,7 @@ std::string toString(Type type)
     auto strings_found = strings.find(type);
     if (strings_found != strings.end())
         return strings_found->second;
-    return "unknow";
+    return "no_type";
 }
 
 Type fromString(const std::string &string)
@@ -192,5 +190,65 @@ Type fromString(const std::string &string)
 }
 
 } // namespace tile_material_type
+
+namespace room_side
+{
+
+std::string toString(Side side)
+{
+    static std::unordered_map<Side, std::string> strings = {
+        {Side::LEFT, "left"}, {Side::TOP, "top"}, {Side::RIGHT, "right"}, {Side::BOTTOM, "bottom"}};
+
+    auto strings_found = strings.find(side);
+    if (strings_found != strings.end())
+        return strings_found->second;
+    return "no_side";
+}
+
+Side fromString(const std::string &string)
+{
+    static std::unordered_map<std::string, Side> sides = {
+        {"left", Side::LEFT}, {"top", Side::TOP}, {"right", Side::RIGHT}, {"bottom", Side::BOTTOM}};
+
+    auto sides_found = sides.find(string);
+    if (sides_found != sides.end())
+        return sides_found->second;
+    return Side::NO_SIDE;
+}
+
+} // namespace room_side
+
+namespace room_type
+{
+
+std::string toString(Type type)
+{
+    static std::unordered_map<Type, std::string> strings
+        = {{Type::UNKNOW, "unknow"},
+           {Type::DEFAULT, "default"},
+           {Type::BOSS, "boss"},
+           {Type::TRADER, "trader"}};
+
+    auto strings_found = strings.find(type);
+    if (strings_found != strings.end())
+        return strings_found->second;
+    return "no_type";
+}
+
+Type fromString(const std::string &string)
+{
+    static std::unordered_map<std::string, Type> types
+        = {{"unknow", Type::UNKNOW},
+           {"default", Type::DEFAULT},
+           {"boss", Type::BOSS},
+           {"trader", Type::TRADER}};
+
+    auto types_found = types.find(string);
+    if (types_found != types.end())
+        return types_found->second;
+    return Type::NO_TYPE;
+}
+
+} // namespace room_type
 
 } // namespace fck

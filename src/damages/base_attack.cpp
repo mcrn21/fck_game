@@ -45,7 +45,12 @@ void BaseAttack::update(double delta_time)
 
         component::State &state_component = getEntity().getComponent<component::State>();
         if (!(entity_state::ATTACK & state_component.state))
+        {
             entity::set_state.emit(getEntity(), entity_state::DAMAGED);
+            entity::set_drawable_state.emit(
+                getEntity(), entity_state::stateToString(entity_state::DAMAGED));
+            entity::play_sound.emit(getEntity(), "damaged");
+        }
 
         m_first_update = false;
     }
@@ -61,8 +66,12 @@ void BaseAttack::update(double delta_time)
     velocity_component.velocity = {};
 
     component::State &state_component = getEntity().getComponent<component::State>();
-    if (!(entity_state::ATTACK & state_component.state))
+    if (state_component.state == entity_state::DAMAGED)
+    {
         entity::set_state.emit(getEntity(), entity_state::IDLE);
+        entity::set_drawable_state.emit(
+            getEntity(), entity_state::stateToString(entity_state::IDLE));
+    }
 }
 
 } // namespace fck::damage

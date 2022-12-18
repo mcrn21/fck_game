@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include "event_handler.h"
+#include "sigslot.h"
 
 #include <functional>
 #include <vector>
@@ -24,6 +25,10 @@ public:
     void stop();
 
     void event(Event *);
+
+public:
+    Signal<> task_finished;
+    Signal<> sequence_finished;
 
 private:
     std::vector<std::function<void()>> m_tasks;

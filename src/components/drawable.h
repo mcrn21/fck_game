@@ -41,56 +41,69 @@ struct KnowledgeBase::ComponentItem<component::Drawable> : ComponentItemBase
 
     void init(toml::table *table)
     {
-        name = table->at("name").as_string()->get();
+        for (const auto &it : *table)
+        {
+            if (it.second.is_table())
+            {
+                drawable_item.reset(KnowledgeBase::instance().loadDrawableFromTable(
+                    it.first.data(), it.second.as_table()));
+            }
+            else
+            {
+                std::string field_name = it.first.data();
 
-        if (table->contains("position"))
-            position = vector2::tomlArrayToVector2f(table->at("position").as_array());
+                if (field_name == "position")
+                    position = vector2::tomlArrayToVector2f(it.second.as_array());
 
-        if (table->contains("rotation"))
-            rotation = table->at("rotation").as_floating_point()->get();
+                if (field_name == "rotation")
+                    rotation = it.second.as_floating_point()->get();
 
-        if (table->contains("scale"))
-            scale = vector2::tomlArrayToVector2f(table->at("scale").as_array());
+                if (field_name == "scale")
+                    scale = vector2::tomlArrayToVector2f(it.second.as_array());
 
-        if (table->contains("origin"))
-            origin = vector2::tomlArrayToVector2f(table->at("origin").as_array());
+                if (field_name == "origin")
+                    origin = vector2::tomlArrayToVector2f(it.second.as_array());
 
-        if (table->contains("z_order"))
-            z_order = table->at("z_order").as_integer()->get();
+                if (field_name == "z_order")
+                    z_order = it.second.as_integer()->get();
 
-        if (table->contains("z_order_fill_y_coordinate"))
-            z_order_fill_y_coordinate = table->at("z_order_fill_y_coordinate").as_boolean()->get();
+                if (field_name == "z_order_fill_y_coordinate")
+                    z_order_fill_y_coordinate = it.second.as_boolean()->get();
+            }
+        }
     }
 
     void create(Entity &entity)
     {
         component::Drawable &component = entity.addComponent<component::Drawable>();
 
-        auto [drawable_proxy, drawable_state, drawable_animation]
-            = KnowledgeBase::createDrawable(name);
-
-        if (drawable_proxy)
+        if (drawable_item)
         {
-            drawable_proxy->toTransformable()->setPosition(position);
-            drawable_proxy->toTransformable()->setRotation(sf::degrees(rotation));
-            drawable_proxy->toTransformable()->setScale(scale);
-            drawable_proxy->toTransformable()->setOrigin(origin);
-            component.global_bounds = drawable_proxy->getLocalBounds();
-            component.proxy.reset(drawable_proxy);
-        }
+            auto [drawable_proxy, drawable_state, drawable_animation] = drawable_item->create();
 
-        if (drawable_state)
-        {
-            component::DrawableState &drawable_state_component
-                = entity.addComponent<component::DrawableState>();
-            drawable_state_component.state.reset(drawable_state);
-        }
+            if (drawable_proxy)
+            {
+                drawable_proxy->toTransformable()->setPosition(position);
+                drawable_proxy->toTransformable()->setRotation(sf::degrees(rotation));
+                drawable_proxy->toTransformable()->setScale(scale);
+                drawable_proxy->toTransformable()->setOrigin(origin);
+                component.global_bounds = drawable_proxy->getLocalBounds();
+                component.proxy.reset(drawable_proxy);
+            }
 
-        if (drawable_animation)
-        {
-            component::DrawableAnimation &drawable_animation_component
-                = entity.addComponent<component::DrawableAnimation>();
-            drawable_animation_component.animation.reset(drawable_animation);
+            if (drawable_state)
+            {
+                component::DrawableState &drawable_state_component
+                    = entity.addComponent<component::DrawableState>();
+                drawable_state_component.state.reset(drawable_state);
+            }
+
+            if (drawable_animation)
+            {
+                component::DrawableAnimation &drawable_animation_component
+                    = entity.addComponent<component::DrawableAnimation>();
+                drawable_animation_component.animation.reset(drawable_animation);
+            }
         }
 
         component.z_order = z_order;
@@ -98,6 +111,8 @@ struct KnowledgeBase::ComponentItem<component::Drawable> : ComponentItemBase
     }
 
     std::string name;
+
+    std::unique_ptr<DrawableItemBase> drawable_item;
 
     sf::Vector2f position;
     float rotation = 0.0f;

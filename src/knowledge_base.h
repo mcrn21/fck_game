@@ -48,6 +48,8 @@ namespace fck
 
 class KnowledgeBase
 {
+    friend class ComponentItemBase;
+
 public:
     // Drawables
     struct DrawableItemBase
@@ -66,15 +68,7 @@ public:
     };
 
     template<typename T, typename U, typename V>
-    static std::tuple<T *, U *, V *> createDrawable(const std::string &drawable_name);
-    static std::tuple<DrawableProxyBase *, DrawableState *, DrawableAnimation *> createDrawable(
-        const std::string &drawable_name);
-
-    template<typename T, typename U, typename V>
     static bool registerDrawable();
-
-    static void loadDrawablesDirectory(const std::string &dir_name);
-    static void loadDrawablesFromDatabase(const std::string &database_name);
 
     // Entities
     struct ComponentItemBase
@@ -165,8 +159,6 @@ public:
 private:
     static KnowledgeBase &instance();
 
-    static int32_t loadDrawablesFromDatabaseCallback(
-        void *user_data, int argc, char **argv, char **column_name);
     static int32_t loadEntitiesFromDatabaseCallback(
         void *user_data, int argc, char **argv, char **column_name);
     static int32_t loadSkillsFromDatabaseCallback(
@@ -177,7 +169,7 @@ private:
     KnowledgeBase();
     ~KnowledgeBase() = default;
 
-    void loadDrawableFromBuffer(const std::string &name, const std::string &data);
+    DrawableItemBase *loadDrawableFromTable(const std::string &type_string, toml::table *table);
     void loadEntityFromBuffer(const std::string &name, const std::string &data);
     void loadSkillFromBuffer(const std::string &name, const std::string &data);
     void loadEntityScriptFromBuffer(const std::string &name, const std::string &data);
@@ -197,16 +189,6 @@ private:
         m_base_entity_script_fabrics;
     std::unordered_map<std::string, std::unique_ptr<EntityScriptItemBase>> m_entity_scripts;
 };
-
-template<typename T, typename U, typename V>
-std::tuple<T *, U *, V *> KnowledgeBase::createDrawable(const std::string &drawable_name)
-{
-    auto [drawable, drawable_state, drawable_animation] = createDrawable(drawable_name);
-    return {
-        drawable ? static_cast<T *>(drawable) : nullptr,
-        drawable_state ? static_cast<T *>(drawable_state) : nullptr,
-        drawable_animation ? static_cast<T *>(drawable_animation) : nullptr};
-}
 
 template<typename T, typename U, typename V>
 bool KnowledgeBase::registerDrawable()

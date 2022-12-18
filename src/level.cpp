@@ -76,19 +76,7 @@ void updateCellWeight(Grid<int32_t> &grid, const sf::IntRect &bounds, bool reduc
 
 } // namespace level_helpers
 
-Room::Side Room::sideFromString(const std::string &side_string)
-{
-    if (side_string == "left")
-        return LEFT;
-    else if (side_string == "top")
-        return TOP;
-    else if (side_string == "right")
-        return RIGHT;
-    else if (side_string == "bottom")
-        return BOTTOM;
-}
-
-Room::Room() : m_neighbors{0}, m_type{UNKNOW}, m_open{false}
+Room::Room() : m_neighbors{0}, m_type{room_type::UNKNOW}, m_open{false}
 {
 }
 
@@ -102,22 +90,22 @@ void Room::setNeighbors(int32_t neighbors)
     m_neighbors = neighbors;
 }
 
-Room::Type Room::getType() const
+room_type::Type Room::getType() const
 {
     return m_type;
 }
 
-void Room::setType(Type type)
+void Room::setType(room_type::Type type)
 {
     m_type = type;
 }
 
-const std::unordered_map<Room::Side, sf::Vector2f> &Room::getEntryPoints() const
+const std::unordered_map<room_side::Side, sf::Vector2f> &Room::getEntryPoints() const
 {
     return m_entry_points;
 }
 
-void Room::setEntryPoints(const std::unordered_map<Side, sf::Vector2f> &entry_points)
+void Room::setEntryPoints(const std::unordered_map<room_side::Side, sf::Vector2f> &entry_points)
 {
     m_entry_points = entry_points;
 }
@@ -170,7 +158,7 @@ bool Level::loadFromFile(const std::string &file_name)
     return m_level_tmx->loadFromFile(file_name);
 }
 
-void Level::generateRoomsMap()
+void Level::generateRoomsMap(int32_t room_count)
 {
     sf::Vector2i noise_map_size = {100, 100};
 
@@ -209,9 +197,7 @@ void Level::generateRoomsMap()
     std::queue<sf::Vector2i> coords_queue;
     std::vector<sf::Vector2i> coords;
 
-    int32_t room_max_count = 30;
-
-    while (coords.size() < room_max_count)
+    while (coords.size() < room_count)
     {
         spdlog::info("Generate rooms");
 
@@ -240,7 +226,7 @@ void Level::generateRoomsMap()
         map_lower_bound = map_upper_bound = first_coord;
         coords_queue.push(first_coord);
 
-        while (coords.size() < room_max_count && !coords_queue.empty())
+        while (coords.size() < room_count && !coords_queue.empty())
         {
             sf::Vector2i &coord = coords_queue.front();
 
@@ -309,18 +295,18 @@ void Level::generateRoomsMap()
         int32_t neighbors = m_rooms_cache.map[i]->getNeighbors();
 
         if (coord.x - 1 >= 0 && m_rooms_cache.map.getData({coord.x - 1, coord.y}))
-            neighbors |= Room::LEFT;
+            neighbors |= room_side::LEFT;
 
         if (coord.x + 1 < m_rooms_cache.map.getSize2D().x
             && m_rooms_cache.map.getData({coord.x + 1, coord.y}))
-            neighbors |= Room::RIGHT;
+            neighbors |= room_side::RIGHT;
 
         if (coord.y - 1 >= 0 && m_rooms_cache.map.getData({coord.x, coord.y - 1}))
-            neighbors |= Room::TOP;
+            neighbors |= room_side::TOP;
 
         if (coord.y + 1 < m_rooms_cache.map.getSize2D().y
             && m_rooms_cache.map.getData({coord.x, coord.y + 1}))
-            neighbors |= Room::BOTTOM;
+            neighbors |= room_side::BOTTOM;
 
         m_rooms_cache.map[i]->setNeighbors(neighbors);
     }
@@ -346,7 +332,7 @@ void Level::generateRoomsContent()
                 for (std::string room_group_name : room_group_name_strs)
                 {
                     string::trim(room_group_name);
-                    neighbors |= Room::sideFromString(room_group_name);
+                    neighbors |= room_side::fromString(room_group_name);
                 }
 
                 if (m_rooms_cache.map[i]->getNeighbors() == neighbors)
@@ -443,15 +429,61 @@ void Level::createRoom(int32_t index, const Tmx::Group &rooms_group)
 
     const Tmx::Group &room_group = rooms_group.groups[dist(rng)];
 
-    int32_t z_order = 0;
-    std::vector<Entity> entities;
+    createRoomTilemapLayers(index, room_group.layers);
 
+    for (const Tmx::ObjectGroup &object_group : room_group.object_groups)
+    {
+        if (object_group.name == "collisions")
+            createRoomCollisions(index, object_group);
+
+        if (object_group.name == "entities")
+            createRoomEntities(index, object_group);
+
+        if (object_group.name == "entry_points")
+        {
+            std::unordered_map<room_side::Side, sf::Vector2f> entry_points;
+
+            for (const Tmx::Object &entry_point_object : object_group.objects)
+                entry_points.emplace(
+                    room_side::fromString(entry_point_object.name),
+                    entry_point_object.rect.getPosition());
+
+            m_rooms_cache.map[index]->setEntryPoints(entry_points);
+        }
+
+        if (object_group.name == "jump_blocks")
+            createRoomJumpBlocks(index, object_group);
+    }
+
+    // Make walls grid
+    Grid<int32_t> walls = Grid<int32_t>(
+        m_level_tmx->getTileSize() / 2,
+        vector2::mult(m_level_tmx->getTileSize(), m_level_tmx->getSize()),
+        0);
+
+    for (const Entity &entity : *m_rooms_cache.entities[index])
+    {
+        component::Scene &scene_component = entity.getComponent<component::Scene>();
+        if (scene_component.path_finder_wall)
+        {
+            sf::IntRect grid_bound = level_helpers::gridBoundsBySceneBounds(
+                scene_component.global_bounds, m_level_tmx->getTileSize() / 2);
+            level_helpers::updateCellWeight(walls, grid_bound, false);
+        }
+    }
+
+    m_rooms_cache.map[index]->setWalls(walls);
+}
+
+void Level::createRoomTilemapLayers(int32_t index, const std::vector<Tmx::Layer> &layers)
+{
+    int32_t z_order = 0;
     Grid<tile_material_type::Type> tile_material_types(
         m_level_tmx->getTileSize(), m_level_tmx->getSize(), tile_material_type::NO_TYPE);
 
-    for (int32_t i = 0; i < room_group.layers.size(); ++i)
+    for (int32_t i = 0; i < layers.size(); ++i)
     {
-        auto entity_tilemap = createTileMapFromLayer(room_group.layers[i]);
+        auto entity_tilemap = createTileMapFromLayer(layers[i]);
         if (entity_tilemap.first.isValid())
         {
             component::Drawable &drawable_component
@@ -476,152 +508,58 @@ void Level::createRoom(int32_t index, const Tmx::Group &rooms_group)
                 }
             }
 
-            entities.push_back(entity_tilemap.first);
+            m_rooms_cache.entities[index]->push_back(entity_tilemap.first);
         }
     }
 
     m_rooms_cache.map[index]->setTileMaterials(tile_material_types);
-
-    for (const Tmx::ObjectGroup &object_group : room_group.object_groups)
-    {
-        if (object_group.name == "collisions")
-        {
-            std::vector<Entity> collision_entities = createRoomCollisions(object_group);
-            entities.insert(entities.end(), collision_entities.begin(), collision_entities.end());
-        }
-
-        if (object_group.name == "entities")
-        {
-            std::vector<Entity> room_entities = createRoomEntities(object_group);
-            entities.insert(entities.end(), room_entities.begin(), room_entities.end());
-        }
-
-        if (object_group.name == "entry_points")
-        {
-            std::unordered_map<Room::Side, sf::Vector2f> entry_points;
-
-            for (const Tmx::Object &entry_point_object : object_group.objects)
-                entry_points.emplace(
-                    Room::sideFromString(entry_point_object.name),
-                    entry_point_object.rect.getPosition());
-
-            m_rooms_cache.map[index]->setEntryPoints(entry_points);
-        }
-    }
-
-    m_rooms_cache.entities[index]->insert(
-        m_rooms_cache.entities[index]->end(), entities.begin(), entities.end());
-
-    if (m_rooms_cache.map[index]->getNeighbors() & Room::LEFT)
-        m_rooms_cache.entities[index]->push_back(
-            createRoomTransition(Room::LEFT, m_rooms_cache.map.transformIndex(index)));
-
-    if (m_rooms_cache.map[index]->getNeighbors() & Room::TOP)
-        m_rooms_cache.entities[index]->push_back(
-            createRoomTransition(Room::TOP, m_rooms_cache.map.transformIndex(index)));
-
-    if (m_rooms_cache.map[index]->getNeighbors() & Room::RIGHT)
-        m_rooms_cache.entities[index]->push_back(
-            createRoomTransition(Room::RIGHT, m_rooms_cache.map.transformIndex(index)));
-
-    if (m_rooms_cache.map[index]->getNeighbors() & Room::BOTTOM)
-        m_rooms_cache.entities[index]->push_back(
-            createRoomTransition(Room::BOTTOM, m_rooms_cache.map.transformIndex(index)));
-
-    // Make walls grid
-    Grid<int32_t> walls = Grid<int32_t>(
-        m_level_tmx->getTileSize() / 2,
-        vector2::mult(m_level_tmx->getTileSize(), m_level_tmx->getSize()),
-        0);
-
-    for (const Entity &entity : *m_rooms_cache.entities[index])
-    {
-        component::Scene &scene_component = entity.getComponent<component::Scene>();
-        if (scene_component.path_finder_wall)
-        {
-            sf::IntRect grid_bound = level_helpers::gridBoundsBySceneBounds(
-                scene_component.global_bounds, m_level_tmx->getTileSize() / 2);
-            level_helpers::updateCellWeight(walls, grid_bound, false);
-        }
-    }
-
-    m_rooms_cache.map[index]->setWalls(walls);
 }
 
-Entity Level::createRoomTransition(Room::Side side, const sf::Vector2i &room_coord)
+void Level::createRoomJumpBlocks(int32_t index, const Tmx::ObjectGroup &exit_blocks_object_group)
 {
-    std::unordered_map<Room::Side, sf::FloatRect> room_transtion_bounds;
+    static std::unordered_map<room_side::Side, sf::Vector2i> neighbor_rooms
+        = {{room_side::LEFT, {-1, 0}},
+           {room_side::RIGHT, {1, 0}},
+           {room_side::TOP, {0, -1}},
+           {room_side::BOTTOM, {0, 1}}};
 
-    sf::Vector2f tile_half_size = sf::Vector2f{m_level_tmx->getTileSize()} / 2.0f;
-    sf::Vector2f room_pixels_size
-        = sf::Vector2f{vector2::mult(m_level_tmx->getSize(), m_level_tmx->getTileSize())};
+    for (const Tmx::Object &exit_block_object : exit_blocks_object_group.objects)
+    {
+        if (exit_block_object.type != Tmx::Object::RECT)
+            continue;
 
-    room_transtion_bounds[Room::LEFT]
-        = {{0, tile_half_size.y}, {tile_half_size.x, room_pixels_size.y - tile_half_size.y * 2}};
+        room_side::Side side = room_side::fromString(exit_block_object.name);
 
-    room_transtion_bounds[Room::RIGHT]
-        = {{room_pixels_size.x - tile_half_size.x, tile_half_size.y},
-           {tile_half_size.x, room_pixels_size.y - tile_half_size.y * 2}};
+        Entity entity = m_world->createEntity();
 
-    room_transtion_bounds[Room::TOP]
-        = {{tile_half_size.x, 0}, {room_pixels_size.x - tile_half_size.x * 2, tile_half_size.y}};
+        component::Transform &transform_component = entity.addComponent<component::Transform>();
 
-    room_transtion_bounds[Room::BOTTOM]
-        = {{tile_half_size.x, room_pixels_size.y - tile_half_size.y},
-           {room_pixels_size.x - tile_half_size.x * 2, tile_half_size.y}};
+        component::Scene &scene_component = entity.addComponent<component::Scene>();
+        scene_component.local_bounds
+            = {{0.0f, 0.0f}, sf::Vector2f{exit_block_object.rect.getSize()}};
 
-    //    std::unordered_map<Room::Side, sf::Vector2f> target_positions;
+        component::Collision &collision_component = entity.addComponent<component::Collision>();
 
-    //    target_positions[Room::LEFT]
-    //        = {room_pixels_size.x - tile_half_size.x * 2, room_pixels_size.y / 2.0f};
+        component::Script &script_component = entity.addComponent<component::Script>();
 
-    //    target_positions[Room::RIGHT] = {tile_half_size.x * 2, room_pixels_size.y / 2.0f};
+        entity_script::RoomsJump *room_transition_script = new entity_script::RoomsJump{this};
 
-    //    target_positions[Room::TOP]
-    //        = {room_pixels_size.x / 2.0f, room_pixels_size.y - tile_half_size.y * 2};
+        room_transition_script->setSide(side);
 
-    //    target_positions[Room::BOTTOM] = {room_pixels_size.x / 2.0f, tile_half_size.y * 2};
+        sf::Vector2i target_room_coord
+            = m_rooms_cache.map.transformIndex(index) + neighbor_rooms[side];
+        room_transition_script->setRoomCoord(target_room_coord);
 
-    std::unordered_map<Room::Side, sf::Vector2i> neighbor_rooms;
+        script_component.entity_script.reset(room_transition_script);
 
-    neighbor_rooms[Room::LEFT] = {-1, 0};
-    neighbor_rooms[Room::RIGHT] = {1, 0};
-    neighbor_rooms[Room::TOP] = {0, -1};
-    neighbor_rooms[Room::BOTTOM] = {0, 1};
+        entity::set_position.emit(entity, sf::Vector2f{exit_block_object.rect.getPosition()});
 
-    Entity entity = m_world->createEntity();
-
-    component::Transform &transform_component = entity.addComponent<component::Transform>();
-    transform_component.transform.setPosition(room_transtion_bounds[side].getPosition());
-
-    component::Scene &scene_component = entity.addComponent<component::Scene>();
-    scene_component.local_bounds = sf::FloatRect{{0, 0}, room_transtion_bounds[side].getSize()};
-    scene_component.path_finder_wall = true;
-
-    component::Collision &collision_component = entity.addComponent<component::Collision>();
-    component::Script &script_component = entity.addComponent<component::Script>();
-
-    entity_script::RoomTransition *room_transition_script = new entity_script::RoomTransition{this};
-
-    room_transition_script->setSide(side);
-
-    sf::Vector2i target_room_coord = room_coord + neighbor_rooms[side];
-    room_transition_script->setRoomCoord(target_room_coord);
-
-    //    room_transition_script->setTargetPosition(target_positions[side]);
-
-    script_component.entity_script.reset(room_transition_script);
-
-    return entity;
+        m_rooms_cache.entities[index]->push_back(entity);
+    }
 }
 
-std::vector<Entity> Level::createRoomCollisions(const Tmx::ObjectGroup &collisions_object_group)
+void Level::createRoomCollisions(int32_t index, const Tmx::ObjectGroup &collisions_object_group)
 {
-    if (collisions_object_group.objects.empty())
-        return {};
-
-    std::vector<Entity> entities;
-
     for (const Tmx::Object &collision_object : collisions_object_group.objects)
     {
         if (collision_object.type != Tmx::Object::RECT)
@@ -641,19 +579,12 @@ std::vector<Entity> Level::createRoomCollisions(const Tmx::ObjectGroup &collisio
 
         entity::set_position.emit(entity, sf::Vector2f{collision_object.rect.getPosition()});
 
-        entities.push_back(entity);
+        m_rooms_cache.entities[index]->push_back(entity);
     }
-
-    return entities;
 }
 
-std::vector<Entity> Level::createRoomEntities(const Tmx::ObjectGroup &entities_object_group)
+void Level::createRoomEntities(int32_t index, const Tmx::ObjectGroup &entities_object_group)
 {
-    if (entities_object_group.objects.empty())
-        return {};
-
-    std::vector<Entity> entities;
-
     for (const Tmx::Object &entity_object : entities_object_group.objects)
     {
         if (entity_object.type != Tmx::Object::RECT)
@@ -707,11 +638,9 @@ std::vector<Entity> Level::createRoomEntities(const Tmx::ObjectGroup &entities_o
                 }
             }
 
-            entities.push_back(entity);
+            m_rooms_cache.entities[index]->push_back(entity);
         }
     }
-
-    return entities;
 }
 
 std::pair<Entity, const Tmx::Tileset *> Level::createTileMapFromLayer(const Tmx::Layer &layer)

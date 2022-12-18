@@ -5,28 +5,34 @@
 
 #include "../components/components.h"
 
-#include "../fck/input_actions_map.h"
 #include "../fck/system.h"
 
 namespace fck::system
 {
 
-class PlayerActions : public System<component::Player>
+class PlayerActions : public System<component::Player, component::Velocity>
 {
 public:
+    enum MoveDirection
+    {
+        LEFT = 1,
+        UP = 2,
+        RIGHT = 4,
+        DOWN = 8
+    };
+
     PlayerActions();
     ~PlayerActions() = default;
-
-    void setInputActions(InputActionsMap<keyboard_action::Action> *input_actions);
 
     void update(double delta_time);
 
 public: // slots
     void onActionActivated(keyboard_action::Action action);
+    void onActionDiactivated(keyboard_action::Action action);
 
 private:
-    InputActionsMap<keyboard_action::Action> *m_input_actions;
-    Id m_action_activated_conenction;
+    int32_t m_move_direction;
+    bool m_need_update_state;
 };
 
 } // namespace fck::system

@@ -31,7 +31,7 @@ std::string SpriteState::getCurrentState() const
 
 void SpriteState::setCurrentState(const std::string &state_name)
 {
-    if (!m_sprite)
+    if (!m_sprite || state_name == m_current_state)
         return;
 
     auto states_found = m_states.find(state_name);

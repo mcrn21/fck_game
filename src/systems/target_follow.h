@@ -11,8 +11,11 @@
 namespace fck::system
 {
 
-class TargetFollow
-    : public System<component::Velocity, component::Transform, component::TargetFollow>
+class TargetFollow : public System<
+                         component::Velocity,
+                         component::Transform,
+                         component::TargetFollow,
+                         component::State>
 {
 public:
     TargetFollow();

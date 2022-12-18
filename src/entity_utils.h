@@ -45,7 +45,8 @@ struct entity
 
     // sounds
     static Signal<const Entity &, const std::string &> play_sound;
-    static Signal<const Entity &> stop_sound;
+    static Signal<const Entity &, const std::string &> stop_sound;
+    static Signal<const Entity &> stop_all_sound;
 
     // other
     static Signal<const Entity &, tile_material_type::Type> set_tile_material;

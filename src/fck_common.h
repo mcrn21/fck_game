@@ -74,15 +74,15 @@ namespace entity_state
 
 enum State
 {
+    NO_STATE = 0,
+
     IDLE = 1,
     MOVE = 2,
-    BASE_ATTACK = 4,
-    ULTIMATE_ATTACK = 8,
-    DAMAGED = 16,
-    DODGE = 32,
-    DEATH = 64,
+    ATTACK = 4,
+    DAMAGED = 8,
+    DODGE = 16,
+    DEATH = 32,
 
-    ATTACK = BASE_ATTACK | ULTIMATE_ATTACK,
     NOT_AVALIBLE = ATTACK | DAMAGED | DODGE | DEATH
 };
 
@@ -91,6 +91,7 @@ State stateFromString(const std::string &string);
 
 enum Direction
 {
+    NO_DIRECTION = 0,
     LEFT = -1,
     RIGHT = 1
 };
@@ -163,6 +164,40 @@ std::string toString(Type type);
 Type fromString(const std::string &string);
 
 } // namespace tile_material_type
+
+namespace room_side
+{
+
+enum Side
+{
+    NO_SIDE = 0,
+    LEFT = 1,
+    TOP = 2,
+    RIGHT = 4,
+    BOTTOM = 8
+};
+
+std::string toString(Side side);
+Side fromString(const std::string &string);
+
+} // namespace room_side
+
+namespace room_type
+{
+
+enum Type
+{
+    NO_TYPE,
+    UNKNOW,
+    DEFAULT,
+    BOSS,
+    TRADER
+};
+
+std::string toString(Type type);
+Type fromString(const std::string &string);
+
+} // namespace room_type
 
 } // namespace fck
 

@@ -26,7 +26,7 @@ private:
     int32_t m_total;
     int32_t m_progress;
 
-    std::unique_ptr<ProgressBar> m_progress_bar;
+    ProgressBar *m_progress_bar;
 };
 
 } // namespace fck::gui

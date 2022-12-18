@@ -10,70 +10,6 @@
 namespace fck
 {
 
-std::tuple<DrawableProxyBase *, DrawableState *, DrawableAnimation *> KnowledgeBase::createDrawable(
-    const std::string &drawable_name)
-{
-    auto drawables_found = instance().m_drawables.find(drawable_name);
-    if (drawables_found == instance().m_drawables.end())
-        return {nullptr, nullptr, nullptr};
-    return drawables_found->second->create();
-}
-
-void KnowledgeBase::loadDrawablesDirectory(const std::string &dir_name)
-{
-    spdlog::info("Load drawable directory");
-
-    for (const auto &entry : std::filesystem::recursive_directory_iterator(dir_name))
-    {
-        if (entry.is_directory())
-            continue;
-
-        std::string file_name = entry.path().relative_path().string();
-        std::string drawable_name = entry.path().filename().string();
-
-        try
-        {
-            std::ifstream ifs(file_name, std::ios_base::in);
-            instance().loadDrawableFromBuffer(
-                drawable_name, std::string(std::istreambuf_iterator<char>{ifs}, {}));
-        }
-        catch (const std::exception &e)
-        {
-            spdlog::warn("Error parsing sprite file \"{}\": {}", file_name, e.what());
-        }
-    }
-}
-
-void KnowledgeBase::loadDrawablesFromDatabase(const std::string &database_name)
-{
-    sqlite3 *db = nullptr;
-
-    int32_t rc = sqlite3_open(database_name.c_str(), &db);
-
-    if (rc)
-    {
-        spdlog::error("Can't open database: {}", sqlite3_errmsg(db));
-        return;
-    }
-
-    spdlog::info("Load drawable from database");
-
-    std::string sql = "SELECT * from drawables";
-
-    char *error_message = nullptr;
-    rc = sqlite3_exec(
-        db,
-        sql.c_str(),
-        &KnowledgeBase::loadDrawablesFromDatabaseCallback,
-        &instance(),
-        &error_message);
-
-    if (rc)
-        spdlog::warn("Can't load drawables from database: {}", error_message);
-
-    sqlite3_close(db);
-}
-
 Entity KnowledgeBase::createEntity(const std::string &entity_name, World *world)
 {
     if (!world)
@@ -294,22 +230,6 @@ KnowledgeBase &KnowledgeBase::instance()
     return knowledge_base;
 }
 
-int32_t KnowledgeBase::loadDrawablesFromDatabaseCallback(
-    void *user_data, int argc, char **argv, char **column_name)
-{
-    try
-    {
-        reinterpret_cast<KnowledgeBase *>(user_data)->loadDrawableFromBuffer(
-            std::string(argv[0]), std::string(argv[1]));
-    }
-    catch (const std::exception &e)
-    {
-        spdlog::warn("Error parsing drawable properties \"{}\": {}", argv[0], e.what());
-    }
-
-    return 0;
-}
-
 int32_t KnowledgeBase::loadEntitiesFromDatabaseCallback(
     void *user_data, int argc, char **argv, char **column_name)
 {
@@ -362,22 +282,21 @@ KnowledgeBase::KnowledgeBase()
 {
 }
 
-void KnowledgeBase::loadDrawableFromBuffer(const std::string &name, const std::string &data)
+KnowledgeBase::DrawableItemBase *KnowledgeBase::loadDrawableFromTable(
+    const std::string &type_string, toml::table *table)
 {
-    toml::table table = toml::parse(data);
+    drawable_type::Type type = drawable_type::fromString(type_string);
 
-    drawable_type::Type type = drawable_type::fromString(table.at("type").as_string()->get());
-    if (type == drawable_type::NO_TYPE)
-        throw Exception{"Wrong drawable type"};
+    auto drawable_fabrics_found = m_drawable_fabrics.find(type);
+    if (drawable_fabrics_found == m_drawable_fabrics.end())
+        return nullptr;
 
-    std::unique_ptr<DrawableItemBase> drawable_item;
-    drawable_item.reset(m_drawable_fabrics[type]());
+    DrawableItemBase *drawable_item = m_drawable_fabrics[type]();
+
     if (drawable_item)
-    {
-        drawable_item->init(&table);
-        m_drawables.emplace(name, std::move(drawable_item));
-        spdlog::info("Add drawable: {}", name);
-    }
+        drawable_item->init(table);
+
+    return drawable_item;
 }
 
 void KnowledgeBase::loadEntityFromBuffer(const std::string &name, const std::string &data)

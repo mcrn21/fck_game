@@ -23,35 +23,17 @@ namespace fck
 class Room
 {
 public:
-    enum Side
-    {
-        LEFT = 1,
-        TOP = 2,
-        RIGHT = 4,
-        BOTTOM = 8
-    };
-
-    static Side sideFromString(const std::string &side_string);
-
-    enum Type
-    {
-        UNKNOW,
-        DEFAULT,
-        BOSS,
-        TRADER
-    };
-
     Room();
     ~Room() = default;
 
     int32_t getNeighbors() const;
     void setNeighbors(int32_t neighbors);
 
-    Type getType() const;
-    void setType(Type type);
+    room_type::Type getType() const;
+    void setType(room_type::Type type);
 
-    const std::unordered_map<Side, sf::Vector2f> &getEntryPoints() const;
-    void setEntryPoints(const std::unordered_map<Side, sf::Vector2f> &entry_points);
+    const std::unordered_map<room_side::Side, sf::Vector2f> &getEntryPoints() const;
+    void setEntryPoints(const std::unordered_map<room_side::Side, sf::Vector2f> &entry_points);
 
     const Grid<int32_t> &getWalls() const;
     void setWalls(const Grid<int32_t> &walls);
@@ -64,8 +46,8 @@ public:
 
 private:
     int32_t m_neighbors;
-    Type m_type;
-    std::unordered_map<Side, sf::Vector2f> m_entry_points;
+    room_type::Type m_type;
+    std::unordered_map<room_side::Side, sf::Vector2f> m_entry_points;
     Grid<int32_t> m_walls;
     Grid<tile_material_type::Type> m_tile_materials;
     bool m_open;
@@ -79,7 +61,7 @@ public:
 
     bool loadFromFile(const std::string &file_name);
 
-    void generateRoomsMap();
+    void generateRoomsMap(int32_t room_count = 30);
     void generateRoomsContent();
 
     const Vector2D<Room *> &getRoomsMap() const;
@@ -91,11 +73,12 @@ public:
 
 private:
     void createRoom(int32_t index, const Tmx::Group &rooms_group);
-    Entity createRoomTransition(Room::Side side, const sf::Vector2i &room_coord);
-    std::vector<Entity> createRoomCollisions(const Tmx::ObjectGroup &collisions_object_group);
-    std::vector<Entity> createRoomEntities(const Tmx::ObjectGroup &entities_object_group);
-    std::pair<Entity, const Tmx::Tileset *> createTileMapFromLayer(const Tmx::Layer &layer);
+    void createRoomTilemapLayers(int32_t index, const std::vector<Tmx::Layer> &layers);
+    void createRoomJumpBlocks(int32_t index, const Tmx::ObjectGroup &exit_blocks_object_group);
+    void createRoomCollisions(int32_t index, const Tmx::ObjectGroup &collisions_object_group);
+    void createRoomEntities(int32_t index, const Tmx::ObjectGroup &entities_object_group);
 
+    std::pair<Entity, const Tmx::Tileset *> createTileMapFromLayer(const Tmx::Layer &layer);
     const Tmx::Tileset *getTilesetByGid(int32_t gid);
 
 public:

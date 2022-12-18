@@ -8,7 +8,8 @@ namespace fck::gui
 
 LoadingGui::LoadingGui() : m_total{1}, m_progress{0}
 {
-    m_progress_bar.reset(Style::createLoadingProgressBar());
+    m_progress_bar = Style::createLoadingProgressBar();
+    addFrame(m_progress_bar);
 }
 
 void LoadingGui::setTotal(int32_t total)

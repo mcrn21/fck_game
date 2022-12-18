@@ -81,13 +81,15 @@ void BaseAttack::apply(const Entity &entity, const Entity &target)
     m_jump_velocity
         = sf::Vector2f(-velocity * std::cos(angle_to_point), -velocity * std::sin(angle_to_point));
 
-    entity::set_state.emit(entity, entity_state::BASE_ATTACK);
+    entity::set_state.emit(entity, entity_state::ATTACK);
 
     std::random_device rd;
     std::mt19937 mt(rd());
     std::uniform_int_distribution<int32_t> dist(0, m_attack_animations.size() - 1);
 
     entity::set_drawable_state.emit(m_entity, m_attack_animations[dist(mt)]);
+    entity::stop_all_sound.emit(m_entity);
+    entity::play_sound.emit(m_entity, entity_state::stateToString(entity_state::ATTACK));
 }
 
 void BaseAttack::update(double delta_time)
@@ -95,7 +97,11 @@ void BaseAttack::update(double delta_time)
     m_attack_function(delta_time);
 
     if (isReady())
+    {
         entity::set_state.emit(m_entity, entity_state::IDLE);
+        entity::set_drawable_state.emit(m_entity, entity_state::stateToString(entity_state::IDLE));
+        entity::stop_sound.emit(m_entity, entity_state::stateToString(entity_state::ATTACK));
+    }
 }
 
 void BaseAttack::idleAttack(double delta_time)

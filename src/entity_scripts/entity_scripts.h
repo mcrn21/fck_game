@@ -3,6 +3,6 @@
 
 #include "enemy_base.h"
 #include "player.h"
-#include "room_transition.h"
+#include "rooms_jump.h"
 
 #endif // ENTITY_SCRIPTS_NXEAWHUEDHVR_H

@@ -6,6 +6,7 @@
 #include "gui/gui_elements/frame.h"
 
 #include "fck/b2_dynamic_tree.h"
+#include "fck/event.h"
 
 #include <SFML/Graphics.hpp>
 

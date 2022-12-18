@@ -8,7 +8,7 @@
 namespace fck::system
 {
 
-class Movement : public System<component::Velocity>
+class Movement : public System<component::Velocity, component::Transform>
 {
 public:
     Movement();

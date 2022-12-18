@@ -34,7 +34,11 @@ void Stats::update(double delta_time)
         }
 
         if (stats_component.health <= 0 && state_component.state != entity_state::DEATH)
+        {
             entity::set_state.emit(entity, entity_state::DEATH);
+            entity::set_drawable_state.emit(
+                entity, entity_state::stateToString(entity_state::DEATH));
+        }
 
         if (state_component.state == entity_state::DEATH)
         {

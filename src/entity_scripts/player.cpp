@@ -33,17 +33,21 @@ void Player::updateTarget(const Entity &entity)
 
     if (!target_component.target.isValid())
     {
+        Entity new_target;
+
         for (const Entity &looked_entity : look_around_component.look_at_entities)
         {
             component::State &looked_entity_state_component
                 = looked_entity.getComponent<component::State>();
             if (looked_entity_state_component.state != entity_state::DEATH)
             {
-                spdlog::debug("Set target {}", looked_entity.getId().getIndex());
-                entity::set_target.emit(entity, looked_entity);
+                new_target = looked_entity;
                 break;
             }
         }
+
+        if (target_component.target != new_target)
+            entity::set_target.emit(entity, new_target);
     }
     else
     {
@@ -92,7 +96,6 @@ void Player::updateTarget(const Entity &entity)
 
                 if (looked_entity_state_component.state != entity_state::DEATH)
                 {
-                    spdlog::debug("Change target {}", looked_entity.getId().getIndex());
                     entity::set_target.emit(entity, looked_entity);
                     break;
                 }

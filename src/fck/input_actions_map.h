@@ -30,6 +30,7 @@ public:
 
 public:
     Signal<T> action_activated;
+    Signal<T> action_diactivated;
 
 private:
     std::unordered_map<T, InputAction> m_input_actions;
@@ -115,19 +116,24 @@ void InputActionsMap<T>::event(Event *event)
 
             if (sfml_event->get().type == sf::Event::KeyReleased)
             {
-                if (it.second.type == InputAction::PRESS_ONCE
-                    || it.second.type == InputAction::HOLD)
+                if (it.second.type == InputAction::PRESS_ONCE)
                 {
                     it.second.caused = false;
                     it.second.activated = false;
                 }
 
+                if (it.second.type == InputAction::HOLD)
+                {
+                    it.second.caused = false;
+                    it.second.activated = false;
+                    action_diactivated.emit(it.first);
+                }
+
                 if (it.second.type == InputAction::RELEASE_ONCE)
                 {
                     it.second.activated = true;
-                    action_activated.emit(it.first);
                     it.second.activated = false;
-                    continue;
+                    action_activated.emit(it.first);
                 }
             }
         }
