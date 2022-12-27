@@ -5,13 +5,13 @@ namespace fck
 
 std::vector<std::string> entity::getDrawableStates(const Entity &entity)
 {
-    if (entity.hasComponent<component::DrawableAnimation>())
+    if (entity.has<component::DrawableAnimation>())
     {
-        return entity.getComponent<component::DrawableAnimation>().animation->getStates();
+        return entity.get<component::DrawableAnimation>().animation->getStates();
     }
-    else if (entity.hasComponent<component::DrawableState>())
+    else if (entity.has<component::DrawableState>())
     {
-        return entity.getComponent<component::DrawableState>().state->getStates();
+        return entity.get<component::DrawableState>().state->getStates();
     }
 
     return {};

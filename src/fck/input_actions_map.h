@@ -1,9 +1,10 @@
 #ifndef INPUTACTIONS_GLASEISJUVEL_H
 #define INPUTACTIONS_GLASEISJUVEL_H
 
-#include "event_handler.h"
 #include "input_action.h"
 #include "sigslot.h"
+
+#include <SFML/Window/Event.hpp>
 
 #include <functional>
 #include <memory>
@@ -13,10 +14,10 @@ namespace fck
 {
 
 template<typename T>
-class InputActionsMap : public EventHandler
+class InputActionsMap
 {
 public:
-    InputActionsMap(const std::string &name = std::string{});
+    InputActionsMap();
     ~InputActionsMap() = default;
 
     InputAction &operator[](const T &id);
@@ -26,7 +27,7 @@ public:
 
     bool isActive(const T &id) const;
 
-    void event(Event *event);
+    void event(const sf::Event &e);
 
 public:
     Signal<T> action_activated;
@@ -37,8 +38,7 @@ private:
 };
 
 template<typename T>
-InputActionsMap<T>::InputActionsMap(const std::string &name)
-    : EventHandler{{sf::Event::KeyPressed, sf::Event::KeyReleased}, {}, name}
+InputActionsMap<T>::InputActionsMap()
 {
 }
 
@@ -76,18 +76,19 @@ bool InputActionsMap<T>::isActive(const T &id) const
 }
 
 template<typename T>
-void InputActionsMap<T>::event(Event *event)
+void InputActionsMap<T>::event(const sf::Event &e)
 {
-    SfmlEvent *sfml_event = static_cast<SfmlEvent *>(event);
+    if (e.type != sf::Event::KeyPressed && e.type != sf::Event::KeyReleased)
+        return;
 
     uint64_t mask = 0;
-    mask ^= sfml_event->get().key.code << 1;
+    mask ^= e.key.code << 1;
 
     for (auto &it : m_input_actions)
     {
         if (it.second.mask == mask)
         {
-            if (sfml_event->get().type == sf::Event::KeyPressed)
+            if (e.type == sf::Event::KeyPressed)
             {
                 if (it.second.type == InputAction::PRESS_ONCE && !it.second.caused
                     && !it.second.activated)
@@ -114,7 +115,7 @@ void InputActionsMap<T>::event(Event *event)
                 }
             }
 
-            if (sfml_event->get().type == sf::Event::KeyReleased)
+            if (e.type == sf::Event::KeyReleased)
             {
                 if (it.second.type == InputAction::PRESS_ONCE)
                 {

@@ -65,7 +65,7 @@ void Entity::destroy()
 
 void Entity::removeAllComponents()
 {
-    getWorld()->m_entity_attributes.component_storage.removeAllComponents(*this);
+    getWorld()->m_entity_attributes.component_storage.removeAll(*this);
 }
 
 ComponentsFilter Entity::getComponentFilter() const
@@ -83,25 +83,25 @@ bool Entity::operator!=(const Entity &entity) const
     return !operator==(entity);
 }
 
-void Entity::addComponent(ComponentBase *component, TypeId component_type_id)
+void Entity::add(ComponentBase *component, TypeId component_type_id)
 {
-    getWorld()->m_entity_attributes.component_storage.addComponent(
+    getWorld()->m_entity_attributes.component_storage.add(
         *this, component, component_type_id);
 }
 
-void Entity::removeComponent(TypeId component_type_id)
+void Entity::remove(TypeId component_type_id)
 {
-    getWorld()->m_entity_attributes.component_storage.removeComponent(*this, component_type_id);
+    getWorld()->m_entity_attributes.component_storage.remove(*this, component_type_id);
 }
 
-ComponentBase *Entity::getComponent(TypeId component_type_id) const
+ComponentBase *Entity::get(TypeId component_type_id) const
 {
-    return getWorld()->m_entity_attributes.component_storage.getComponent(*this, component_type_id);
+    return getWorld()->m_entity_attributes.component_storage.get(*this, component_type_id);
 }
 
-bool Entity::hasComponent(TypeId component_type_id) const
+bool Entity::has(TypeId component_type_id) const
 {
-    return getWorld()->m_entity_attributes.component_storage.hasComponent(*this, component_type_id);
+    return getWorld()->m_entity_attributes.component_storage.has(*this, component_type_id);
 }
 
 } // namespace fck

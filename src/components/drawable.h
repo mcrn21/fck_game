@@ -75,7 +75,7 @@ struct KnowledgeBase::ComponentItem<component::Drawable> : ComponentItemBase
 
     void create(Entity &entity)
     {
-        component::Drawable &component = entity.addComponent<component::Drawable>();
+        component::Drawable &component = entity.add<component::Drawable>();
 
         if (drawable_item)
         {
@@ -94,14 +94,14 @@ struct KnowledgeBase::ComponentItem<component::Drawable> : ComponentItemBase
             if (drawable_state)
             {
                 component::DrawableState &drawable_state_component
-                    = entity.addComponent<component::DrawableState>();
+                    = entity.add<component::DrawableState>();
                 drawable_state_component.state.reset(drawable_state);
             }
 
             if (drawable_animation)
             {
                 component::DrawableAnimation &drawable_animation_component
-                    = entity.addComponent<component::DrawableAnimation>();
+                    = entity.add<component::DrawableAnimation>();
                 drawable_animation_component.animation.reset(drawable_animation);
             }
         }

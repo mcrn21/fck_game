@@ -1,7 +1,8 @@
 #ifndef ENEMYBASE_PLHQVLCQKKCM_H
 #define ENEMYBASE_PLHQVLCQKKCM_H
 
-#include "../entity_script_base.h"
+#include "entity_script_base.h"
+
 #include "../knowledge_base.h"
 
 #include "toml++/toml.h"

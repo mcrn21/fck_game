@@ -2,7 +2,8 @@
 #define BASEATTACK_VFWOWSSGQALK_H
 
 #include "../knowledge_base.h"
-#include "../skill_base.h"
+
+#include "../skills/skill_base.h"
 
 #include "../fck/entity.h"
 #include "../fck/utilities.h"

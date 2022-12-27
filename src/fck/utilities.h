@@ -58,6 +58,11 @@ struct BoolProxy
         return value == true;
     }
 
+    operator bool() const
+    {
+        return value == true;
+    }
+
     bool value = false;
 };
 
@@ -112,6 +117,12 @@ template<typename T>
 sf::Vector2<T> div(const sf::Vector2<T> &v1, const sf::Vector2<T> &v2)
 {
     return {v1.x / v2.x, v1.y / v2.y};
+}
+
+template<typename T>
+sf::Vector2<T> round(const sf::Vector2<T> &vector)
+{
+    return sf::Vector2<T>{std::round(vector.x), std::round(vector.y)};
 }
 
 sf::Vector2i tomlArrayToVector2i(toml::array *array);

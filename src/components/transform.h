@@ -52,7 +52,7 @@ struct KnowledgeBase::ComponentItem<component::Transform> : ComponentItemBase
 
     void create(Entity &entity)
     {
-        component::Transform &component = entity.addComponent<component::Transform>();
+        component::Transform &component = entity.add<component::Transform>();
 
         component.transform.setPosition(position);
         component.transform.setRotation(sf::degrees(rotation));

@@ -26,18 +26,6 @@ private:
     bool m_accepted;
 };
 
-class SfmlEvent : public Event
-{
-public:
-    SfmlEvent(const sf::Event &event);
-    ~SfmlEvent() = default;
-
-    const sf::Event &get() const;
-
-private:
-    sf::Event m_event;
-};
-
 class TaskEvent : public Event
 {
 public:

@@ -35,7 +35,7 @@ struct KnowledgeBase::ComponentItem<component::Target> : ComponentItemBase
 
     void create(Entity &entity)
     {
-        component::Target &component = entity.addComponent<component::Target>();
+        component::Target &component = entity.add<component::Target>();
     }
 };
 

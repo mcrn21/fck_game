@@ -8,6 +8,7 @@
 #include "fck/grid.h"
 #include "fck/sigslot.h"
 #include "fck/tmx.h"
+#include "fck/utilities.h"
 #include "fck/vector_2d.h"
 #include "fck/world.h"
 
@@ -61,8 +62,9 @@ public:
 
     bool loadFromFile(const std::string &file_name);
 
-    void generateRoomsMap(int32_t room_count = 30);
-    void generateRoomsContent();
+    void createRoomsMap(const Vector2D<BoolProxy> &rooms_map);
+    void createRandomRoomsMap(int32_t room_count = 30);
+    void createRoomsContent();
 
     const Vector2D<Room *> &getRoomsMap() const;
     const sf::Vector2i &getFirstRoomCoord() const;
@@ -88,7 +90,6 @@ public:
 private:
     World *m_world;
     b2::DynamicTree<Entity> *m_scene_tree;
-
     std::unique_ptr<Tmx> m_level_tmx;
 
     struct RoomsCache
@@ -103,6 +104,7 @@ private:
     } m_rooms_cache;
 
     sf::Vector2i m_current_room_coord;
+
     Entity m_player_entity;
 };
 

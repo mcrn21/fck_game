@@ -28,8 +28,8 @@ void ViewMovement::update(double delta_time)
 {
     for (Entity &entity : getEntities())
     {
-        component::Transform &transform_component = entity.getComponent<component::Transform>();
-        component::Player &player_component = entity.getComponent<component::Player>();
+        component::Transform &transform_component = entity.get<component::Transform>();
+        component::Player &player_component = entity.get<component::Player>();
 
         if (player_component.view_hard_set_position)
         {

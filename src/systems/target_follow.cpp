@@ -27,10 +27,10 @@ void TargetFollow::update(double delta_time)
     for (Entity &entity : getEntities())
     {
         component::TargetFollow &target_follow_component
-            = entity.getComponent<component::TargetFollow>();
-        component::Transform &transform_component = entity.getComponent<component::Transform>();
-        component::Velocity &velocity_component = entity.getComponent<component::Velocity>();
-        component::State &state_component = entity.getComponent<component::State>();
+            = entity.get<component::TargetFollow>();
+        component::Transform &transform_component = entity.get<component::Transform>();
+        component::Velocity &velocity_component = entity.get<component::Velocity>();
+        component::State &state_component = entity.get<component::State>();
 
         if (!target_follow_component.follow || !m_walls)
         {

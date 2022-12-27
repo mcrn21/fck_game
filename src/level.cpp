@@ -1,16 +1,14 @@
 #include "level.h"
-
 #include "entity_utils.h"
 
 #include "components/components.h"
-
 #include "entity_scripts/entity_scripts.h"
 
 #include "fck/event_dispatcher.h"
 #include "fck/noise.h"
 #include "fck/tile_map.h"
-#include "fck/utilities.h"
 
+#include <queue>
 #include <random>
 
 namespace fck
@@ -76,7 +74,7 @@ void updateCellWeight(Grid<int32_t> &grid, const sf::IntRect &bounds, bool reduc
 
 } // namespace level_helpers
 
-Room::Room() : m_neighbors{0}, m_type{room_type::UNKNOW}, m_open{false}
+Room::Room() : m_neighbors{0}, m_type{room_type::DEFAULT}, m_open{false}
 {
 }
 
@@ -158,8 +156,56 @@ bool Level::loadFromFile(const std::string &file_name)
     return m_level_tmx->loadFromFile(file_name);
 }
 
-void Level::generateRoomsMap(int32_t room_count)
+void Level::createRoomsMap(const Vector2D<BoolProxy> &rooms_map)
 {
+    m_rooms_cache.clear();
+
+    m_rooms_cache.map.resize(rooms_map.getSize2D(), nullptr);
+
+    for (int32_t i = 0; i < rooms_map.getSize(); ++i)
+    {
+        if (rooms_map.at(i))
+            m_rooms_cache.map[i] = new Room{};
+    }
+
+    sf::Vector2i min_room_coord = {-1, -1};
+
+    for (int32_t i = 0; i < m_rooms_cache.map.getSize(); ++i)
+    {
+        if (!m_rooms_cache.map[i])
+            continue;
+
+        auto coord = m_rooms_cache.map.transformIndex(i);
+
+        if (min_room_coord.x == -1)
+            min_room_coord = coord;
+
+        int32_t neighbors = m_rooms_cache.map[i]->getNeighbors();
+
+        if (coord.x - 1 >= 0 && m_rooms_cache.map.getData({coord.x - 1, coord.y}))
+            neighbors |= room_side::LEFT;
+
+        if (coord.x + 1 < m_rooms_cache.map.getSize2D().x
+            && m_rooms_cache.map.getData({coord.x + 1, coord.y}))
+            neighbors |= room_side::RIGHT;
+
+        if (coord.y - 1 >= 0 && m_rooms_cache.map.getData({coord.x, coord.y - 1}))
+            neighbors |= room_side::TOP;
+
+        if (coord.y + 1 < m_rooms_cache.map.getSize2D().y
+            && m_rooms_cache.map.getData({coord.x, coord.y + 1}))
+            neighbors |= room_side::BOTTOM;
+
+        m_rooms_cache.map[i]->setNeighbors(neighbors);
+    }
+
+    m_rooms_cache.m_first_room_coord = min_room_coord;
+}
+
+void Level::createRandomRoomsMap(int32_t room_count)
+{
+    m_rooms_cache.clear();
+
     sf::Vector2i noise_map_size = {100, 100};
 
     std::random_device dev;
@@ -269,7 +315,6 @@ void Level::generateRoomsMap(int32_t room_count)
         spdlog::info("Room count: {}", coords.size());
     }
 
-    m_rooms_cache.clear();
     m_rooms_cache.map.resize(
         {map_upper_bound.x - map_lower_bound.x + 1, map_upper_bound.y - map_lower_bound.y + 1},
         nullptr);
@@ -314,7 +359,7 @@ void Level::generateRoomsMap(int32_t room_count)
     m_rooms_cache.m_first_room_coord = min_room_coord;
 }
 
-void Level::generateRoomsContent()
+void Level::createRoomsContent()
 {
     m_rooms_cache.entities.resize(m_rooms_cache.map.getSize2D(), nullptr);
 
@@ -378,7 +423,7 @@ void Level::enableRoom(const sf::Vector2i &coord, const sf::Vector2f &target_pos
         m_scene_tree->querry(bounds, [this](int32_t proxy_id) {
             Entity entity = m_scene_tree->getUserData(proxy_id);
 
-            if (!entity.hasComponent<component::Player>())
+            if (!entity.has<component::Player>())
                 m_rooms_cache.entities.getData(m_current_room_coord)->push_back(entity);
             else
                 m_player_entity = entity;
@@ -395,8 +440,7 @@ void Level::enableRoom(const sf::Vector2i &coord, const sf::Vector2f &target_pos
              if (m_player_entity.isValid())
              {
                  entity::set_position.emit(m_player_entity, target_position);
-                 component::Player &player_component
-                     = m_player_entity.getComponent<component::Player>();
+                 component::Player &player_component = m_player_entity.get<component::Player>();
                  player_component.view_hard_set_position = true;
              }
 
@@ -463,7 +507,7 @@ void Level::createRoom(int32_t index, const Tmx::Group &rooms_group)
 
     for (const Entity &entity : *m_rooms_cache.entities[index])
     {
-        component::Scene &scene_component = entity.getComponent<component::Scene>();
+        component::Scene &scene_component = entity.get<component::Scene>();
         if (scene_component.path_finder_wall)
         {
             sf::IntRect grid_bound = level_helpers::gridBoundsBySceneBounds(
@@ -484,10 +528,11 @@ void Level::createRoomTilemapLayers(int32_t index, const std::vector<Tmx::Layer>
     for (int32_t i = 0; i < layers.size(); ++i)
     {
         auto entity_tilemap = createTileMapFromLayer(layers[i]);
+
         if (entity_tilemap.first.isValid())
         {
             component::Drawable &drawable_component
-                = entity_tilemap.first.getComponent<component::Drawable>();
+                = entity_tilemap.first.get<component::Drawable>();
             drawable_component.z_order = z_order++;
 
             // set tile materials
@@ -532,15 +577,15 @@ void Level::createRoomJumpBlocks(int32_t index, const Tmx::ObjectGroup &exit_blo
 
         Entity entity = m_world->createEntity();
 
-        component::Transform &transform_component = entity.addComponent<component::Transform>();
+        component::Transform &transform_component = entity.add<component::Transform>();
 
-        component::Scene &scene_component = entity.addComponent<component::Scene>();
+        component::Scene &scene_component = entity.add<component::Scene>();
         scene_component.local_bounds
             = {{0.0f, 0.0f}, sf::Vector2f{exit_block_object.rect.getSize()}};
 
-        component::Collision &collision_component = entity.addComponent<component::Collision>();
+        component::Collision &collision_component = entity.add<component::Collision>();
 
-        component::Script &script_component = entity.addComponent<component::Script>();
+        component::Script &script_component = entity.add<component::Script>();
 
         entity_script::RoomsJump *room_transition_script = new entity_script::RoomsJump{this};
 
@@ -567,14 +612,14 @@ void Level::createRoomCollisions(int32_t index, const Tmx::ObjectGroup &collisio
 
         Entity entity = m_world->createEntity();
 
-        component::Transform &transform_component = entity.addComponent<component::Transform>();
+        component::Transform &transform_component = entity.add<component::Transform>();
 
-        component::Scene &scene_component = entity.addComponent<component::Scene>();
+        component::Scene &scene_component = entity.add<component::Scene>();
         scene_component.local_bounds
             = {{0.0f, 0.0f}, sf::Vector2f{collision_object.rect.getSize()}};
         scene_component.path_finder_wall = true;
 
-        component::Collision &collision_component = entity.addComponent<component::Collision>();
+        component::Collision &collision_component = entity.add<component::Collision>();
         collision_component.wall = true;
 
         entity::set_position.emit(entity, sf::Vector2f{collision_object.rect.getPosition()});
@@ -647,14 +692,14 @@ std::pair<Entity, const Tmx::Tileset *> Level::createTileMapFromLayer(const Tmx:
 {
     Entity entity = m_world->createEntity();
 
-    component::Transform &transform_component = entity.addComponent<component::Transform>();
+    component::Transform &transform_component = entity.add<component::Transform>();
 
-    component::Scene &scene_component = entity.addComponent<component::Scene>();
+    component::Scene &scene_component = entity.add<component::Scene>();
     scene_component.local_bounds
         = {{0.0f, 0.0f},
            sf::Vector2f{vector2::mult(m_level_tmx->getSize(), m_level_tmx->getTileSize())}};
 
-    component::Drawable &drawable_component = entity.addComponent<component::Drawable>();
+    component::Drawable &drawable_component = entity.add<component::Drawable>();
 
     int32_t gid = 0;
 
@@ -710,11 +755,21 @@ const Tmx::Tileset *Level::getTilesetByGid(int32_t gid)
 void Level::RoomsCache::clear()
 {
     for (int32_t i = 0; i < map.getSize(); ++i)
-        delete map[i];
+    {
+        if (map[i])
+            delete map[i];
+    }
     map.clear();
 
     for (int32_t i = 0; i < entities.getSize(); ++i)
-        delete entities[i];
+    {
+        if (entities[i])
+        {
+            for (Entity &entity : *entities[i])
+                entity.destroy();
+            delete entities[i];
+        }
+    }
     entities.clear();
 
     m_first_room_coord = {0, 0};

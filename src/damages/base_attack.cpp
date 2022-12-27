@@ -31,7 +31,7 @@ void BaseAttack::update(double delta_time)
 
     if (m_first_update)
     {
-        component::Stats &stats_component = getEntity().getComponent<component::Stats>();
+        component::Stats &stats_component = getEntity().get<component::Stats>();
         stats_component.damage = m_damage;
 
         //        if (source().isValid())
@@ -43,7 +43,7 @@ void BaseAttack::update(double delta_time)
         //            }
         //        }
 
-        component::State &state_component = getEntity().getComponent<component::State>();
+        component::State &state_component = getEntity().get<component::State>();
         if (!(entity_state::ATTACK & state_component.state))
         {
             entity::set_state.emit(getEntity(), entity_state::DAMAGED);
@@ -55,7 +55,7 @@ void BaseAttack::update(double delta_time)
         m_first_update = false;
     }
 
-    component::Velocity &velocity_component = getEntity().getComponent<component::Velocity>();
+    component::Velocity &velocity_component = getEntity().get<component::Velocity>();
 
     if (getElapsed() >= m_rebounce_interval.first && getElapsed() <= m_rebounce_interval.second)
     {
@@ -65,7 +65,7 @@ void BaseAttack::update(double delta_time)
 
     velocity_component.velocity = {};
 
-    component::State &state_component = getEntity().getComponent<component::State>();
+    component::State &state_component = getEntity().get<component::State>();
     if (state_component.state == entity_state::DAMAGED)
     {
         entity::set_state.emit(getEntity(), entity_state::IDLE);

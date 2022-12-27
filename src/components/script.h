@@ -1,7 +1,7 @@
 #ifndef SCRIPT_ADTFMKLTPCQP_H
 #define SCRIPT_ADTFMKLTPCQP_H
 
-#include "../entity_script_base.h"
+#include "../entity_scripts/entity_script_base.h"
 #include "../knowledge_base.h"
 
 #include <memory>
@@ -35,7 +35,7 @@ struct KnowledgeBase::ComponentItem<component::Script> : ComponentItemBase
 
     void create(Entity &entity)
     {
-        component::Script &component = entity.addComponent<component::Script>();
+        component::Script &component = entity.add<component::Script>();
 
         component.entity_script.reset(KnowledgeBase::createEntityScript(entity_script));
     }

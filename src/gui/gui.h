@@ -1,9 +1,17 @@
-#ifndef GUI_OICKSSGHXCZI_H
-#define GUI_OICKSSGHXCZI_H
+#ifndef GUI_H
+#define GUI_H
 
-#include "level_gui.h"
-#include "loading_gui.h"
-#include "main_menu_gui.h"
-#include "splashscreen_gui.h"
+#include "button.h"
+#include "dialog.h"
+#include "label.h"
+#include "main_widget.h"
+#include "minimap.h"
+#include "widget.h"
+#include "widget_theme.h"
 
-#endif // GUIS_OICKSSGHXCZI_H
+#include "game_state_widgets/level_widget.h"
+#include "game_state_widgets/loading_widget.h"
+#include "game_state_widgets/main_menu_widget.h"
+#include "game_state_widgets/splash_widget.h"
+
+#endif // GUI_H

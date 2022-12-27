@@ -19,15 +19,15 @@ public:
     ComponentStorage &operator=(const ComponentStorage &) = delete;
     ComponentStorage &operator=(ComponentStorage &&) = delete;
 
-    void addComponent(Entity &entity, ComponentBase *component, TypeId component_type_id);
-    void removeComponent(Entity &entity, TypeId component_type_id);
-    void removeAllComponents(Entity &entity);
+    void add(Entity &entity, ComponentBase *component, TypeId component_type_id);
+    void remove(Entity &entity, TypeId component_type_id);
+    void removeAll(Entity &entity);
 
-    ComponentBase *getComponent(const Entity &entity, TypeId component_type_id) const;
+    ComponentBase *get(const Entity &entity, TypeId component_type_id) const;
     ComponentsFilter getComponentsFilter(const Entity &entity) const;
-    std::vector<ComponentBase *> getComponents(const Entity &entity) const;
+    std::vector<ComponentBase *> getAll(const Entity &entity) const;
 
-    bool hasComponent(const Entity &entity, TypeId component_type_id) const;
+    bool has(const Entity &entity, TypeId component_type_id) const;
 
     void resize(int32_t size);
     void clear();

@@ -89,7 +89,7 @@ private:
     {
         struct Attribute
         {
-            bool enabled;
+            bool enabled = false;
             std::vector<bool> systems;
         };
 

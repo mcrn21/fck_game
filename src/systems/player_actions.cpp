@@ -15,10 +15,10 @@ void PlayerActions::update(double delta_time)
 {
     for (Entity &entity : getEntities())
     {
-        component::Velocity &velocity_component = entity.getComponent<component::Velocity>();
+        component::Velocity &velocity_component = entity.get<component::Velocity>();
         velocity_component.velocity = {0.0f, 0.0f};
 
-        component::State &state_component = entity.getComponent<component::State>();
+        component::State &state_component = entity.get<component::State>();
         if (entity_state::NOT_AVALIBLE & state_component.state)
             continue;
 
@@ -77,8 +77,8 @@ void PlayerActions::onActionActivated(keyboard_action::Action action)
 
     for (Entity &entity : getEntities())
     {
-        component::Player &player_component = entity.getComponent<component::Player>();
-        component::Skills &skills_component = entity.getComponent<component::Skills>();
+        component::Player &player_component = entity.get<component::Player>();
+        component::Skills &skills_component = entity.get<component::Skills>();
 
         if (action == keyboard_action::CHANGE_TARGET)
             player_component.need_change_target = true;

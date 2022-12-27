@@ -19,7 +19,7 @@ void Movement::update(double delta_time)
     for (Entity &entity : getEntities())
     {
         component::Velocity &velocity_component
-            = entity.getComponent<component::Velocity>();
+            = entity.get<component::Velocity>();
 
         if (vector2::isValid(velocity_component.velocity))
         {

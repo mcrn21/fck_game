@@ -53,7 +53,7 @@ struct KnowledgeBase::ComponentItem<component::Scene> : ComponentItemBase
 
     void create(Entity &entity)
     {
-        component::Scene &component = entity.addComponent<component::Scene>();
+        component::Scene &component = entity.add<component::Scene>();
 
         component.local_bounds = local_bounds;
         component.global_bounds = local_bounds;

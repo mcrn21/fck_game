@@ -14,7 +14,7 @@ void Script::update(double delta_time)
     for (Entity &entity : getEntities())
     {
         component::Script &script_component
-            = entity.getComponent<component::Script>();
+            = entity.get<component::Script>();
         if (script_component.entity_script)
             script_component.entity_script->update(entity, delta_time);
     }

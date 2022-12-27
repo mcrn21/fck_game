@@ -126,6 +126,9 @@ void World::refresh()
     // go through all the activated entities from last call to refresh
     for (auto &entity : m_entity_cache.enabled)
     {
+        if (!entity.isValid())
+            continue;
+
         auto &attribute = m_entity_attributes.attributes[entity.getId().getIndex()];
         attribute.enabled = true;
 
@@ -158,6 +161,9 @@ void World::refresh()
     // go through all the deactivated entities from last call to refresh
     for (auto &entity : m_entity_cache.disabled)
     {
+        if (!entity.isValid())
+            continue;
+
         auto &attribute = m_entity_attributes.attributes[entity.getId().getIndex()];
         attribute.enabled = false;
 
@@ -182,13 +188,16 @@ void World::refresh()
     // go through all the killed entities from last call to refresh
     for (auto &entity : m_entity_cache.destroyed)
     {
+        if (!entity.isValid())
+            continue;
+
         entity_destroyed.emit(entity);
 
         m_entity_cache.alive.erase(
             std::remove(m_entity_cache.alive.begin(), m_entity_cache.alive.end(), entity),
             m_entity_cache.alive.end());
 
-        m_entity_attributes.component_storage.removeAllComponents(entity);
+        m_entity_attributes.component_storage.removeAll(entity);
         m_entity_id_storage.destroy(entity.getId());
     }
 

@@ -1,9 +1,9 @@
 #ifndef KNOWLEDGEBASE_TFUTPCIFHOBA_H
 #define KNOWLEDGEBASE_TFUTPCIFHOBA_H
 
-#include "entity_script_base.h"
+#include "entity_scripts/entity_script_base.h"
 #include "fck_common.h"
-#include "skill_base.h"
+#include "skills/skill_base.h"
 
 #include "fck/common.h"
 #include "fck/drawable_animation.h"
@@ -239,7 +239,7 @@ struct KnowledgeBase::DrawableItem<sf::Sprite, SpriteState, SpriteAnimation> : D
     void init(toml::table *table)
     {
         std::string texture_name = table->at("texture").as_string()->get();
-        texture = ResourceCache::getResource<sf::Texture>(texture_name);
+        texture = ResourceCache::get<sf::Texture>(texture_name);
         if (!texture)
             throw Exception{fmt::format("Texture not found: {}", texture_name)};
 

@@ -40,7 +40,7 @@ struct KnowledgeBase::ComponentItem<component::State> : ComponentItemBase
 
     void create(Entity &entity)
     {
-        component::State &component = entity.addComponent<component::State>();
+        component::State &component = entity.add<component::State>();
 
         component.state = state;
         component.direction = direction;

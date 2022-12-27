@@ -1,7 +1,7 @@
 #ifndef BASEATTACK_MOWQSSIUNMOR_H
 #define BASEATTACK_MOWQSSIUNMOR_H
 
-#include "../damage_base.h"
+#include "../damages/damage_base.h"
 
 #include <SFML/Graphics.hpp>
 

@@ -34,9 +34,9 @@ Entity KnowledgeBase::createPlayer(const std::string &entity_name, World *world)
 {
     Entity entity = createEntity(entity_name, world);
 
-    component::Player &player_component = entity.addComponent<component::Player>();
+    component::Player &player_component = entity.add<component::Player>();
 
-    component::Type &type_component = entity.addComponent<component::Type>();
+    component::Type &type_component = entity.add<component::Type>();
     type_component.type = entity_type::PLAYER;
 
     return entity;

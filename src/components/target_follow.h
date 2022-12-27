@@ -49,7 +49,7 @@ struct KnowledgeBase::ComponentItem<component::TargetFollow> : ComponentItemBase
 
     void create(Entity &entity)
     {
-        component::TargetFollow &component = entity.addComponent<component::TargetFollow>();
+        component::TargetFollow &component = entity.add<component::TargetFollow>();
 
         component.min_distance = min_distance;
     }

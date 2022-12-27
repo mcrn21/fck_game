@@ -68,7 +68,7 @@ void RoomsJump::onEntityEnabled(const Entity &entity)
 
 void RoomsJump::onEntityCollided(const Entity &entity, const Entity &other)
 {
-    if (!other.isValid() || !other.hasComponent<component::Player>())
+    if (!other.isValid() || !other.has<component::Player>())
         return;
 
     if (!m_used)

@@ -11,11 +11,11 @@ Render::Render(b2::DynamicTree<Entity> *tree) : m_tree{tree}
 
 void Render::moveEntity(const Entity &entity, const sf::Vector2f &offset)
 {
-    component::Drawable &drawable_component = entity.getComponent<component::Drawable>();
+    component::Drawable &drawable_component = entity.get<component::Drawable>();
     if (!drawable_component.proxy)
         return;
 
-    component::Transform &transform_component = entity.getComponent<component::Transform>();
+    component::Transform &transform_component = entity.get<component::Transform>();
 
     if (drawable_component.z_order_fill_y_coordinate)
         drawable_component.z_order = transform_component.transform.getPosition().y + Z_ORDER;
@@ -30,14 +30,14 @@ void Render::moveEntity(const Entity &entity, const sf::Vector2f &offset)
 
 void Render::onEntityAdded(Entity &entity)
 {
-    component::Drawable &drawable_component = entity.getComponent<component::Drawable>();
+    component::Drawable &drawable_component = entity.get<component::Drawable>();
     drawable_component.tree_id = m_tree->createProxy(drawable_component.global_bounds, entity);
     drawable_component.tree = m_tree;
 }
 
 void Render::onEntityRemoved(Entity &entity)
 {
-    component::Drawable &drawable_component = entity.getComponent<component::Drawable>();
+    component::Drawable &drawable_component = entity.get<component::Drawable>();
     m_tree->destroyProxy(drawable_component.tree_id);
 }
 

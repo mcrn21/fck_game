@@ -38,10 +38,10 @@ void Collision::update(double delta_time)
 {
     for (Entity &entity : getEntities())
     {
-        component::Scene &scene_component = entity.getComponent<component::Scene>();
-        component::Velocity &velocity_component = entity.getComponent<component::Velocity>();
-        component::Transform &transform_component = entity.getComponent<component::Transform>();
-        component::Collision &collision_component = entity.getComponent<component::Collision>();
+        component::Scene &scene_component = entity.get<component::Scene>();
+        component::Velocity &velocity_component = entity.get<component::Velocity>();
+        component::Transform &transform_component = entity.get<component::Transform>();
+        component::Collision &collision_component = entity.get<component::Collision>();
 
         if (!vector2::isValid(velocity_component.velocity))
             continue;
@@ -68,14 +68,14 @@ void Collision::update(double delta_time)
                 Entity other = scene_component.tree->getUserData(id);
                 if (other != entity)
                 {
-                    if (!other.hasComponent<component::Collision>())
+                    if (!other.has<component::Collision>())
                         return true;
 
                     component::Collision &other_collision_component
-                        = other.getComponent<component::Collision>();
+                        = other.get<component::Collision>();
 
                     collisions::AABB other_aabb{
-                        other.getComponent<component::Scene>().global_bounds};
+                        other.get<component::Scene>().global_bounds};
                     other_aabb.half += scene_component.global_bounds.getSize() / 2.0f;
 
                     auto hit = other_aabb.intersectSegment(position, delta);

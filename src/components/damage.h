@@ -1,7 +1,7 @@
 #ifndef DAMAGE_PDRYABUEXDAD_H
 #define DAMAGE_PDRYABUEXDAD_H
 
-#include "../damage_base.h"
+#include "../damages/damage_base.h"
 #include "../knowledge_base.h"
 
 #include <memory>
@@ -29,7 +29,7 @@ struct KnowledgeBase::ComponentItem<component::Damage> : ComponentItemBase
 
     void create(Entity &entity)
     {
-        component::Damage &component = entity.addComponent<component::Damage>();
+        component::Damage &component = entity.add<component::Damage>();
     }
 };
 

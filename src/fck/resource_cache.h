@@ -15,11 +15,11 @@ class ResourceCache
 {
 public:
     template<typename T>
-    static T *getResource(const std::string &resource_name);
+    static T *get(const std::string &resource_name);
     template<typename T>
-    static void addResource(const std::string &resource_name, T *resource);
+    static void add(const std::string &resource_name, T *resource);
     template<typename T>
-    static void removeResource(const std::string &resource_name);
+    static void remove(const std::string &resource_name);
 
     template<typename T, typename... Args>
     static T *loadFromFile(const std::string &resource_name, Args &&...args);
@@ -52,7 +52,7 @@ private:
 };
 
 template<typename T>
-T *ResourceCache::getResource(const std::string &resource_name)
+T *ResourceCache::get(const std::string &resource_name)
 {
     Cache<T> *c = instance().cache<T>(false);
     if (!c)
@@ -66,14 +66,14 @@ T *ResourceCache::getResource(const std::string &resource_name)
 }
 
 template<typename T>
-void ResourceCache::addResource(const std::string &resource_name, T *resource)
+void ResourceCache::add(const std::string &resource_name, T *resource)
 {
     std::shared_ptr<Cache<T>> c = instance().cache<T>();
     c->data.emplace(resource_name, std::unique_ptr<T>(resource));
 }
 
 template<typename T>
-void ResourceCache::removeResource(const std::string &resource_name)
+void ResourceCache::remove(const std::string &resource_name)
 {
     std::type_index type_index = typeid(T);
     auto cache_found = instance().m_caches.find(type_index);
@@ -89,7 +89,7 @@ void ResourceCache::removeResource(const std::string &resource_name)
 template<typename T, typename... Args>
 T *ResourceCache::loadFromFile(const std::string &resource_name, Args &&...args)
 {
-    T *exist_resource = getResource<T>(resource_name);
+    T *exist_resource = get<T>(resource_name);
     if (exist_resource)
         return exist_resource;
 
@@ -109,7 +109,7 @@ T *ResourceCache::loadFromFile(const std::string &resource_name, Args &&...args)
 template<typename T, typename... Args>
 T *ResourceCache::loadFromMemory(const std::string &resource_name, Args &&...args)
 {
-    T *exist_resource = getResource<T>(resource_name);
+    T *exist_resource = get<T>(resource_name);
     if (exist_resource)
         return exist_resource;
 
@@ -129,7 +129,7 @@ T *ResourceCache::loadFromMemory(const std::string &resource_name, Args &&...arg
 template<typename T, typename... Args>
 T *ResourceCache::loadFromStream(const std::string &resource_name, Args &&...args)
 {
-    T *exist_resource = getResource<T>(resource_name);
+    T *exist_resource = get<T>(resource_name);
     if (exist_resource)
         return exist_resource;
 

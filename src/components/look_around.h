@@ -48,7 +48,7 @@ struct KnowledgeBase::ComponentItem<component::LookAround> : ComponentItemBase
 
     void create(Entity &entity)
     {
-        component::LookAround &component = entity.addComponent<component::LookAround>();
+        component::LookAround &component = entity.add<component::LookAround>();
 
         component.enable = enable;
         component.distance = distance;

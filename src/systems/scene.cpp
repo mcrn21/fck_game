@@ -9,8 +9,8 @@ Scene::Scene(b2::DynamicTree<Entity> *tree) : m_tree{tree}
 
 void Scene::moveEntity(const Entity &entity, const sf::Vector2f &offset)
 {
-    component::Scene &scene_component = entity.getComponent<component::Scene>();
-    component::Transform &transform_component = entity.getComponent<component::Transform>();
+    component::Scene &scene_component = entity.get<component::Scene>();
+    component::Transform &transform_component = entity.get<component::Transform>();
 
     sf::FloatRect old_scene_global_bounds = scene_component.global_bounds;
     scene_component.global_bounds
@@ -22,8 +22,8 @@ void Scene::moveEntity(const Entity &entity, const sf::Vector2f &offset)
 
 void Scene::onEntityAdded(Entity &entity)
 {
-    component::Transform &transform_component = entity.getComponent<component::Transform>();
-    component::Scene &scene_component = entity.getComponent<component::Scene>();
+    component::Transform &transform_component = entity.get<component::Transform>();
+    component::Scene &scene_component = entity.get<component::Scene>();
 
     scene_component.global_bounds
         = transform_component.transform.getTransform().transformRect(scene_component.local_bounds);
@@ -34,7 +34,7 @@ void Scene::onEntityAdded(Entity &entity)
 
 void Scene::onEntityRemoved(Entity &entity)
 {
-    component::Scene &scene_component = entity.getComponent<component::Scene>();
+    component::Scene &scene_component = entity.get<component::Scene>();
 
     m_tree->destroyProxy(scene_component.tree_id);
 }

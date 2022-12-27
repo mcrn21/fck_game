@@ -2,13 +2,14 @@
 #define FCKGAME_LHJLOJYRDNWT_H
 
 #include "fck_common.h"
-#include "gui_manager.h"
 #include "level.h"
 
+#include "gui/gui.h"
 #include "systems/systems.h"
 
 #include "fck/b2_dynamic_tree.h"
 #include "fck/base_game.h"
+#include "fck/event_handler.h"
 #include "fck/input_actions_map.h"
 #include "fck/world.h"
 
@@ -23,14 +24,13 @@ namespace fck
 class FckGame : public BaseGame
 {
 public:
-    static FckGame *getInstance();
-
     FckGame();
     ~FckGame() = default;
 
     void init();
 
 protected:
+    void event(const sf::Event &e);
     void update(const sf::Time &elapsed);
     void draw(const sf::Time &elapsed);
 
@@ -49,6 +49,8 @@ private:
     void returnToMainMenu();
 
     void setupInputActions();
+
+    void createLevel(const std::string &level_name);
 
 public: // slots
     void onActionActivated(keyboard_action::Action action);
@@ -107,7 +109,7 @@ private:
 
     game_state::State m_state;
 
-    GuiManager m_gui_manager;
+    gui::MainWidget m_main_widget;
 
     InputActionsMap<keyboard_action::Action> m_input_actions;
 

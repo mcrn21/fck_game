@@ -35,7 +35,7 @@ struct KnowledgeBase::ComponentItem<component::Collision> : ComponentItemBase
 
     void create(Entity &entity)
     {
-        component::Collision &component = entity.addComponent<component::Collision>();
+        component::Collision &component = entity.add<component::Collision>();
 
         component.wall = wall;
     }

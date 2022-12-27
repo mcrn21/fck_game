@@ -38,7 +38,7 @@ struct KnowledgeBase::ComponentItem<component::Velocity> : ComponentItemBase
 
     void create(Entity &entity)
     {
-        component::Velocity &component = entity.addComponent<component::Velocity>();
+        component::Velocity &component = entity.add<component::Velocity>();
 
         component.max_velocity = max_velocity;
     }

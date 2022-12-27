@@ -51,7 +51,7 @@ public:
             auto it = m_entities.begin();
             while (it != m_entities.end())
             {
-                callback(*it, (*it).getComponent<Args>()...);
+                callback(*it, (*it).get<Args>()...);
                 ++it;
             }
         }

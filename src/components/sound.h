@@ -43,7 +43,7 @@ struct KnowledgeBase::ComponentItem<component::Sound> : ComponentItemBase
 
                 Sound sound_params;
 
-                sound_params.sound_buffer = ResourceCache::getResource<sf::SoundBuffer>(
+                sound_params.sound_buffer = ResourceCache::get<sf::SoundBuffer>(
                     sound_table->get("sound_buffer")->as_string()->get());
 
                 if (!sound_params.sound_buffer)
@@ -73,7 +73,7 @@ struct KnowledgeBase::ComponentItem<component::Sound> : ComponentItemBase
 
     void create(Entity &entity)
     {
-        component::Sound &component = entity.addComponent<component::Sound>();
+        component::Sound &component = entity.add<component::Sound>();
 
         for (const auto &it : sounds)
         {

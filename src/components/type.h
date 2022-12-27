@@ -34,7 +34,7 @@ struct KnowledgeBase::ComponentItem<component::Type> : ComponentItemBase
 
     void create(Entity &entity)
     {
-        component::Type &component = entity.addComponent<component::Type>();
+        component::Type &component = entity.add<component::Type>();
 
         component.type = type;
     }

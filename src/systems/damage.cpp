@@ -11,12 +11,12 @@ void Damage::update(double delta_time)
 {
     for (Entity &entity : getEntities())
     {
-        component::Damage &damage_cometent = entity.getComponent<component::Damage>();
+        component::Damage &damage_cometent = entity.get<component::Damage>();
 
         if (damage_cometent.damage)
         {
             component::State &state_component
-                = entity.getComponent<component::State>();
+                = entity.get<component::State>();
             if (state_component.state != entity_state::DEATH)
             {
                 damage_cometent.damage->_update(delta_time);

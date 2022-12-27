@@ -1,5 +1,4 @@
 #include "base_game.h"
-#include "event_dispatcher.h"
 
 #include <spdlog/spdlog.h>
 #include <SFML/Window/Event.hpp>
@@ -7,23 +6,13 @@
 namespace fck
 {
 
-BaseGame *BaseGame::m_instance = nullptr;
-
 BaseGame::BaseGame() : m_running{false}, m_tick_time{sf::milliseconds(16)}
 {
-    assert(!BaseGame::m_instance);
-    m_instance = this;
-
     m_render_window.setVerticalSyncEnabled(false);
 }
 
 BaseGame::~BaseGame()
 {
-}
-
-BaseGame *BaseGame::getInstance()
-{
-    return m_instance;
 }
 
 int32_t BaseGame::exec()
@@ -38,13 +27,9 @@ int32_t BaseGame::exec()
     {
         lag += (elapsed = loop_clock.restart());
 
-        sf::Event event;
-        while (m_render_window.pollEvent(event))
-        {
-            EventDispatcher::push(new SfmlEvent{event});
-        }
-
-        EventDispatcher::update(elapsed);
+        sf::Event e;
+        while (m_render_window.pollEvent(e))
+            event(e);
 
         while (lag >= m_tick_time)
         {
@@ -67,6 +52,10 @@ void BaseGame::exit()
 sf::RenderWindow &BaseGame::getRrenderWindow()
 {
     return m_render_window;
+}
+
+void BaseGame::event(const sf::Event &event)
+{
 }
 
 void BaseGame::update(const sf::Time &elapsed)

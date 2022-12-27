@@ -2,7 +2,7 @@
 #define SKILLS_GJSWDNDSLMFP_H
 
 #include "../knowledge_base.h"
-#include "../skill_base.h"
+#include "../skills/skill_base.h"
 
 #include "../fck/utilities.h"
 
@@ -39,7 +39,7 @@ struct KnowledgeBase::ComponentItem<component::Skills> : ComponentItemBase
 
     void create(Entity &entity)
     {
-        component::Skills &component = entity.addComponent<component::Skills>();
+        component::Skills &component = entity.add<component::Skills>();
 
         for (const std::string &skill : skills)
             component.skills.push_back(

@@ -28,18 +28,18 @@ public:
     void destroy();
 
     template<typename T, typename... Args>
-    T &addComponent(Args &&...args);
+    T &add(Args &&...args);
 
     template<typename T>
-    void removeComponent();
+    void remove();
 
     void removeAllComponents();
 
     template<typename T>
-    T &getComponent() const;
+    T &get() const;
 
     template<typename T>
-    bool hasComponent() const;
+    bool has() const;
 
     ComponentsFilter getComponentFilter() const;
 
@@ -47,10 +47,10 @@ public:
     bool operator!=(const Entity &entity) const;
 
 private:
-    void addComponent(ComponentBase *component, TypeId component_type_id);
-    void removeComponent(TypeId component_type_id);
-    ComponentBase *getComponent(TypeId component_type_id) const;
-    bool hasComponent(TypeId component_type_id) const;
+    void add(ComponentBase *component, TypeId component_type_id);
+    void remove(TypeId component_type_id);
+    ComponentBase *get(TypeId component_type_id) const;
+    bool has(TypeId component_type_id) const;
 
 private:
     Id m_id;
@@ -58,30 +58,30 @@ private:
 };
 
 template<typename T, typename... Args>
-T &Entity::addComponent(Args &&...args)
+T &Entity::add(Args &&...args)
 {
     Component<T> *component = new Component<T>{new T{std::forward<Args>(args)...}};
-    addComponent(component, componentTypeId<T>());
+    add(component, componentTypeId<T>());
     return *(component->data.get());
 }
 
 template<typename T>
-void Entity::removeComponent()
+void Entity::remove()
 {
-    removeComponent(componentTypeId<T>());
+    remove(componentTypeId<T>());
 }
 
 template<typename T>
-T &Entity::getComponent() const
+T &Entity::get() const
 {
-    Component<T> *c = static_cast<Component<T> *>(getComponent(componentTypeId<T>()));
+    Component<T> *c = static_cast<Component<T> *>(get(componentTypeId<T>()));
     return static_cast<T &>(*(c->data.get()));
 }
 
 template<typename T>
-bool Entity::hasComponent() const
+bool Entity::has() const
 {
-    return hasComponent(componentTypeId<T>());
+    return has(componentTypeId<T>());
 }
 
 } // namespace fck

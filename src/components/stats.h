@@ -51,7 +51,7 @@ struct KnowledgeBase::ComponentItem<component::Stats> : ComponentItemBase
 
     void create(Entity &entity)
     {
-        component::Stats &component = entity.addComponent<component::Stats>();
+        component::Stats &component = entity.add<component::Stats>();
 
         component.health = health;
         component.max_health = max_health;

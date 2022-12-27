@@ -11,7 +11,7 @@ TileMap *TileMap::createFromTmxLayer(
     const std::string &texture_name,
     int32_t first_gid)
 {
-    sf::Texture *texture = ResourceCache::getResource<sf::Texture>(texture_name);
+    sf::Texture *texture = ResourceCache::get<sf::Texture>(texture_name);
     if (!texture)
         return nullptr;
 

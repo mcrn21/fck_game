@@ -28,7 +28,7 @@ struct KnowledgeBase::ComponentItem<component::Marker> : ComponentItemBase
 
     void create(Entity &entity)
     {
-        component::Marker &component = entity.addComponent<component::Marker>();
+        component::Marker &component = entity.add<component::Marker>();
     }
 };
 

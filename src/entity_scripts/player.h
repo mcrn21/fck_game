@@ -1,9 +1,9 @@
 #ifndef PLAYER_BGOAZAORIAYM_H
 #define PLAYER_BGOAZAORIAYM_H
 
-#include "../entity_script_base.h"
+#include "entity_script_base.h"
 
-#include <list>
+#include <SFML/Graphics.hpp>
 
 namespace fck::entity_script
 {

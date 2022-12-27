@@ -54,7 +54,7 @@ struct KnowledgeBase::ComponentItem<component::Shadow> : ComponentItemBase
 
     void create(Entity &entity)
     {
-        component::Shadow &component = entity.addComponent<component::Shadow>();
+        component::Shadow &component = entity.add<component::Shadow>();
 
         if (type == "rect")
         {

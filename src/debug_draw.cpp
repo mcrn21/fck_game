@@ -11,13 +11,13 @@ namespace fck::debug_draw
 
 void drawEntityId(const Entity &entity, sf::RenderTarget &target, const sf::RenderStates &states)
 {
-    if (!entity.hasComponent<component::Scene>())
+    if (!entity.has<component::Scene>())
         return;
 
-    component::Scene &scene_component = entity.getComponent<component::Scene>();
+    component::Scene &scene_component = entity.get<component::Scene>();
 
     sf::Text text;
-    text.setFont(*ResourceCache::getResource<sf::Font>("consolate_elf"));
+    text.setFont(*ResourceCache::get<sf::Font>("consolate_elf"));
     text.setString(std::string("ID: ") + std::to_string(entity.getId().getIndex()));
     text.setFillColor(sf::Color::Black);
     text.setCharacterSize(10);
@@ -28,10 +28,10 @@ void drawEntityId(const Entity &entity, sf::RenderTarget &target, const sf::Rend
 void drawDrawableBounds(
     const Entity &entity, sf::RenderTarget &target, const sf::RenderStates &states)
 {
-    if (!entity.hasComponent<component::Drawable>())
+    if (!entity.has<component::Drawable>())
         return;
 
-    component::Drawable &drawable_component = entity.getComponent<component::Drawable>();
+    component::Drawable &drawable_component = entity.get<component::Drawable>();
 
     sf::RectangleShape rectangle(drawable_component.global_bounds.getSize());
     rectangle.setFillColor(sf::Color::Transparent);
@@ -44,10 +44,10 @@ void drawDrawableBounds(
 void drawSceneTreeAABB(
     const Entity &entity, sf::RenderTarget &target, const sf::RenderStates &states)
 {
-    if (!entity.hasComponent<component::Scene>())
+    if (!entity.has<component::Scene>())
         return;
 
-    component::Scene &scene_component = entity.getComponent<component::Scene>();
+    component::Scene &scene_component = entity.get<component::Scene>();
 
     if (scene_component.tree_id < 0)
         return;
@@ -64,10 +64,10 @@ void drawSceneTreeAABB(
 
 void drawSceneBounds(const Entity &entity, sf::RenderTarget &target, const sf::RenderStates &states)
 {
-    if (!entity.hasComponent<component::Scene>())
+    if (!entity.has<component::Scene>())
         return;
 
-    component::Scene &scene_component = entity.getComponent<component::Scene>();
+    component::Scene &scene_component = entity.get<component::Scene>();
 
     sf::RectangleShape rectangle(scene_component.global_bounds.getSize());
     rectangle.setFillColor(sf::Color::Transparent);
@@ -79,11 +79,11 @@ void drawSceneBounds(const Entity &entity, sf::RenderTarget &target, const sf::R
 
 void drawVelocity(const Entity &entity, sf::RenderTarget &target, const sf::RenderStates &states)
 {
-    if (!entity.hasComponent<component::Velocity>() || !entity.hasComponent<component::Transform>())
+    if (!entity.has<component::Velocity>() || !entity.has<component::Transform>())
         return;
 
-    component::Velocity &velocity_component = entity.getComponent<component::Velocity>();
-    component::Transform &transform_component = entity.getComponent<component::Transform>();
+    component::Velocity &velocity_component = entity.get<component::Velocity>();
+    component::Transform &transform_component = entity.get<component::Transform>();
 
     float d = std::abs(vector2::distance(
         transform_component.transform.getPosition(),
@@ -133,11 +133,11 @@ void drawTargetFollowPath(
     sf::RenderTarget &target,
     const sf::RenderStates &states)
 {
-    if (!entity.hasComponent<component::TargetFollow>())
+    if (!entity.has<component::TargetFollow>())
         return;
 
     component::TargetFollow &target_follow_component
-        = entity.getComponent<component::TargetFollow>();
+        = entity.get<component::TargetFollow>();
 
     for (const sf::Vector2i &point : target_follow_component.path)
     {
@@ -154,10 +154,10 @@ void drawTargetFollowPath(
 void drawLookAroundBound(
     const Entity &entity, sf::RenderTarget &target, const sf::RenderStates &states)
 {
-    if (!entity.hasComponent<component::LookAround>())
+    if (!entity.has<component::LookAround>())
         return;
 
-    component::LookAround &look_around_component = entity.getComponent<component::LookAround>();
+    component::LookAround &look_around_component = entity.get<component::LookAround>();
 
     sf::RectangleShape rectangle(look_around_component.global_bounds.getSize());
     rectangle.setFillColor(sf::Color::Transparent);
@@ -170,10 +170,10 @@ void drawLookAroundBound(
 void drawLookAroundLookBound(
     const Entity &entity, sf::RenderTarget &target, const sf::RenderStates &states)
 {
-    if (!entity.hasComponent<component::LookAround>())
+    if (!entity.has<component::LookAround>())
         return;
 
-    component::LookAround &look_around_component = entity.getComponent<component::LookAround>();
+    component::LookAround &look_around_component = entity.get<component::LookAround>();
 
     sf::RectangleShape rectangle(look_around_component.global_look_bounds.getSize());
     rectangle.setFillColor(sf::Color::Transparent);

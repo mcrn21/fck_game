@@ -9,7 +9,7 @@ ComponentStorage::ComponentStorage(int32_t size) : m_component_entries(size)
 {
 }
 
-void ComponentStorage::addComponent(
+void ComponentStorage::add(
     Entity &entity, ComponentBase *component, TypeId component_type_id)
 {
     fck_assert(entity.isValid(), "invalid entity cannot have components added to it");
@@ -21,7 +21,7 @@ void ComponentStorage::addComponent(
     component_data_for_entity.components_filter.filter |= (1 << component_type_id);
 }
 
-void ComponentStorage::removeComponent(Entity &entity, TypeId component_type_id)
+void ComponentStorage::remove(Entity &entity, TypeId component_type_id)
 {
     if (!entity.isValid())
         return;
@@ -33,7 +33,7 @@ void ComponentStorage::removeComponent(Entity &entity, TypeId component_type_id)
     component_data_for_entity.components_filter.filter &= ~(1 << component_type_id);
 }
 
-void ComponentStorage::removeAllComponents(Entity &entity)
+void ComponentStorage::removeAll(Entity &entity)
 {
     if (!entity.isValid())
         return;
@@ -51,10 +51,10 @@ void ComponentStorage::removeAllComponents(Entity &entity)
     }
 }
 
-ComponentBase *ComponentStorage::getComponent(const Entity &entity, TypeId component_type_id) const
+ComponentBase *ComponentStorage::get(const Entity &entity, TypeId component_type_id) const
 {
     fck_assert(
-        entity.isValid() && hasComponent(entity, component_type_id),
+        entity.isValid() && has(entity, component_type_id),
         "Entity is not valid or does not contain component");
 
     return getComponentsArray(entity)[component_type_id].get();
@@ -67,7 +67,7 @@ ComponentsFilter ComponentStorage::getComponentsFilter(const Entity &entity) con
     return m_component_entries[entity.getId().getIndex()].components_filter;
 }
 
-std::vector<ComponentBase *> ComponentStorage::getComponents(const Entity &entity) const
+std::vector<ComponentBase *> ComponentStorage::getAll(const Entity &entity) const
 {
     fck_assert(entity.isValid(), "invalid entity cannot retrieve components, as it has none");
 
@@ -82,7 +82,7 @@ std::vector<ComponentBase *> ComponentStorage::getComponents(const Entity &entit
     return components_list;
 }
 
-bool ComponentStorage::hasComponent(const Entity &entity, TypeId component_type_id) const
+bool ComponentStorage::has(const Entity &entity, TypeId component_type_id) const
 {
     fck_assert(entity.isValid(), "invalid entity cannot check if it has components");
 

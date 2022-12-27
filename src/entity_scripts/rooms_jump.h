@@ -1,7 +1,8 @@
 #ifndef ROOMSJUMP_FHHISUHQXNKH_H
 #define ROOMSJUMP_FHHISUHQXNKH_H
 
-#include "../entity_script_base.h"
+#include "entity_script_base.h"
+
 #include "../knowledge_base.h"
 #include "../level.h"
 

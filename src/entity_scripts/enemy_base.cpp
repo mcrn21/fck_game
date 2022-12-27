@@ -12,10 +12,10 @@ EnemyBase::EnemyBase(double attack_interval) : m_attack_interval{attack_interval
 void EnemyBase::update(const Entity &entity, double delta_time)
 {
     component::TargetFollow &target_follow_component
-        = entity.getComponent<component::TargetFollow>();
-    component::Target &target_component = entity.getComponent<component::Target>();
-    component::LookAround &look_around_component = entity.getComponent<component::LookAround>();
-    component::State &state_component = entity.getComponent<component::State>();
+        = entity.get<component::TargetFollow>();
+    component::Target &target_component = entity.get<component::Target>();
+    component::LookAround &look_around_component = entity.get<component::LookAround>();
+    component::State &state_component = entity.get<component::State>();
 
     if (state_component.state == entity_state::DEATH)
     {
@@ -30,7 +30,7 @@ void EnemyBase::update(const Entity &entity, double delta_time)
         for (const Entity &found_entity : look_around_component.found_entities)
         {
             spdlog::debug("Find player");
-            if (found_entity.hasComponent<component::Player>())
+            if (found_entity.has<component::Player>())
             {
                 target_component.target = found_entity;
                 target_follow_component.follow = true;
@@ -43,7 +43,7 @@ void EnemyBase::update(const Entity &entity, double delta_time)
     if (target_component.target.isValid())
     {
         component::Scene &target_scene_component
-            = target_component.target.getComponent<component::Scene>();
+            = target_component.target.get<component::Scene>();
 
         if (!look_around_component.global_bounds
                  .findIntersection(target_scene_component.global_bounds)
@@ -56,7 +56,7 @@ void EnemyBase::update(const Entity &entity, double delta_time)
         }
 
         component::Transform &target_transform_component
-            = target_component.target.getComponent<component::Transform>();
+            = target_component.target.get<component::Transform>();
         target_follow_component.target = target_transform_component.transform.getPosition();
 
         if (target_follow_component.state == component::TargetFollow::RICHED)
@@ -64,7 +64,7 @@ void EnemyBase::update(const Entity &entity, double delta_time)
             m_attack_interval -= delta_time;
             if (m_attack_interval < 0)
             {
-                component::Skills &skills_component = entity.getComponent<component::Skills>();
+                component::Skills &skills_component = entity.get<component::Skills>();
                 skills_component.next_skill = 0;
                 m_attack_interval = 0.5;
             }

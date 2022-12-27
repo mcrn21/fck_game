@@ -24,15 +24,6 @@ void Event::accept()
     m_accepted = true;
 }
 
-SfmlEvent::SfmlEvent(const sf::Event &event) : Event{event.type}, m_event{event}
-{
-}
-
-const sf::Event &SfmlEvent::get() const
-{
-    return m_event;
-}
-
 TaskEvent::TaskEvent(const std::function<void()> &callback)
     : Event{event_type::TASK}, m_callback{callback}
 {
