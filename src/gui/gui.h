@@ -6,6 +6,7 @@
 #include "label.h"
 #include "main_widget.h"
 #include "minimap.h"
+#include "skill_icon.h"
 #include "widget.h"
 #include "widget_theme.h"
 

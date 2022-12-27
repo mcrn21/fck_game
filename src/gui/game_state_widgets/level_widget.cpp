@@ -20,30 +20,6 @@ LevelWidget::LevelWidget(Widget *parent) : Widget{parent}
 
     WidgetTheme player_hp_progress_bar = m_player_hp_progress_bar->getWidgetTheme();
 
-    player_hp_progress_bar.padding = 0.0f; //{0.0f, 10.0f, 10.0f, 10.0f};
-
-    player_hp_progress_bar.background.texture_rects[WidgetState::DEFAULT] = {{32, 32}, {32, 32}};
-    player_hp_progress_bar.background.texture_rects[WidgetState::HOVERED] = {{32, 32}, {32, 32}};
-    player_hp_progress_bar.background.texture_rects[WidgetState::PRESSED] = {{32, 32}, {32, 32}};
-    player_hp_progress_bar.background.texture_rects[WidgetState::FOCUSED] = {{32, 32}, {32, 32}};
-
-    player_hp_progress_bar.background.border_size = 12.0f;
-
-    player_hp_progress_bar.foreground.border_size = 12.0f;
-
-    player_hp_progress_bar.foreground.texture_rects[WidgetState::DEFAULT] = {{32, 96}, {32, 32}};
-    player_hp_progress_bar.foreground.texture_rects[WidgetState::HOVERED] = {{32, 96}, {32, 32}};
-    player_hp_progress_bar.foreground.texture_rects[WidgetState::PRESSED] = {{32, 96}, {32, 32}};
-    player_hp_progress_bar.foreground.texture_rects[WidgetState::FOCUSED] = {{32, 96}, {32, 32}};
-
-    player_hp_progress_bar.foreground.texture_border_size = 8;
-
-    //    player_hp_progress_bar.text.fill_colors[WidgetState::DEFAULT] = sf::Color::Black;
-    //    player_hp_progress_bar.text.fill_colors[WidgetState::HOVERED] = sf::Color::Black;
-    //    player_hp_progress_bar.text.fill_colors[WidgetState::PRESSED] = sf::Color::Black;
-    //    player_hp_progress_bar.text.fill_colors[WidgetState::FOCUSED] = sf::Color::Black;
-
-    player_hp_progress_bar.text.character_size = 26;
     player_hp_progress_bar.text.align = TextAlign::LEFT | TextAlign::V_CENTER;
 
     m_player_hp_progress_bar->setTextOffset({10.0f, 0.0f});
@@ -53,8 +29,7 @@ LevelWidget::LevelWidget(Widget *parent) : Widget{parent}
     m_player_armor_progress_bar = new ProgressBar{this};
     m_player_armor_progress_bar->setSize({208.0f, 28.0f});
 
-    WidgetTheme player_armor_progress_bar
-        = player_hp_progress_bar; //m_player_armor_progress_bar->getWidgetTheme();
+    WidgetTheme player_armor_progress_bar = player_hp_progress_bar;
 
     player_armor_progress_bar.foreground.texture_rects[WidgetState::DEFAULT] = {{64, 96}, {32, 32}};
     player_armor_progress_bar.foreground.texture_rects[WidgetState::HOVERED] = {{64, 96}, {32, 32}};
@@ -67,15 +42,14 @@ LevelWidget::LevelWidget(Widget *parent) : Widget{parent}
 
     // minimap
     m_minimap = new Minimap{this};
-    m_minimap->setSize({112.0f, 112.0f});
+    m_minimap->setSize({128.0f, 128.0f});
 
     // target stats
     m_target_hp_progress_bar = new ProgressBar{this};
     m_target_hp_progress_bar->setSize({256.0f, 28.0f});
     m_target_hp_progress_bar->hide();
 
-    WidgetTheme target_hp_progress_bar
-        = player_hp_progress_bar; //m_target_hp_progress_bar->getWidgetTheme();
+    WidgetTheme target_hp_progress_bar = player_hp_progress_bar;
 
     target_hp_progress_bar.text.align = TextAlign::RIGHT | TextAlign::V_CENTER;
     target_hp_progress_bar.direction = LEFT_TO_RIGHT;
@@ -96,6 +70,7 @@ void LevelWidget::setPlayerEntity(const Entity &entity)
 {
     m_player_entity = entity;
     updatePlayerStats();
+    updatePlayerSkills();
 }
 
 const Entity &LevelWidget::getTargetEntity() const
@@ -139,6 +114,30 @@ void LevelWidget::updatePlayerStats()
 
     m_player_armor_progress_bar->setProgress(armor_ratio);
     m_player_armor_progress_bar->setString(armor_text);
+}
+
+void LevelWidget::updatePlayerSkills()
+{
+    m_player_skill_icons.clear();
+
+    if (!m_player_entity.isValid())
+        return;
+
+    component::Skills &skills_component = m_player_entity.get<component::Skills>();
+    for (auto &skill : skills_component.skills)
+    {
+        SkillIcon *skill_icon = new SkillIcon{*skill, this};
+        skill_icon->setActivated(!skill->isReady());
+        m_player_skill_icons.push_back(std::unique_ptr<SkillIcon>(skill_icon));
+    }
+
+    updateGeometry();
+}
+
+void LevelWidget::updatePlayerSkillStates()
+{
+    for (auto &skill_icon : m_player_skill_icons)
+        skill_icon->setActivated(!skill_icon->getSkill()->isReady());
 }
 
 void LevelWidget::updateTargetStats()
@@ -187,6 +186,15 @@ void LevelWidget::updateGeometry()
         viewport_padding.getLowerPoint() + sf::Vector2f{0.0f, 32.0f});
 
     m_minimap->setPosition(viewport_padding.getLowerPoint() + sf::Vector2f{0.0f, 64.0f});
+
+    float skill_x_offset = viewport_padding.right;
+    for (int32_t i = m_player_skill_icons.size() - 1; i >= 0; --i)
+    {
+        m_player_skill_icons[i]->setPosition(
+            {getSize().x - skill_x_offset - m_player_skill_icons[i]->getSize().x,
+             getSize().y - viewport_padding.bottom - m_player_skill_icons[i]->getSize().y});
+        skill_x_offset += m_player_skill_icons[i]->getSize().x + 8.0f;
+    }
 
     m_target_hp_progress_bar->setPosition(
         {getSize().x - viewport_padding.right - m_target_hp_progress_bar->getSize().x,

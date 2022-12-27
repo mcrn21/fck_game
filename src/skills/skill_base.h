@@ -25,7 +25,7 @@ public:
 
     double getEelapsed() const;
     double getCooldown() const;
-    bool isReady();
+    bool isReady() const;
     void finish();
     void broke();
 

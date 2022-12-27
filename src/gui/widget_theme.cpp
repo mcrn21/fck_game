@@ -3,6 +3,7 @@
 #include "dialog.h"
 #include "minimap.h"
 #include "progress_bar.h"
+#include "skill_icon.h"
 
 #include "../fck/resource_cache.h"
 
@@ -107,21 +108,55 @@ std::unordered_map<std::type_index, WidgetTheme> WidgetTheme::m_themes = []() {
     // Progress bar
     WidgetTheme progress_bar_theme = default_theme;
 
-    progress_bar_theme.padding = {8.0f, 8.0f, 8.0f, 12.0f};
+    progress_bar_theme.padding = 0.0f;
+
+    progress_bar_theme.background.texture_rects[WidgetState::DEFAULT] = {{32, 32}, {32, 32}};
+    progress_bar_theme.background.texture_rects[WidgetState::HOVERED] = {{32, 32}, {32, 32}};
+    progress_bar_theme.background.texture_rects[WidgetState::PRESSED] = {{32, 32}, {32, 32}};
+    progress_bar_theme.background.texture_rects[WidgetState::FOCUSED] = {{32, 32}, {32, 32}};
+
+    progress_bar_theme.background.border_size = 12.0f;
+
+    progress_bar_theme.foreground.border_size = 12.0f;
+
+    progress_bar_theme.foreground.texture_rects[WidgetState::DEFAULT] = {{32, 96}, {32, 32}};
+    progress_bar_theme.foreground.texture_rects[WidgetState::HOVERED] = {{32, 96}, {32, 32}};
+    progress_bar_theme.foreground.texture_rects[WidgetState::PRESSED] = {{32, 96}, {32, 32}};
+    progress_bar_theme.foreground.texture_rects[WidgetState::FOCUSED] = {{32, 96}, {32, 32}};
+
+    progress_bar_theme.foreground.texture_border_size = 8;
+
+    progress_bar_theme.text.character_size = 26;
 
     themes.emplace(typeid(ProgressBar), progress_bar_theme);
 
     // Minimap
-    WidgetTheme minimap_bar_theme = default_theme;
+    WidgetTheme minimap_theme = default_theme;
 
-    minimap_bar_theme.padding = 10.0f;
+    minimap_theme.padding = 14.0f;
 
-    minimap_bar_theme.background.texture_rects[WidgetState::DEFAULT] = {{0, 32}, {32, 32}};
-    minimap_bar_theme.background.texture_rects[WidgetState::HOVERED] = {{32, 32}, {32, 32}};
-    minimap_bar_theme.background.texture_rects[WidgetState::PRESSED] = {{64, 32}, {32, 32}};
-    minimap_bar_theme.background.texture_rects[WidgetState::FOCUSED] = {{96, 32}, {32, 32}};
+    minimap_theme.background.border_size = 24.0f;
 
-    themes.emplace(typeid(Minimap), minimap_bar_theme);
+    minimap_theme.background.texture_rects[WidgetState::DEFAULT] = {{0, 32}, {32, 32}};
+    minimap_theme.background.texture_rects[WidgetState::HOVERED] = {{32, 32}, {32, 32}};
+    minimap_theme.background.texture_rects[WidgetState::PRESSED] = {{64, 32}, {32, 32}};
+    minimap_theme.background.texture_rects[WidgetState::FOCUSED] = {{96, 32}, {32, 32}};
+
+    themes.emplace(typeid(Minimap), minimap_theme);
+
+    // Minimap
+    WidgetTheme skill_icon_theme = default_theme;
+
+    skill_icon_theme.padding = 14.0f;
+
+    skill_icon_theme.background.border_size = 24.0f;
+
+    skill_icon_theme.background.texture_rects[WidgetState::DEFAULT] = {{0, 32}, {32, 32}};
+    skill_icon_theme.background.texture_rects[WidgetState::HOVERED] = {{0, 32}, {32, 32}};
+    skill_icon_theme.background.texture_rects[WidgetState::PRESSED] = {{0, 32}, {32, 32}};
+    skill_icon_theme.background.texture_rects[WidgetState::FOCUSED] = {{0, 32}, {32, 32}};
+
+    themes.emplace(typeid(SkillIcon), skill_icon_theme);
 
     return themes;
 }();

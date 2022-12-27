@@ -28,15 +28,19 @@ void Minimap::setRoomsMap(const Vector2D<Room *> &rooms_map)
         auto coord = m_rooms_map->transformIndex(i);
         m_rooms_map_grid.setCellTexture(
             coord,
-            m_rooms_map->at(i) ? m_room_map_grid_texture_indexes[m_rooms_map->at(i)->getNeighbors()]
-                               : -1);
+            m_rooms_map->at(i)
+                ? (m_rooms_map->at(i)->isOpen()
+                       ? m_room_map_grid_texture_indexes[m_rooms_map->at(i)->getNeighbors()]
+                       : -1)
+                : -1);
 
         m_rooms_type_grid.setCellTexture(
             coord,
-            m_rooms_map->at(i) ? m_room_type_grid_texture_indexes
-                    [m_rooms_map->at(i)->isOpen() ? m_rooms_map->at(i)->getType()
-                                                  : room_type::UNKNOW]
-                               : -1);
+            m_rooms_map->at(i)
+                ? (m_rooms_map->at(i)->isOpen()
+                       ? m_room_type_grid_texture_indexes[m_rooms_map->at(i)->getType()]
+                       : -1)
+                : -1);
     }
 }
 
@@ -44,6 +48,10 @@ void Minimap::setRoomOpened(const sf::Vector2i &room_coord)
 {
     if (!m_rooms_map)
         return;
+
+    m_rooms_map_grid.setCellTexture(
+        room_coord,
+        m_room_map_grid_texture_indexes[m_rooms_map->getData(room_coord)->getNeighbors()]);
 
     m_rooms_type_grid.setCellTexture(
         room_coord, m_room_type_grid_texture_indexes[m_rooms_map->getData(room_coord)->getType()]);
@@ -68,10 +76,12 @@ void Minimap::onThemeChanged(const WidgetTheme &widget_theme)
     m_background.setTextureRect(widget_theme.background.texture_rects.at(getState()));
     m_background.setBorderTextureSize(widget_theme.background.texture_border_size);
 
+    sf::Vector2f cell_size = {34.0f, 34.0f};
+
     m_rooms_map_grid.setTexture(*ResourceCache::get<sf::Texture>(widget_theme.texture));
     m_rooms_map_grid.setTextureRect({{128, 0}, {96, 192}});
     m_rooms_map_grid.setTextureCellSize({32, 32});
-    m_rooms_map_grid.setCellSize({32, 32});
+    m_rooms_map_grid.setCellSize(cell_size);
 
     m_room_map_grid_texture_indexes
         = {{0, 15},
@@ -94,7 +104,7 @@ void Minimap::onThemeChanged(const WidgetTheme &widget_theme)
     m_rooms_type_grid.setTexture(*ResourceCache::get<sf::Texture>(widget_theme.texture));
     m_rooms_type_grid.setTextureRect({{128, 192}, {96, 32}});
     m_rooms_type_grid.setTextureCellSize({32, 32});
-    m_rooms_type_grid.setCellSize({32, 32});
+    m_rooms_type_grid.setCellSize(cell_size);
 
     m_room_type_grid_texture_indexes
         = {{room_type::UNKNOW, 0},
@@ -105,7 +115,7 @@ void Minimap::onThemeChanged(const WidgetTheme &widget_theme)
     m_current_room_highlight.setTexture(*ResourceCache::get<sf::Texture>(widget_theme.texture));
     m_current_room_highlight.setBorderSize(0.0f);
     m_current_room_highlight.setTextureRect({{160, 160}, {32, 32}});
-    m_current_room_highlight.setSize({32, 32});
+    m_current_room_highlight.setSize(cell_size);
     m_current_room_highlight.setBorderTextureSize(0);
 
     updateGeometry();

@@ -23,7 +23,7 @@ double SkillBase::getCooldown() const
     return m_cooldown;
 }
 
-bool SkillBase::isReady()
+bool SkillBase::isReady() const
 {
     return m_elapsed == m_cooldown;
 }

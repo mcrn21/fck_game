@@ -109,6 +109,10 @@ FckGame::FckGame()
     // other
     entity::set_tile_material.connect(this, &FckGame::entitySetTileMaterial);
 
+    // skills
+    entity::skill_applied.connect(this, &FckGame::onEntitySkillApplied);
+    entity::skill_finished.connect(this, &FckGame::onEntitySkillFinished);
+
     // Global value
     sf::Listener::setGlobalVolume(100);
 }
@@ -139,10 +143,10 @@ void FckGame::init()
          },
          [this, first_loading_tasks]() {
              setState(game_state::LOADING);
-             //             gui::LoadingGui *loading_gui = m_gui_manager.getBack<gui::LoadingGui>();
-             //             loading_gui->setTotal(first_loading_tasks->getTasks().size() - 2);
-             //             first_loading_tasks->task_finished.connect(
-             //                 loading_gui, &gui::LoadingGui::increaseProgress);
+             gui::LoadingWidget *loading_widget
+                 = static_cast<gui::LoadingWidget *>(m_main_widget.getChildren().back());
+             loading_widget->setTotal(first_loading_tasks->getTasks().size() - 2);
+             first_loading_tasks->task_finished.connect(loading_widget, &gui::LoadingWidget::next);
              loadFonts();
          },
          [this]() { loadTextures(); },
@@ -538,10 +542,11 @@ void FckGame::newGame()
     loading_new_game_tasks->setTasks(
         {[this]() { setState(game_state::LOADING); },
          [this, loading_new_game_tasks]() {
-             //             gui::LoadingGui *loading_gui = m_gui_manager.getBack<gui::LoadingGui>();
-             //             loading_gui->setTotal(loading_new_game_tasks->getTasks().size() - 2);
-             //             loading_new_game_tasks->task_finished.connect(
-             //                 loading_gui, &gui::LoadingGui::increaseProgress);
+             gui::LoadingWidget *loading_widget
+                 = static_cast<gui::LoadingWidget *>(m_main_widget.getChildren().back());
+             loading_widget->setTotal(loading_new_game_tasks->getTasks().size() - 2);
+             loading_new_game_tasks->task_finished.connect(
+                 loading_widget, &gui::LoadingWidget::next);
 
              m_level = std::make_unique<Level>(&m_world, &m_scene_tree);
              m_level->room_opened.connect(this, &FckGame::onLevelRoomOpened);
@@ -597,10 +602,11 @@ void FckGame::returnToMainMenu()
     return_to_main_menu_tasks->setTasks(
         {[this]() { setState(game_state::LOADING); },
          [this, return_to_main_menu_tasks]() {
-             //             gui::LoadingGui *loading_gui = m_gui_manager.getBack<gui::LoadingGui>();
-             //             loading_gui->setTotal(return_to_main_menu_tasks->getTasks().size() - 2);
-             //             return_to_main_menu_tasks->task_finished.connect(
-             //                 loading_gui, &gui::LoadingGui::increaseProgress);
+             gui::LoadingWidget *loading_widget
+                 = static_cast<gui::LoadingWidget *>(m_main_widget.getChildren().back());
+             loading_widget->setTotal(return_to_main_menu_tasks->getTasks().size() - 2);
+             return_to_main_menu_tasks->task_finished.connect(
+                 loading_widget, &gui::LoadingWidget::next);
              m_target_follow_system.setWalls(nullptr);
          },
          [this]() { m_level.reset(); },
@@ -1129,26 +1135,51 @@ void FckGame::entitySetTileMaterial(const Entity &entity, tile_material_type::Ty
     }
 }
 
-void FckGame::onLevelRoomOpened(const sf::Vector2i &room_coord)
+void FckGame::onEntitySkillApplied(const Entity &entity, SkillBase *skill)
 {
-    if (m_state == game_state::LEVEL)
+    if (m_state != game_state::LEVEL)
+        return;
+
+    if (entity == m_player_entity)
     {
         gui::LevelWidget *level_widget
             = static_cast<gui::LevelWidget *>(m_main_widget.getChildren().back());
-        level_widget->setRoomOpended(room_coord);
+        level_widget->updatePlayerSkillStates();
     }
+}
+
+void FckGame::onEntitySkillFinished(const Entity &entity, SkillBase *skill)
+{
+    if (m_state != game_state::LEVEL)
+        return;
+
+    if (entity == m_player_entity)
+    {
+        gui::LevelWidget *level_widget
+            = static_cast<gui::LevelWidget *>(m_main_widget.getChildren().back());
+        level_widget->updatePlayerSkillStates();
+    }
+}
+
+void FckGame::onLevelRoomOpened(const sf::Vector2i &room_coord)
+{
+    if (m_state != game_state::LEVEL)
+        return;
+    gui::LevelWidget *level_widget
+        = static_cast<gui::LevelWidget *>(m_main_widget.getChildren().back());
+    level_widget->setRoomOpended(room_coord);
 }
 
 void FckGame::onLevelRoomEnabled(const sf::Vector2i &room_coord)
 {
+    if (m_state != game_state::LEVEL)
+        return;
+
     m_target_follow_system.setWalls(&m_level->getRoomsMap().getData(room_coord)->getWalls());
 
-    if (m_state == game_state::LEVEL)
-    {
-        gui::LevelWidget *level_widget
-            = static_cast<gui::LevelWidget *>(m_main_widget.getChildren().back());
-        level_widget->setCurrentRoom(room_coord);
-    }
+    gui::LevelWidget *level_widget
+        = static_cast<gui::LevelWidget *>(m_main_widget.getChildren().back());
+    level_widget->setCurrentRoom(room_coord);
 }
 
 } // namespace fck

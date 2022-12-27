@@ -50,6 +50,10 @@ struct entity
 
     // other
     static Signal<const Entity &, tile_material_type::Type> set_tile_material;
+
+    // skills
+    static Signal<const Entity &, SkillBase *> skill_applied;
+    static Signal<const Entity &, SkillBase *> skill_finished;
 };
 
 } // namespace fck

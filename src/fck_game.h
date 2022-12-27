@@ -96,6 +96,10 @@ public: // slots
     // other
     void entitySetTileMaterial(const Entity &entity, tile_material_type::Type tile_material);
 
+    // skills
+    void onEntitySkillApplied(const Entity &entity, SkillBase *skill);
+    void onEntitySkillFinished(const Entity &entity, SkillBase *skill);
+
     // level
     void onLevelRoomOpened(const sf::Vector2i &room_coord);
     void onLevelRoomEnabled(const sf::Vector2i &room_coord);

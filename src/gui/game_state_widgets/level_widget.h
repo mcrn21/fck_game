@@ -3,11 +3,15 @@
 
 #include "../minimap.h"
 #include "../progress_bar.h"
+#include "../skill_icon.h"
 #include "../widget.h"
 
 #include "../../fck/entity.h"
 
 #include <SFML/Graphics.hpp>
+
+#include <memory>
+#include <vector>
 
 namespace fck::gui
 {
@@ -25,6 +29,8 @@ public:
     void setTargetEntity(const Entity &entity);
 
     void updatePlayerStats();
+    void updatePlayerSkills();
+    void updatePlayerSkillStates();
     void updateTargetStats();
 
     void setRoomsMap(const Vector2D<Room *> &rooms_map);
@@ -44,6 +50,8 @@ private:
     ProgressBar *m_player_hp_progress_bar;
     ProgressBar *m_player_armor_progress_bar;
     Minimap *m_minimap;
+
+    std::vector<std::unique_ptr<SkillIcon>> m_player_skill_icons;
 
     ProgressBar *m_target_hp_progress_bar;
 };

@@ -53,4 +53,8 @@ Signal<const Entity &> entity::stop_all_sound;
 // other
 Signal<const Entity &, tile_material_type::Type> entity::set_tile_material;
 
+// skills
+Signal<const Entity &, SkillBase *> entity::skill_applied;
+Signal<const Entity &, SkillBase *> entity::skill_finished;
+
 } // namespace fck
