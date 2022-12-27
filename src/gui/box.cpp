@@ -104,8 +104,18 @@ void Box::draw(sf::RenderTarget &target, const sf::RenderStates &states) const
 void Box::updatePositions()
 {
     sf::Vector2f size;
-    size.x = std::max(0.0f, m_size.x - (m_border_size.left + m_border_size.right));
-    size.y = std::max(0.0f, m_size.y - (m_border_size.top + m_border_size.bottom));
+    //    size.x = std::max(0.0f, m_size.x - (m_border_size.left + m_border_size.right));
+    //    size.y = std::max(0.0f, m_size.y - (m_border_size.top + m_border_size.bottom));
+
+    size.x = m_size.x - (m_border_size.left + m_border_size.right);
+    size.y = m_size.y - (m_border_size.top + m_border_size.bottom);
+
+    if (size.x < 0 || size.y < 0)
+    {
+        for (int32_t i = 0; i < 54; ++i)
+            m_vertices[i].position = {0.0f, 0.0f};
+        return;
+    }
 
     // left top
     m_vertices[0].position = m_position + sf::Vector2f{0.0f, 0.0f};

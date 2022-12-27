@@ -41,7 +41,7 @@ std::unordered_map<std::type_index, WidgetTheme> WidgetTheme::m_themes = []() {
     default_theme.foreground.texture_border_size = 0;
 
     // text
-    default_theme.text.character_size = 26;
+    default_theme.text.character_size = 34;
     default_theme.text.style = sf::Text::Regular;
 
     default_theme.text.fill_colors[WidgetState::DEFAULT] = sf::Color::White;
@@ -81,6 +81,11 @@ std::unordered_map<std::type_index, WidgetTheme> WidgetTheme::m_themes = []() {
     button_theme.background.texture_rects[WidgetState::PRESSED] = {{64, 64}, {32, 32}};
     button_theme.background.texture_rects[WidgetState::FOCUSED] = {{96, 64}, {32, 32}};
 
+    button_theme.text.fill_colors[WidgetState::DEFAULT] = sf::Color::White;
+    button_theme.text.fill_colors[WidgetState::HOVERED] = sf::Color::Black;
+    button_theme.text.fill_colors[WidgetState::PRESSED] = sf::Color::Black;
+    button_theme.text.fill_colors[WidgetState::FOCUSED] = sf::Color::White;
+
     themes.emplace(typeid(Button), button_theme);
 
     // dialog
@@ -109,7 +114,7 @@ std::unordered_map<std::type_index, WidgetTheme> WidgetTheme::m_themes = []() {
     // Minimap
     WidgetTheme minimap_bar_theme = default_theme;
 
-    minimap_bar_theme.padding = {8.0f, 8.0f, 8.0f, 12.0f};
+    minimap_bar_theme.padding = 10.0f;
 
     minimap_bar_theme.background.texture_rects[WidgetState::DEFAULT] = {{0, 32}, {32, 32}};
     minimap_bar_theme.background.texture_rects[WidgetState::HOVERED] = {{32, 32}, {32, 32}};

@@ -34,6 +34,17 @@ void ProgressBar::setString(const sf::String &string)
     updateGeometry();
 }
 
+const sf::Vector2f &ProgressBar::getTextOffset() const
+{
+    return m_text_offset;
+}
+
+void ProgressBar::setTextOffset(const sf::Vector2f &text_offset)
+{
+    m_text_offset = text_offset;
+    updateGeometry();
+}
+
 void ProgressBar::onResized(const sf::Vector2f &size)
 {
     updateGeometry();
@@ -90,6 +101,7 @@ void ProgressBar::updateGeometry()
             {getSize().x - bar_size.x - widget_theme.padding.right, widget_theme.padding.top});
 
     positionText(m_text, getSize(), widget_theme.padding, widget_theme.text.align);
+    m_text.setPosition(m_text.getPosition() + m_text_offset);
 }
 
 } // namespace fck::gui

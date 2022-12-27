@@ -17,7 +17,7 @@ MainMenuWidget::MainMenuWidget(bool level, Widget *parent) : Widget{parent}, m_l
     m_background.setFillColor(sf::Color{0, 0, 0, 127});
     m_background.setPosition({0.0f, 0.0f});
 
-    sf::Vector2f main_button_size = {200.0f, 50.0f};
+    sf::Vector2f main_button_size = {240.0f, 50.0f};
     WidgetTheme button_theme = WidgetTheme::get<Button>();
     button_theme.background.texture_rects[WidgetState::DEFAULT] = {};
     button_theme.text.align = TextAlign::LEFT | TextAlign::V_CENTER;
@@ -132,6 +132,24 @@ void MainMenuWidget::updateGeometry()
     Sides<float> viewport_padding = 30.0f;
 
     m_background.setSize(getSize());
+
+    sf::Vector2f max_button_size;
+
+    for (Button *button : m_main_buttons)
+    {
+        sf::Vector2f size = button->getContentSize();
+
+        if (size.x > max_button_size.x)
+            max_button_size.x = size.x;
+
+        if (size.y > max_button_size.y)
+            max_button_size.y = size.y;
+    }
+
+    for (Button *button : m_main_buttons)
+    {
+        button->setSize(max_button_size);
+    }
 
     for (int32_t i = m_main_buttons.size() - 1; i >= 0; --i)
     {

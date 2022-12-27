@@ -40,18 +40,24 @@ void Button::onStateChanged(WidgetState state)
 {
     const WidgetTheme &widget_theme = getWidgetTheme();
     m_background.setTextureRect(widget_theme.background.texture_rects.at(state));
+    m_text.setFillColor(widget_theme.text.fill_colors.at(state));
+    m_text.setOutlineColor(widget_theme.text.outline_colors.at(state));
 }
 
 void Button::onMousePressed(const sf::Vector2f &mouse_position)
 {
     const WidgetTheme &widget_theme = getWidgetTheme();
     m_background.setTextureRect(widget_theme.background.texture_rects.at(WidgetState::PRESSED));
+    m_text.setFillColor(widget_theme.text.fill_colors.at(WidgetState::PRESSED));
+    m_text.setOutlineColor(widget_theme.text.outline_colors.at(WidgetState::PRESSED));
 }
 
 void Button::onMouseReleased(const sf::Vector2f &mouse_position)
 {
     const WidgetTheme &widget_theme = getWidgetTheme();
     m_background.setTextureRect(widget_theme.background.texture_rects.at(getState()));
+    m_text.setFillColor(widget_theme.text.fill_colors.at(getState()));
+    m_text.setOutlineColor(widget_theme.text.outline_colors.at(getState()));
     clicked.emit();
 }
 
@@ -61,6 +67,8 @@ void Button::onKeyPressed(const sf::Event::KeyEvent &key)
     {
         const WidgetTheme &widget_theme = getWidgetTheme();
         m_background.setTextureRect(widget_theme.background.texture_rects.at(WidgetState::PRESSED));
+        m_text.setFillColor(widget_theme.text.fill_colors.at(WidgetState::PRESSED));
+        m_text.setOutlineColor(widget_theme.text.outline_colors.at(WidgetState::PRESSED));
     }
 }
 
@@ -70,6 +78,8 @@ void Button::onKeyReleased(const sf::Event::KeyEvent &key)
     {
         const WidgetTheme &widget_theme = getWidgetTheme();
         m_background.setTextureRect(widget_theme.background.texture_rects.at(getState()));
+        m_text.setFillColor(widget_theme.text.fill_colors.at(getState()));
+        m_text.setOutlineColor(widget_theme.text.outline_colors.at(getState()));
         clicked.emit();
     }
 }
@@ -122,7 +132,6 @@ void Button::draw(sf::RenderTarget &target, const sf::RenderStates &states) cons
 void Button::updateGeometry()
 {
     const WidgetTheme &widget_theme = getWidgetTheme();
-
     positionText(m_text, getSize(), widget_theme.padding, widget_theme.text.align);
 }
 

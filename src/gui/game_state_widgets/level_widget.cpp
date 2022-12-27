@@ -16,44 +16,71 @@ LevelWidget::LevelWidget(Widget *parent) : Widget{parent}
 
     // player stats
     m_player_hp_progress_bar = new ProgressBar{this};
-    m_player_hp_progress_bar->setSize({256.0f, 32.0f});
+    m_player_hp_progress_bar->setSize({256.0f, 28.0f});
 
     WidgetTheme player_hp_progress_bar = m_player_hp_progress_bar->getWidgetTheme();
 
-    player_hp_progress_bar.foreground.texture_rects[WidgetState::DEFAULT] = {{32, 160}, {32, 32}};
-    player_hp_progress_bar.foreground.texture_rects[WidgetState::HOVERED] = {{32, 160}, {32, 32}};
-    player_hp_progress_bar.foreground.texture_rects[WidgetState::PRESSED] = {{32, 160}, {32, 32}};
-    player_hp_progress_bar.foreground.texture_rects[WidgetState::FOCUSED] = {{32, 160}, {32, 32}};
+    player_hp_progress_bar.padding = 0.0f; //{0.0f, 10.0f, 10.0f, 10.0f};
+
+    player_hp_progress_bar.background.texture_rects[WidgetState::DEFAULT] = {{32, 32}, {32, 32}};
+    player_hp_progress_bar.background.texture_rects[WidgetState::HOVERED] = {{32, 32}, {32, 32}};
+    player_hp_progress_bar.background.texture_rects[WidgetState::PRESSED] = {{32, 32}, {32, 32}};
+    player_hp_progress_bar.background.texture_rects[WidgetState::FOCUSED] = {{32, 32}, {32, 32}};
+
+    player_hp_progress_bar.background.border_size = 12.0f;
+
+    player_hp_progress_bar.foreground.border_size = 12.0f;
+
+    player_hp_progress_bar.foreground.texture_rects[WidgetState::DEFAULT] = {{32, 96}, {32, 32}};
+    player_hp_progress_bar.foreground.texture_rects[WidgetState::HOVERED] = {{32, 96}, {32, 32}};
+    player_hp_progress_bar.foreground.texture_rects[WidgetState::PRESSED] = {{32, 96}, {32, 32}};
+    player_hp_progress_bar.foreground.texture_rects[WidgetState::FOCUSED] = {{32, 96}, {32, 32}};
+
+    player_hp_progress_bar.foreground.texture_border_size = 8;
+
+    //    player_hp_progress_bar.text.fill_colors[WidgetState::DEFAULT] = sf::Color::Black;
+    //    player_hp_progress_bar.text.fill_colors[WidgetState::HOVERED] = sf::Color::Black;
+    //    player_hp_progress_bar.text.fill_colors[WidgetState::PRESSED] = sf::Color::Black;
+    //    player_hp_progress_bar.text.fill_colors[WidgetState::FOCUSED] = sf::Color::Black;
+
+    player_hp_progress_bar.text.character_size = 26;
     player_hp_progress_bar.text.align = TextAlign::LEFT | TextAlign::V_CENTER;
+
+    m_player_hp_progress_bar->setTextOffset({10.0f, 0.0f});
 
     m_player_hp_progress_bar->setWidgetTheme(player_hp_progress_bar);
 
     m_player_armor_progress_bar = new ProgressBar{this};
-    m_player_armor_progress_bar->setSize({208.0f, 32.0f});
+    m_player_armor_progress_bar->setSize({208.0f, 28.0f});
 
-    WidgetTheme player_armor_progress_bar = m_player_armor_progress_bar->getWidgetTheme();
+    WidgetTheme player_armor_progress_bar
+        = player_hp_progress_bar; //m_player_armor_progress_bar->getWidgetTheme();
 
-    player_armor_progress_bar.text.align = TextAlign::LEFT | TextAlign::V_CENTER;
+    player_armor_progress_bar.foreground.texture_rects[WidgetState::DEFAULT] = {{64, 96}, {32, 32}};
+    player_armor_progress_bar.foreground.texture_rects[WidgetState::HOVERED] = {{64, 96}, {32, 32}};
+    player_armor_progress_bar.foreground.texture_rects[WidgetState::PRESSED] = {{64, 96}, {32, 32}};
+    player_armor_progress_bar.foreground.texture_rects[WidgetState::FOCUSED] = {{64, 96}, {32, 32}};
+
+    m_player_armor_progress_bar->setTextOffset({10.0f, 0.0f});
 
     m_player_armor_progress_bar->setWidgetTheme(player_armor_progress_bar);
 
     // minimap
     m_minimap = new Minimap{this};
-    m_minimap->setSize({128.0f, 128.0f});
+    m_minimap->setSize({112.0f, 112.0f});
 
     // target stats
     m_target_hp_progress_bar = new ProgressBar{this};
-    m_target_hp_progress_bar->setSize({256.0f, 32.0f});
+    m_target_hp_progress_bar->setSize({256.0f, 28.0f});
     m_target_hp_progress_bar->hide();
 
-    WidgetTheme target_hp_progress_bar = m_target_hp_progress_bar->getWidgetTheme();
+    WidgetTheme target_hp_progress_bar
+        = player_hp_progress_bar; //m_target_hp_progress_bar->getWidgetTheme();
 
-    target_hp_progress_bar.foreground.texture_rects[WidgetState::DEFAULT] = {{32, 160}, {32, 32}};
-    target_hp_progress_bar.foreground.texture_rects[WidgetState::HOVERED] = {{32, 160}, {32, 32}};
-    target_hp_progress_bar.foreground.texture_rects[WidgetState::PRESSED] = {{32, 160}, {32, 32}};
-    target_hp_progress_bar.foreground.texture_rects[WidgetState::FOCUSED] = {{32, 160}, {32, 32}};
     target_hp_progress_bar.text.align = TextAlign::RIGHT | TextAlign::V_CENTER;
     target_hp_progress_bar.direction = LEFT_TO_RIGHT;
+
+    m_target_hp_progress_bar->setTextOffset({-10.0f, 0.0f});
 
     m_target_hp_progress_bar->setWidgetTheme(target_hp_progress_bar);
 

@@ -238,8 +238,7 @@ void QuestionDialog::updateGeometry()
 
     m_yes_button->setSize(m_yes_button->getContentSize());
     m_yes_button->setPosition(
-        {upper_point.x - m_no_button->getSize().x - widget_theme.padding.right
-             - m_yes_button->getSize().x,
+        {upper_point.x - m_no_button->getSize().x - 10.0f - m_yes_button->getSize().x,
          upper_point.y - m_yes_button->getSize().y});
 
     float buttons_height = std::max(m_yes_button->getSize().y, m_no_button->getSize().y);

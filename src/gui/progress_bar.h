@@ -21,6 +21,9 @@ public:
     const sf::String &getString() const;
     void setString(const sf::String &string);
 
+    const sf::Vector2f &getTextOffset() const;
+    void setTextOffset(const sf::Vector2f &text_offset);
+
 protected:
     void onResized(const sf::Vector2f &size) override;
     void onThemeChanged(const WidgetTheme &widget_theme) override;
@@ -34,6 +37,7 @@ private:
     Box m_background;
     Box m_bar;
     sf::Text m_text;
+    sf::Vector2f m_text_offset;
     float m_progress;
 };
 
