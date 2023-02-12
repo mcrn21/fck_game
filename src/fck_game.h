@@ -3,6 +3,7 @@
 
 #include "fck_common.h"
 #include "level.h"
+#include "map/map.h"
 
 #include "gui/gui.h"
 #include "systems/systems.h"
@@ -93,16 +94,16 @@ public: // slots
     void entityStopSound(const Entity &entity, const std::string &sound_name);
     void entityStopAllSound(const Entity &entity);
 
-    // other
-    void entitySetTileMaterial(const Entity &entity, tile_material_type::Type tile_material);
+    // grid
+    void entityUpdateGridPosition(const Entity &entity);
 
     // skills
     void onEntitySkillApplied(const Entity &entity, SkillBase *skill);
     void onEntitySkillFinished(const Entity &entity, SkillBase *skill);
 
-    // level
-    void onLevelRoomOpened(const sf::Vector2i &room_coord);
-    void onLevelRoomEnabled(const sf::Vector2i &room_coord);
+    // map
+    void onMapChunkOpened(const sf::Vector2i &chunk_coords);
+    void onMapChunkChanged(const sf::Vector2i &chunk_coords);
 
 private:
     sf::RenderTexture m_scene_render_texture;
@@ -125,6 +126,7 @@ private:
     b2::DynamicTree<Entity> m_render_tree;
     b2::DynamicTree<Entity> m_scene_tree;
 
+    std::unique_ptr<map::Map> m_map;
     std::unique_ptr<Level> m_level;
     Entity m_player_entity;
 

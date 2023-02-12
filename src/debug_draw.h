@@ -2,16 +2,12 @@
 #define DEBUGDRAW_QZSBRIQHICVO_H
 
 #include "fck/entity.h"
+#include "map/map.h"
 
 #include <SFML/Graphics.hpp>
 
 namespace fck::debug_draw
 {
-
-void drawEntityId(
-    const Entity &entity,
-    sf::RenderTarget &target,
-    const sf::RenderStates &states = sf::RenderStates());
 
 void drawDrawableBounds(
     const Entity &entity,
@@ -33,15 +29,12 @@ void drawVelocity(
     sf::RenderTarget &target,
     const sf::RenderStates &states = sf::RenderStates());
 
-void drawPathFinderCellsBounds(
-    const Entity &entity,
-    const sf::Vector2i &cell_size,
-    sf::RenderTarget &target,
-    const sf::RenderStates &states = sf::RenderStates());
+void drawMapWalls(
+    map::Map *map, sf::RenderTarget &target, const sf::RenderStates &states = sf::RenderStates());
 
 void drawTargetFollowPath(
     const Entity &entity,
-    const sf::Vector2i &cell_size,
+    map::Map *map,
     sf::RenderTarget &target,
     const sf::RenderStates &states = sf::RenderStates());
 

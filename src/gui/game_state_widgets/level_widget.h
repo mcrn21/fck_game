@@ -33,9 +33,9 @@ public:
     void updatePlayerSkillStates();
     void updateTargetStats();
 
-    void setRoomsMap(const Vector2D<Room *> &rooms_map);
-    void setRoomOpended(const sf::Vector2i &room_coord);
-    void setCurrentRoom(const sf::Vector2i &room_coord);
+    void setChunks(const Vector2D<map::Chunk *> &chunks);
+    void setChunkOpened(const sf::Vector2i &room_coord);
+    void setCurrentChunk(const sf::Vector2i &room_coord);
 
 protected:
     void onWindowResized(const sf::Vector2f &size) override;

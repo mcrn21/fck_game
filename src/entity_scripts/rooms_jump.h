@@ -17,7 +17,7 @@ public:
     RoomsJump(Level *level);
     ~RoomsJump() = default;
 
-    void setSide(room_side::Side side);
+    void setSide(chunk_side::Side side);
     void setRoomCoord(const sf::Vector2i &room_coord);
 
     void update(const Entity &entity, double delta_time);
@@ -28,7 +28,7 @@ public:
 private:
     Level *m_level;
 
-    room_side::Side m_side;
+    chunk_side::Side m_side;
     sf::Vector2i m_room_coord;
 
     bool m_need_change_room;

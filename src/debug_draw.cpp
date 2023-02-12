@@ -9,22 +9,6 @@
 namespace fck::debug_draw
 {
 
-void drawEntityId(const Entity &entity, sf::RenderTarget &target, const sf::RenderStates &states)
-{
-    if (!entity.has<component::Scene>())
-        return;
-
-    component::Scene &scene_component = entity.get<component::Scene>();
-
-    sf::Text text;
-    text.setFont(*ResourceCache::get<sf::Font>("consolate_elf"));
-    text.setString(std::string("ID: ") + std::to_string(entity.getId().getIndex()));
-    text.setFillColor(sf::Color::Black);
-    text.setCharacterSize(10);
-    text.setPosition(rect::center(scene_component.global_bounds));
-    target.draw(text, states);
-}
-
 void drawDrawableBounds(
     const Entity &entity, sf::RenderTarget &target, const sf::RenderStates &states)
 {
@@ -101,51 +85,50 @@ void drawVelocity(const Entity &entity, sf::RenderTarget &target, const sf::Rend
     target.draw(line, states);
 }
 
-void drawPathFinderCellsBounds(
-    const Entity &entity,
-    const sf::Vector2i &cell_size,
-    sf::RenderTarget &target,
-    const sf::RenderStates &states)
+void drawMapWalls(map::Map *map, sf::RenderTarget &target, const sf::RenderStates &states)
 {
-    //    if (!entity.hasComponent<component::Scene>() || !entity.hasComponent<component::Transform>())
-    //        return;
+    if (map->getCurrentChunk().x < 0 || map->getCurrentChunk().y < 0)
+        return;
 
-    //    component::Scene &scene_component = entity.getComponent<component::Scene>();
-    //    component::Transform &transform_component = entity.getComponent<component::Transform>();
+    const map::Chunk *chunk = map->getChunks().getData(map->getCurrentChunk());
+    if (!chunk)
+        return;
 
-    //    sf::RectangleShape rectangle(sf::Vector2f(cell_size.x, cell_size.y));
-    //    rectangle.setFillColor(sf::Color::Transparent);
-    //    rectangle.setOutlineColor(sf::Color::Cyan);
-    //    rectangle.setOutlineThickness(0.5f);
+    for (int32_t i = 0; i < chunk->getWalls().getSize(); ++i)
+    {
+        auto coords = chunk->getWalls().transformIndex(i);
 
-    //    sf::Vector2i path_finder_pos = scene_component.path_finder->getGrid().transformPosition(
-    //        transform_component.transform.getPosition());
-
-    //    rectangle.setPosition(
-    //        sf::Vector2f(path_finder_pos.x * cell_size.x, path_finder_pos.y * cell_size.y));
-
-    //    target.draw(rectangle, states);
+        sf::RectangleShape rectangle(sf::Vector2f{chunk->getWallSize()});
+        rectangle.setFillColor(sf::Color::Transparent);
+        rectangle.setOutlineColor(sf::Color::Cyan);
+        rectangle.setOutlineThickness(0.3f);
+        rectangle.setPosition(sf::Vector2f{vector2::mult(chunk->getWallSize(), coords)});
+        target.draw(rectangle, states);
+    }
 }
 
 void drawTargetFollowPath(
-    const Entity &entity,
-    const sf::Vector2i &cell_size,
-    sf::RenderTarget &target,
-    const sf::RenderStates &states)
+    const Entity &entity, map::Map *map, sf::RenderTarget &target, const sf::RenderStates &states)
 {
     if (!entity.has<component::TargetFollow>())
         return;
 
-    component::TargetFollow &target_follow_component
-        = entity.get<component::TargetFollow>();
+    if (map->getCurrentChunk().x < 0 || map->getCurrentChunk().y < 0)
+        return;
+
+    const map::Chunk *chunk = map->getChunks().getData(map->getCurrentChunk());
+    if (!chunk)
+        return;
+
+    component::TargetFollow &target_follow_component = entity.get<component::TargetFollow>();
 
     for (const sf::Vector2i &point : target_follow_component.path)
     {
-        sf::RectangleShape rectangle(sf::Vector2f(cell_size.x, cell_size.y));
+        sf::RectangleShape rectangle(sf::Vector2f{chunk->getWallSize()});
         rectangle.setFillColor(sf::Color::Transparent);
         rectangle.setOutlineColor(sf::Color::Blue);
         rectangle.setOutlineThickness(0.5f);
-        rectangle.setPosition(sf::Vector2f(point.x * cell_size.x, point.y * cell_size.y));
+        rectangle.setPosition(sf::Vector2f{vector2::mult(chunk->getWallSize(), point)});
 
         target.draw(rectangle, states);
     }

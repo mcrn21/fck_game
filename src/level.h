@@ -30,11 +30,11 @@ public:
     int32_t getNeighbors() const;
     void setNeighbors(int32_t neighbors);
 
-    room_type::Type getType() const;
-    void setType(room_type::Type type);
+    chunk_type::Type getType() const;
+    void setType(chunk_type::Type type);
 
-    const std::unordered_map<room_side::Side, sf::Vector2f> &getEntryPoints() const;
-    void setEntryPoints(const std::unordered_map<room_side::Side, sf::Vector2f> &entry_points);
+    const std::unordered_map<chunk_side::Side, sf::Vector2f> &getEntryPoints() const;
+    void setEntryPoints(const std::unordered_map<chunk_side::Side, sf::Vector2f> &entry_points);
 
     const Grid<int32_t> &getWalls() const;
     void setWalls(const Grid<int32_t> &walls);
@@ -47,8 +47,8 @@ public:
 
 private:
     int32_t m_neighbors;
-    room_type::Type m_type;
-    std::unordered_map<room_side::Side, sf::Vector2f> m_entry_points;
+    chunk_type::Type m_type;
+    std::unordered_map<chunk_side::Side, sf::Vector2f> m_entry_points;
     Grid<int32_t> m_walls;
     Grid<tile_material_type::Type> m_tile_materials;
     bool m_open;
@@ -62,6 +62,7 @@ public:
 
     bool loadFromFile(const std::string &file_name);
 
+    void createSingleRoom(int32_t neighbors);
     void createRoomsMap(const Vector2D<BoolProxy> &rooms_map);
     void createRandomRoomsMap(int32_t room_count = 30);
     void createRoomsContent();

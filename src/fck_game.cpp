@@ -8,6 +8,7 @@
 #include "components/components.h"
 #include "damages/damages.h"
 #include "entity_scripts/entity_scripts.h"
+#include "map/factory.h"
 #include "skills/skills.h"
 
 #include "fck/clipping.h"
@@ -101,13 +102,10 @@ FckGame::FckGame()
     // drawable
     entity::set_drawable_state.connect(this, &FckGame::entityDrawableSetState);
 
-    // drawable
+    // sound
     entity::play_sound.connect(this, &FckGame::entityPlaySound);
     entity::stop_sound.connect(this, &FckGame::entityStopSound);
     entity::stop_all_sound.connect(this, &FckGame::entityStopAllSound);
-
-    // other
-    entity::set_tile_material.connect(this, &FckGame::entitySetTileMaterial);
 
     // skills
     entity::skill_applied.connect(this, &FckGame::onEntitySkillApplied);
@@ -179,7 +177,7 @@ void FckGame::event(const sf::Event &e)
 
     if (e.type == sf::Event::Resized)
     {
-        float scene_view_scale = 0.20;
+        float scene_view_scale = 0.16;
 
         m_scene_view.setSize(sf::Vector2f(
             e.size.width * scene_view_scale + 0.5, e.size.height * scene_view_scale + 0.5));
@@ -203,9 +201,9 @@ void FckGame::event(const sf::Event &e)
 
 void FckGame::update(const sf::Time &elapsed)
 {
-    m_world.refresh();
-
     EventDispatcher::update(elapsed);
+
+    m_world.refresh();
 
     if (m_state == game_state::LEVEL)
     {
@@ -318,29 +316,22 @@ void FckGame::draw(const sf::Time &elapsed)
                 sf::Vector2f(view_pos.x - view_size.x / 2, view_pos.y - view_size.y / 2),
                 sf::Vector2f(view_size.x, view_size.y));
 
+            //            if (m_map)
+            //                debug_draw::drawMapWalls(m_map.get(), m_scene_render_texture);
+
             m_scene_tree.querry(viewport_rect, [this](int32_t node_id) {
                 Entity entity = m_scene_tree.getUserData(node_id);
 
                 debug_draw::drawDrawableBounds(entity, m_scene_render_texture);
                 //                debug_draw::drawSceneTreeAABB(entity, m_scene_render_texture);
                 debug_draw::drawSceneBounds(entity, m_scene_render_texture);
-                debug_draw::drawVelocity(entity, m_scene_render_texture); /*
-                debug_draw::drawPathFinderCellsBounds(
-                    entity, m_path_finder.getGrid().getCellSize(), m_scene_render_texture);*/
-                if (m_level && m_level->getCurrentRoomCoord() != sf::Vector2i{-1, -1})
-                {
-                    debug_draw::drawTargetFollowPath(
-                        entity,
-                        m_level->getRoomsMap()
-                            .getData(m_level->getCurrentRoomCoord())
-                            ->getWalls()
-                            .getTileSize(),
-                        m_scene_render_texture);
-                }
+                debug_draw::drawVelocity(entity, m_scene_render_texture);
+
+                if (m_map)
+                    debug_draw::drawTargetFollowPath(entity, m_map.get(), m_scene_render_texture);
+
                 debug_draw::drawLookAroundBound(entity, m_scene_render_texture);
                 debug_draw::drawLookAroundLookBound(entity, m_scene_render_texture);
-
-                debug_draw::drawEntityId(entity, m_scene_render_texture);
 
                 return true;
             });
@@ -548,31 +539,40 @@ void FckGame::newGame()
              loading_new_game_tasks->task_finished.connect(
                  loading_widget, &gui::LoadingWidget::next);
 
-             m_level = std::make_unique<Level>(&m_world, &m_scene_tree);
-             m_level->room_opened.connect(this, &FckGame::onLevelRoomOpened);
-             m_level->room_enabled.connect(this, &FckGame::onLevelRoomEnabled);
-             m_level->loadFromFile("resources/levels/level2.tmx");
+             //             m_level = std::make_unique<Level>(&m_world, &m_scene_tree);
+             //             m_level->room_opened.connect(this, &FckGame::onLevelRoomOpened);
+             //             m_level->room_enabled.connect(this, &FckGame::onLevelRoomEnabled);
+             //             m_level->loadFromFile("resources/levels/l1.tmx");
+
+             map::Factory map_factory{&m_world, &m_scene_tree};
+             m_map.reset(map_factory.generateMapFromFile(30, "resources/levels/l1.tmx"));
+
+             m_map->chunk_opened.connect(this, &FckGame::onMapChunkOpened);
+             m_map->chunk_changed.connect(this, &FckGame::onMapChunkChanged);
          },
          [this]() {
              //             Vector2D<BoolProxy> rooms_map;
              //             rooms_map.resize({1, 1}, true);
              //             m_level->createRoomsMap(rooms_map);
-             m_level->createRandomRoomsMap();
-         },
-         [this]() { m_level->createRoomsContent(); },
-         [this]() {
-             m_view_movement_system.setMovementBounds({{0.0f, 0.0f}, m_level->getRoomPixelsSize()});
+             //             m_level->createRandomRoomsMap();
 
-             m_player_entity = KnowledgeBase::createPlayer("kyoshi", &m_world);
+             //             m_level->createSingleRoom(room_side::LEFT);
+         },
+         [this]() { /*m_level->createRoomsContent();*/ },
+         [this]() {
+             m_view_movement_system.setMovementBounds(
+                 {{0.0f, 0.0f}, sf::Vector2f(m_map->getAreaSize())});
+
+             m_player_entity = KnowledgeBase::createPlayer("pp", &m_world);
 
              component::Script &player_entity_script_component
                  = m_player_entity.add<component::Script>();
              player_entity_script_component.entity_script.reset(new entity_script::Player());
 
-             entityMove(m_player_entity, sf::Vector2f{256.0f, 256.0f});
+             entityMove(m_player_entity, sf::Vector2f{100.0f, 100.0f});
 
              Entity kyoshi_2 = KnowledgeBase::createEntity("kyoshi_2", &m_world);
-             entityMove(kyoshi_2, {300.0f, 300.0f});
+             entityMove(kyoshi_2, {150.0f, 150.0f});
              entitySetState(kyoshi_2, entity_state::IDLE);
              entitySetDirection(kyoshi_2, entity_state::RIGHT);
              kyoshi_2.enable();
@@ -586,9 +586,11 @@ void FckGame::newGame()
 
              gui::LevelWidget *level_widget
                  = static_cast<gui::LevelWidget *>(m_main_widget.getChildren().back());
-             level_widget->setRoomsMap(m_level->getRoomsMap());
+             level_widget->setChunks(m_map->getChunks());
 
-             m_level->enableRoom(m_level->getFirstRoomCoord(), {256.0f, 256.0f});
+             m_map->setCurrentChunk(m_map->getFirstChunk(), {m_player_entity});
+
+             //             m_level->enableRoom(m_level->getFirstRoomCoord(), {50.0f, 50.0f});
 
              loading_new_game_tasks->deleteLater();
          }});
@@ -607,9 +609,9 @@ void FckGame::returnToMainMenu()
              loading_widget->setTotal(return_to_main_menu_tasks->getTasks().size() - 2);
              return_to_main_menu_tasks->task_finished.connect(
                  loading_widget, &gui::LoadingWidget::next);
-             m_target_follow_system.setWalls(nullptr);
+             m_target_follow_system.clearWalls();
          },
-         [this]() { m_level.reset(); },
+         [this]() { m_map.reset(); },
          [this]() { m_world.destroyAllEntities(); },
          [this]() { m_visible_entities.clear(); },
          [this, return_to_main_menu_tasks]() {
@@ -725,17 +727,13 @@ void FckGame::entityMove(const Entity &entity, const sf::Vector2f &offset)
     if (entity.has<component::Drawable>())
         m_render_system.moveEntity(entity, offset);
 
-    if (entity.has<component::Script>())
-    {
-        component::Script &script_component = entity.get<component::Script>();
-        if (script_component.entity_script)
-            script_component.entity_script->onEntityMoved(entity, offset);
-    }
-
     if (entity.has<component::LookAround>())
         m_look_around_system.updateBounds(entity);
 
-    // sounds
+    // grid
+    entityUpdateGridPosition(entity);
+
+    // update sound listener for player
     if (entity == m_player_entity)
     {
         sf::Listener::setPosition(
@@ -744,6 +742,7 @@ void FckGame::entityMove(const Entity &entity, const sf::Vector2f &offset)
              transform_component.transform.getPosition().y});
     }
 
+    // update entity sounds positions
     if (entity.has<component::Sound>())
     {
         component::Sound &sound_component = entity.get<component::Sound>();
@@ -756,16 +755,11 @@ void FckGame::entityMove(const Entity &entity, const sf::Vector2f &offset)
         }
     }
 
-    // get tile material under entity
-    if (m_level && m_level->getCurrentRoomCoord() != sf::Vector2i{-1, -1})
+    if (entity.has<component::Script>())
     {
-        tile_material_type::Type type
-            = m_level->getRoomsMap()
-                  .getData(m_level->getCurrentRoomCoord())
-                  ->getTileMaterials()
-                  .getDataByPosition(transform_component.transform.getPosition());
-
-        entitySetTileMaterial(entity, type);
+        component::Script &script_component = entity.get<component::Script>();
+        if (script_component.entity_script)
+            script_component.entity_script->onEntityMoved(entity, offset);
     }
 }
 
@@ -1062,8 +1056,12 @@ void FckGame::entityPlaySound(const Entity &entity, const std::string &sound_nam
                 it.second->stop();
         }
 
-        std::string move_sound_name
-            = tile_material_type::toString(sound_component.tile_material) + "_move";
+        std::string move_sound_name;
+        if (entity.has<component::Grid>())
+        {
+            auto &grid_component = entity.get<component::Grid>();
+            move_sound_name = tile_material_type::toString(grid_component.tile_material) + "_move";
+        }
 
         auto sounds_found = sound_component.sounds.find(move_sound_name);
         if (sounds_found == sound_component.sounds.end())
@@ -1115,31 +1113,45 @@ void FckGame::entityStopAllSound(const Entity &entity)
         it.second->stop();
 }
 
-void FckGame::entitySetTileMaterial(const Entity &entity, tile_material_type::Type tile_material)
+void FckGame::entityUpdateGridPosition(const Entity &entity)
 {
-    if (entity.has<component::Sound>())
+    if (!entity.has<component::Grid>() || !m_level
+        || m_level->getCurrentRoomCoord() == sf::Vector2i{-1, -1})
+        return;
+
+    auto &grid_component = entity.get<component::Grid>();
+    sf::Vector2i grid_position
+        = m_level->getRoomsMap()
+              .getData(m_level->getCurrentRoomCoord())
+              ->getTileMaterials()
+              .transformPosition(entity.get<component::Transform>().transform.getPosition());
+
+    if (grid_component.position == grid_position)
+        return;
+
+    grid_component.position = grid_position;
+
+    auto old_tile_material = grid_component.tile_material;
+    grid_component.tile_material = m_level->getRoomsMap()
+                                       .getData(m_level->getCurrentRoomCoord())
+                                       ->getTileMaterials()
+                                       .getData(grid_component.position);
+
+    // Update current playing sound
+    if (entity.has<component::Sound>() && old_tile_material != grid_component.tile_material)
     {
         component::Sound &sound_component = entity.get<component::Sound>();
-
-        if (tile_material != sound_component.tile_material)
+        if (entity.has<component::State>())
         {
-            sound_component.tile_material = tile_material;
-
-            if (entity.has<component::State>())
-            {
-                component::State &state_component = entity.get<component::State>();
-                if (state_component.state == entity_state::MOVE)
-                    entityPlaySound(entity, entity_state::stateToString(entity_state::MOVE));
-            }
+            component::State &state_component = entity.get<component::State>();
+            if (state_component.state == entity_state::MOVE)
+                entityPlaySound(entity, entity_state::stateToString(entity_state::MOVE));
         }
     }
 }
 
 void FckGame::onEntitySkillApplied(const Entity &entity, SkillBase *skill)
 {
-    if (m_state != game_state::LEVEL)
-        return;
-
     if (entity == m_player_entity)
     {
         gui::LevelWidget *level_widget
@@ -1150,9 +1162,6 @@ void FckGame::onEntitySkillApplied(const Entity &entity, SkillBase *skill)
 
 void FckGame::onEntitySkillFinished(const Entity &entity, SkillBase *skill)
 {
-    if (m_state != game_state::LEVEL)
-        return;
-
     if (entity == m_player_entity)
     {
         gui::LevelWidget *level_widget
@@ -1161,25 +1170,23 @@ void FckGame::onEntitySkillFinished(const Entity &entity, SkillBase *skill)
     }
 }
 
-void FckGame::onLevelRoomOpened(const sf::Vector2i &room_coord)
+void FckGame::onMapChunkOpened(const sf::Vector2i &chunk_coords)
 {
-    if (m_state != game_state::LEVEL)
-        return;
     gui::LevelWidget *level_widget
         = static_cast<gui::LevelWidget *>(m_main_widget.getChildren().back());
-    level_widget->setRoomOpended(room_coord);
+    level_widget->setChunkOpened(chunk_coords);
 }
 
-void FckGame::onLevelRoomEnabled(const sf::Vector2i &room_coord)
+void FckGame::onMapChunkChanged(const sf::Vector2i &chunk_coords)
 {
-    if (m_state != game_state::LEVEL)
-        return;
-
-    m_target_follow_system.setWalls(&m_level->getRoomsMap().getData(room_coord)->getWalls());
+    // change walls in target follow system
+    const map::Chunk *chunk = m_map->getChunks().getData(chunk_coords);
+    m_target_follow_system.setWalls(chunk->getWalls());
+    m_target_follow_system.setWallSize(chunk->getWallSize());
 
     gui::LevelWidget *level_widget
         = static_cast<gui::LevelWidget *>(m_main_widget.getChildren().back());
-    level_widget->setCurrentRoom(room_coord);
+    level_widget->setCurrentChunk(chunk_coords);
 }
 
 } // namespace fck

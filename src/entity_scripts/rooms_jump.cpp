@@ -4,6 +4,8 @@
 
 #include "../components/components.h"
 
+#include "../fck/event_dispatcher.h"
+
 #include "spdlog/spdlog.h"
 
 namespace fck::entity_script
@@ -13,7 +15,7 @@ RoomsJump::RoomsJump(Level *level) : m_level{level}, m_need_change_room{false}, 
 {
 }
 
-void RoomsJump::setSide(room_side::Side side)
+void RoomsJump::setSide(chunk_side::Side side)
 {
     m_side = side;
 }
@@ -29,34 +31,36 @@ void RoomsJump::update(const Entity &entity, double delta_time)
     {
         sf::Vector2f target_position;
 
-        if (m_side == room_side::LEFT)
+        if (m_side == chunk_side::LEFT)
         {
             target_position = m_level->getRoomsMap()
                                   .getData(m_room_coord)
                                   ->getEntryPoints()
-                                  .at(room_side::RIGHT);
+                                  .at(chunk_side::RIGHT);
         }
-        else if (m_side == room_side::RIGHT)
+        else if (m_side == chunk_side::RIGHT)
         {
             target_position = m_level->getRoomsMap()
                                   .getData(m_room_coord)
                                   ->getEntryPoints()
-                                  .at(room_side::LEFT);
+                                  .at(chunk_side::LEFT);
         }
-        else if (m_side == room_side::TOP)
+        else if (m_side == chunk_side::TOP)
         {
             target_position = m_level->getRoomsMap()
                                   .getData(m_room_coord)
                                   ->getEntryPoints()
-                                  .at(room_side::BOTTOM);
+                                  .at(chunk_side::BOTTOM);
         }
-        else if (m_side == room_side::BOTTOM)
+        else if (m_side == chunk_side::BOTTOM)
         {
             target_position
-                = m_level->getRoomsMap().getData(m_room_coord)->getEntryPoints().at(room_side::TOP);
+                = m_level->getRoomsMap().getData(m_room_coord)->getEntryPoints().at(chunk_side::TOP);
         }
 
-        m_level->enableRoom(m_room_coord, target_position);
+        EventDispatcher::runTask(
+            [this, target_position]() { m_level->enableRoom(m_room_coord, target_position); });
+
         m_need_change_room = false;
     }
 }

@@ -75,6 +75,16 @@ public:
         m_data.clear();
     }
 
+    typename std::vector<T>::iterator begin()
+    {
+        return std::begin(m_data);
+    }
+
+    typename std::vector<T>::iterator end()
+    {
+        return std::end(m_data);
+    }
+
 private:
     sf::Vector2i m_size;
     std::vector<T> m_data;

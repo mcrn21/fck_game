@@ -12,22 +12,37 @@ TargetFollow::TargetFollow() : m_walls{nullptr}
 {
 }
 
-const Grid<int32_t> *TargetFollow::getWalls() const
+const Vector2D<int32_t> *TargetFollow::getWalls() const
 {
     return m_walls;
 }
 
-void TargetFollow::setWalls(const Grid<int32_t> *walls)
+void TargetFollow::setWalls(const Vector2D<int32_t> &walls)
 {
-    m_walls = walls;
+    m_walls = &walls;
+}
+
+const sf::Vector2i &TargetFollow::getWallSize() const
+{
+    return m_wall_size;
+}
+
+void TargetFollow::setWallSize(const sf::Vector2i &wall_size)
+{
+    m_wall_size = wall_size;
+}
+
+void TargetFollow::clearWalls()
+{
+    m_walls = nullptr;
+    m_wall_size = {};
 }
 
 void TargetFollow::update(double delta_time)
 {
     for (Entity &entity : getEntities())
     {
-        component::TargetFollow &target_follow_component
-            = entity.get<component::TargetFollow>();
+        component::TargetFollow &target_follow_component = entity.get<component::TargetFollow>();
         component::Transform &transform_component = entity.get<component::Transform>();
         component::Velocity &velocity_component = entity.get<component::Velocity>();
         component::State &state_component = entity.get<component::State>();
@@ -57,7 +72,13 @@ void TargetFollow::update(double delta_time)
         target_follow_component.state = component::TargetFollow::LOST;
         velocity_component.velocity = {0.0f, 0.0f};
 
-        sf::Vector2i target_coord = m_walls->transformPosition(target_follow_component.target);
+        sf::Vector2i target_coord = transformPosition(target_follow_component.target);
+
+        spdlog::debug(
+            "Target coord: {} x {}, path size: {}",
+            target_coord.x,
+            target_coord.y,
+            target_follow_component.path.size());
 
         // Need update path
         if ((target_follow_component.path.empty()
@@ -87,8 +108,7 @@ void TargetFollow::update(double delta_time)
             {
                 PathFinder path_finder{*m_walls};
                 target_follow_component.path = path_finder.findPath(
-                    m_walls->transformPosition(transform_component.transform.getPosition()),
-                    target_coord);
+                    transformPosition(transform_component.transform.getPosition()), target_coord);
 
                 if (!target_follow_component.path.empty())
                     target_follow_component.path.erase(target_follow_component.path.end() - 1);
@@ -108,14 +128,14 @@ void TargetFollow::update(double delta_time)
             {
                 sf::Vector2f next_path_point = sf::Vector2f{
                     sf::Vector2i{
-                        target_follow_component.path.back().x * m_walls->getTileSize().x,
-                        target_follow_component.path.back().y * m_walls->getTileSize().y}
-                    + m_walls->getTileSize() / 2};
+                        target_follow_component.path.back().x * m_wall_size.x,
+                        target_follow_component.path.back().y * m_wall_size.y}
+                    + m_wall_size / 2};
 
                 float dist_to_next_point = vector2::distance(
                     transform_component.transform.getPosition(), next_path_point);
 
-                if (dist_to_next_point < (m_walls->getTileSize().x / 4))
+                if (dist_to_next_point < (m_wall_size.x / 4))
                 {
                     target_follow_component.path.erase(target_follow_component.path.end() - 1);
                 }
@@ -171,6 +191,14 @@ void TargetFollow::update(double delta_time)
             entity::stop_sound.emit(entity, entity_state::stateToString(entity_state::MOVE));
         }
     }
+}
+
+sf::Vector2i TargetFollow::transformPosition(const sf::Vector2f &position)
+{
+    if (m_wall_size.x == 0 || m_wall_size.y == 0)
+        return {};
+
+    return {int32_t(position.x) / m_wall_size.x, int32_t(position.y) / m_wall_size.y};
 }
 
 } // namespace fck::system

@@ -74,7 +74,7 @@ void updateCellWeight(Grid<int32_t> &grid, const sf::IntRect &bounds, bool reduc
 
 } // namespace level_helpers
 
-Room::Room() : m_neighbors{0}, m_type{room_type::DEFAULT}, m_open{false}
+Room::Room() : m_neighbors{0}, m_type{chunk_type::DEFAULT}, m_open{false}
 {
 }
 
@@ -88,22 +88,22 @@ void Room::setNeighbors(int32_t neighbors)
     m_neighbors = neighbors;
 }
 
-room_type::Type Room::getType() const
+chunk_type::Type Room::getType() const
 {
     return m_type;
 }
 
-void Room::setType(room_type::Type type)
+void Room::setType(chunk_type::Type type)
 {
     m_type = type;
 }
 
-const std::unordered_map<room_side::Side, sf::Vector2f> &Room::getEntryPoints() const
+const std::unordered_map<chunk_side::Side, sf::Vector2f> &Room::getEntryPoints() const
 {
     return m_entry_points;
 }
 
-void Room::setEntryPoints(const std::unordered_map<room_side::Side, sf::Vector2f> &entry_points)
+void Room::setEntryPoints(const std::unordered_map<chunk_side::Side, sf::Vector2f> &entry_points)
 {
     m_entry_points = entry_points;
 }
@@ -156,6 +156,15 @@ bool Level::loadFromFile(const std::string &file_name)
     return m_level_tmx->loadFromFile(file_name);
 }
 
+void Level::createSingleRoom(int32_t neighbors)
+{
+    Vector2D<BoolProxy> rooms_map;
+    rooms_map.resize({1, 1}, true);
+    createRoomsMap(rooms_map);
+
+    m_rooms_cache.map[0]->setNeighbors(neighbors);
+}
+
 void Level::createRoomsMap(const Vector2D<BoolProxy> &rooms_map)
 {
     m_rooms_cache.clear();
@@ -183,18 +192,18 @@ void Level::createRoomsMap(const Vector2D<BoolProxy> &rooms_map)
         int32_t neighbors = m_rooms_cache.map[i]->getNeighbors();
 
         if (coord.x - 1 >= 0 && m_rooms_cache.map.getData({coord.x - 1, coord.y}))
-            neighbors |= room_side::LEFT;
+            neighbors |= chunk_side::LEFT;
 
         if (coord.x + 1 < m_rooms_cache.map.getSize2D().x
             && m_rooms_cache.map.getData({coord.x + 1, coord.y}))
-            neighbors |= room_side::RIGHT;
+            neighbors |= chunk_side::RIGHT;
 
         if (coord.y - 1 >= 0 && m_rooms_cache.map.getData({coord.x, coord.y - 1}))
-            neighbors |= room_side::TOP;
+            neighbors |= chunk_side::TOP;
 
         if (coord.y + 1 < m_rooms_cache.map.getSize2D().y
             && m_rooms_cache.map.getData({coord.x, coord.y + 1}))
-            neighbors |= room_side::BOTTOM;
+            neighbors |= chunk_side::BOTTOM;
 
         m_rooms_cache.map[i]->setNeighbors(neighbors);
     }
@@ -340,18 +349,18 @@ void Level::createRandomRoomsMap(int32_t room_count)
         int32_t neighbors = m_rooms_cache.map[i]->getNeighbors();
 
         if (coord.x - 1 >= 0 && m_rooms_cache.map.getData({coord.x - 1, coord.y}))
-            neighbors |= room_side::LEFT;
+            neighbors |= chunk_side::LEFT;
 
         if (coord.x + 1 < m_rooms_cache.map.getSize2D().x
             && m_rooms_cache.map.getData({coord.x + 1, coord.y}))
-            neighbors |= room_side::RIGHT;
+            neighbors |= chunk_side::RIGHT;
 
         if (coord.y - 1 >= 0 && m_rooms_cache.map.getData({coord.x, coord.y - 1}))
-            neighbors |= room_side::TOP;
+            neighbors |= chunk_side::TOP;
 
         if (coord.y + 1 < m_rooms_cache.map.getSize2D().y
             && m_rooms_cache.map.getData({coord.x, coord.y + 1}))
-            neighbors |= room_side::BOTTOM;
+            neighbors |= chunk_side::BOTTOM;
 
         m_rooms_cache.map[i]->setNeighbors(neighbors);
     }
@@ -377,7 +386,7 @@ void Level::createRoomsContent()
                 for (std::string room_group_name : room_group_name_strs)
                 {
                     string::trim(room_group_name);
-                    neighbors |= room_side::fromString(room_group_name);
+                    neighbors |= chunk_side::fromString(room_group_name);
                 }
 
                 if (m_rooms_cache.map[i]->getNeighbors() == neighbors)
@@ -435,34 +444,29 @@ void Level::enableRoom(const sf::Vector2i &coord, const sf::Vector2f &target_pos
         m_current_room_coord = {-1, -1};
     }
 
-    EventDispatcher::runTasks(
-        {[this, target_position]() {
-             if (m_player_entity.isValid())
-             {
-                 entity::set_position.emit(m_player_entity, target_position);
-                 component::Player &player_component = m_player_entity.get<component::Player>();
-                 player_component.view_hard_set_position = true;
-             }
+    // force refresh world
+    m_world->refresh();
 
-             return true;
-         },
-         [this, coord]() {
-             if (m_rooms_cache.entities.getData(coord))
-             {
-                 m_rooms_cache.enableRoom(coord);
-                 m_current_room_coord = coord;
+    if (m_player_entity.isValid())
+    {
+        entity::set_position.emit(m_player_entity, target_position);
+        component::Player &player_component = m_player_entity.get<component::Player>();
+        player_component.view_hard_set_position = true;
+    }
 
-                 if (!m_rooms_cache.map.getData(coord)->isOpen())
-                 {
-                     m_rooms_cache.map.getData(coord)->setOpen(true);
-                     room_opened.emit(coord);
-                 }
+    if (m_rooms_cache.entities.getData(coord))
+    {
+        m_rooms_cache.enableRoom(coord);
+        m_current_room_coord = coord;
 
-                 room_enabled.emit(coord);
-             }
+        if (!m_rooms_cache.map.getData(coord)->isOpen())
+        {
+            m_rooms_cache.map.getData(coord)->setOpen(true);
+            room_opened.emit(coord);
+        }
 
-             return true;
-         }});
+        room_enabled.emit(coord);
+    }
 }
 
 void Level::createRoom(int32_t index, const Tmx::Group &rooms_group)
@@ -485,11 +489,11 @@ void Level::createRoom(int32_t index, const Tmx::Group &rooms_group)
 
         if (object_group.name == "entry_points")
         {
-            std::unordered_map<room_side::Side, sf::Vector2f> entry_points;
+            std::unordered_map<chunk_side::Side, sf::Vector2f> entry_points;
 
             for (const Tmx::Object &entry_point_object : object_group.objects)
                 entry_points.emplace(
-                    room_side::fromString(entry_point_object.name),
+                    chunk_side::fromString(entry_point_object.name),
                     entry_point_object.rect.getPosition());
 
             m_rooms_cache.map[index]->setEntryPoints(entry_points);
@@ -562,18 +566,18 @@ void Level::createRoomTilemapLayers(int32_t index, const std::vector<Tmx::Layer>
 
 void Level::createRoomJumpBlocks(int32_t index, const Tmx::ObjectGroup &exit_blocks_object_group)
 {
-    static std::unordered_map<room_side::Side, sf::Vector2i> neighbor_rooms
-        = {{room_side::LEFT, {-1, 0}},
-           {room_side::RIGHT, {1, 0}},
-           {room_side::TOP, {0, -1}},
-           {room_side::BOTTOM, {0, 1}}};
+    static std::unordered_map<chunk_side::Side, sf::Vector2i> neighbor_rooms
+        = {{chunk_side::LEFT, {-1, 0}},
+           {chunk_side::RIGHT, {1, 0}},
+           {chunk_side::TOP, {0, -1}},
+           {chunk_side::BOTTOM, {0, 1}}};
 
     for (const Tmx::Object &exit_block_object : exit_blocks_object_group.objects)
     {
         if (exit_block_object.type != Tmx::Object::RECT)
             continue;
 
-        room_side::Side side = room_side::fromString(exit_block_object.name);
+        chunk_side::Side side = chunk_side::fromString(exit_block_object.name);
 
         Entity entity = m_world->createEntity();
 

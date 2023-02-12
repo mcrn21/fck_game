@@ -108,6 +108,12 @@ bool isValid(const sf::Vector2<T> &vector)
 }
 
 template<typename T>
+bool isNegotive(const sf::Vector2<T> &vector)
+{
+    return vector.x < 0 || vector.y < 0;
+}
+
+template<typename T>
 sf::Vector2<T> mult(const sf::Vector2<T> &v1, const sf::Vector2<T> &v2)
 {
     return {v1.x * v2.x, v1.y * v2.y};

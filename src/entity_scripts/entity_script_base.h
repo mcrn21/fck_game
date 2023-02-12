@@ -19,7 +19,7 @@ public:
     EntityScriptBase();
     virtual ~EntityScriptBase() = default;
 
-    virtual void update(const Entity &entity, double delta_time) = 0;
+    virtual void update(const Entity &entity, double delta_time);
 
     virtual void onEntityEnabled(const Entity &entity);
     virtual void onEntityDisabled(const Entity &entity);

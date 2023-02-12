@@ -89,7 +89,8 @@ std::string toString(Type type)
            {Type::SKILLS, "skills"},
            {Type::DAMAGE, "damage"},
            {Type::MARKER, "marker"},
-           {Type::SHADOW, "shadow"}};
+           {Type::SHADOW, "shadow"},
+           {Type::GRID, "grid"}};
 
     auto strings_found = strings.find(type);
     if (strings_found != strings.end())
@@ -119,7 +120,8 @@ Type fromString(const std::string &string)
            {"skills", Type::SKILLS},
            {"damage", Type::DAMAGE},
            {"marker", Type::MARKER},
-           {"shadow", Type::SHADOW}};
+           {"shadow", Type::SHADOW},
+           {"grid", Type::GRID}};
 
     auto types_found = types.find(string);
     if (types_found != types.end())
@@ -191,7 +193,7 @@ Type fromString(const std::string &string)
 
 } // namespace tile_material_type
 
-namespace room_side
+namespace chunk_side
 {
 
 std::string toString(Side side)
@@ -218,7 +220,7 @@ Side fromString(const std::string &string)
 
 } // namespace room_side
 
-namespace room_type
+namespace chunk_type
 {
 
 std::string toString(Type type)

@@ -7,6 +7,11 @@ EntityScriptBase::EntityScriptBase()
 {
 }
 
+void EntityScriptBase::update(const Entity &entity, double delta_time)
+{
+
+}
+
 void EntityScriptBase::onEntityEnabled(const Entity &entity)
 {
 

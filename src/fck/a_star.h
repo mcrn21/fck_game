@@ -1,7 +1,7 @@
 #ifndef A_STAR_FTXEOUQWCTXW_H
 #define A_STAR_FTXEOUQWCTXW_H
 
-#include "grid.h"
+#include "vector_2d.h"
 
 #include "SFML/System/Vector2.hpp"
 
@@ -36,11 +36,11 @@ public:
         static uint32_t octagonal(const sf::Vector2i &source, const sf::Vector2i &target);
     };
 
-    PathFinder(const Grid<int32_t> &walls);
+    PathFinder(const Vector2D<int32_t> &walls);
     ~PathFinder() = default;
 
-    const Grid<int32_t> *getWalls() const;
-    void setWalls(const Grid<int32_t> &grid);
+    const Vector2D<int32_t> *getWalls() const;
+    void setWalls(const Vector2D<int32_t> &grid);
 
     void setHeuristic(
         const std::function<uint32_t(const sf::Vector2i &, const sf::Vector2i &)> &heuristic);
@@ -56,7 +56,7 @@ private:
 private:
     static std::vector<sf::Vector2i> m_directions;
 
-    const Grid<int32_t> *m_walls;
+    const Vector2D<int32_t> *m_walls;
     std::function<uint32_t(const sf::Vector2i &, const sf::Vector2i &)> m_heuristic;
     int32_t m_directions_count;
 };

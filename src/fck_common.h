@@ -126,7 +126,8 @@ enum Type
     SKILLS,
     DAMAGE,
     MARKER,
-    SHADOW
+    SHADOW,
+    GRID
 };
 
 std::string toString(Type type);
@@ -165,7 +166,7 @@ Type fromString(const std::string &string);
 
 } // namespace tile_material_type
 
-namespace room_side
+namespace chunk_side
 {
 
 enum Side
@@ -180,9 +181,9 @@ enum Side
 std::string toString(Side side);
 Side fromString(const std::string &string);
 
-} // namespace room_side
+} // namespace chunk_side
 
-namespace room_type
+namespace chunk_type
 {
 
 enum Type
@@ -197,7 +198,7 @@ enum Type
 std::string toString(Type type);
 Type fromString(const std::string &string);
 
-} // namespace room_type
+} // namespace chunk_type
 
 } // namespace fck
 

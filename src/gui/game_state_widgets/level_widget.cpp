@@ -156,19 +156,19 @@ void LevelWidget::updateTargetStats()
     m_target_hp_progress_bar->setString(hp_text);
 }
 
-void LevelWidget::setRoomsMap(const Vector2D<Room *> &rooms_map)
+void LevelWidget::setChunks(const Vector2D<map::Chunk *> &chunks)
 {
-    m_minimap->setRoomsMap(rooms_map);
+    m_minimap->setChunks(chunks);
 }
 
-void LevelWidget::setRoomOpended(const sf::Vector2i &room_coord)
+void LevelWidget::setChunkOpened(const sf::Vector2i &room_coord)
 {
-    m_minimap->setRoomOpened(room_coord);
+    m_minimap->setChunkOpened(room_coord);
 }
 
-void LevelWidget::setCurrentRoom(const sf::Vector2i &room_coord)
+void LevelWidget::setCurrentChunk(const sf::Vector2i &room_coord)
 {
-    m_minimap->setCurrentRoom(room_coord);
+    m_minimap->setCurrentChunk(room_coord);
 }
 
 void LevelWidget::onWindowResized(const sf::Vector2f &size)

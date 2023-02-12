@@ -5,7 +5,7 @@
 #include "grid.h"
 #include "widget.h"
 
-#include "../level.h"
+#include "../map/map.h"
 
 #include <SFML/Graphics.hpp>
 
@@ -18,11 +18,11 @@ public:
     Minimap(Widget *parent = nullptr);
     ~Minimap() = default;
 
-    const Vector2D<Room *> *getRoomsMap() const;
-    void setRoomsMap(const Vector2D<Room *> &rooms_map);
+    const Vector2D<map::Chunk *> *getChunks() const;
+    void setChunks(const Vector2D<map::Chunk *> &chunks);
 
-    void setRoomOpened(const sf::Vector2i &room_coord);
-    void setCurrentRoom(const sf::Vector2i &room_coord);
+    void setChunkOpened(const sf::Vector2i &chunk_coords);
+    void setCurrentChunk(const sf::Vector2i &chunk_coords);
 
 protected:
     void onResized(const sf::Vector2f &size) override;
@@ -34,19 +34,19 @@ private:
     void updateGeometry();
 
 private:
-    const Vector2D<Room *> *m_rooms_map;
+    const Vector2D<map::Chunk *> *m_chunks;
 
     Box m_background;
 
-    Grid m_rooms_map_grid;
-    std::unordered_map<int32_t, int32_t> m_room_map_grid_texture_indexes;
+    Grid m_chunks_grid;
+    std::unordered_map<int32_t, int32_t> m_chunks_grid_texture_indexes;
 
-    Grid m_rooms_type_grid;
-    std::unordered_map<int32_t, int32_t> m_room_type_grid_texture_indexes;
+    Grid m_chunks_type_grid;
+    std::unordered_map<int32_t, int32_t> m_chunks_type_grid_texture_indexes;
 
-    Box m_current_room_highlight;
+    Box m_current_chunk_highlight;
 
-    sf::Vector2i m_current_room;
+    sf::Vector2i m_current_chunk;
 };
 
 } // namespace fck::gui

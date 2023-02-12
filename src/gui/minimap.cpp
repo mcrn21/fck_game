@@ -12,54 +12,55 @@ Minimap::Minimap(Widget *parent) : Widget{parent}
     setWidgetTheme(WidgetTheme::get<Minimap>());
 }
 
-const Vector2D<Room *> *Minimap::getRoomsMap() const
+const Vector2D<map::Chunk *> *Minimap::getChunks() const
 {
-    return m_rooms_map;
+    return m_chunks;
 }
 
-void Minimap::setRoomsMap(const Vector2D<Room *> &rooms_map)
+void Minimap::setChunks(const Vector2D<map::Chunk *> &chunks)
 {
-    m_rooms_map = &rooms_map;
-    m_rooms_map_grid.setSize(m_rooms_map->getSize2D());
-    m_rooms_type_grid.setSize(m_rooms_map->getSize2D());
+    m_chunks = &chunks;
+    m_chunks_grid.setSize(m_chunks->getSize2D());
+    m_chunks_type_grid.setSize(m_chunks->getSize2D());
 
-    for (int32_t i = 0; i < m_rooms_map->getSize(); ++i)
+    for (int32_t i = 0; i < m_chunks->getSize(); ++i)
     {
-        auto coord = m_rooms_map->transformIndex(i);
-        m_rooms_map_grid.setCellTexture(
+        auto coord = m_chunks->transformIndex(i);
+        m_chunks_grid.setCellTexture(
             coord,
-            m_rooms_map->at(i)
-                ? (m_rooms_map->at(i)->isOpen()
-                       ? m_room_map_grid_texture_indexes[m_rooms_map->at(i)->getNeighbors()]
+            m_chunks->at(i)
+                ? (m_chunks->at(i)->isOpen()
+                       ? m_chunks_grid_texture_indexes[m_chunks->at(i)->getNeighbors()]
                        : -1)
                 : -1);
 
-        m_rooms_type_grid.setCellTexture(
+        m_chunks_type_grid.setCellTexture(
             coord,
-            m_rooms_map->at(i)
-                ? (m_rooms_map->at(i)->isOpen()
-                       ? m_room_type_grid_texture_indexes[m_rooms_map->at(i)->getType()]
+            m_chunks->at(i)
+                ? (m_chunks->at(i)->isOpen()
+                       ? m_chunks_type_grid_texture_indexes[m_chunks->at(i)->getType()]
                        : -1)
                 : -1);
     }
 }
 
-void Minimap::setRoomOpened(const sf::Vector2i &room_coord)
+void Minimap::setChunkOpened(const sf::Vector2i &chunk_coords)
 {
-    if (!m_rooms_map)
+    if (!m_chunks)
         return;
 
-    m_rooms_map_grid.setCellTexture(
-        room_coord,
-        m_room_map_grid_texture_indexes[m_rooms_map->getData(room_coord)->getNeighbors()]);
+    m_chunks_grid.setCellTexture(
+        chunk_coords,
+        m_chunks_grid_texture_indexes[m_chunks->getData(chunk_coords)->getNeighbors()]);
 
-    m_rooms_type_grid.setCellTexture(
-        room_coord, m_room_type_grid_texture_indexes[m_rooms_map->getData(room_coord)->getType()]);
+    m_chunks_type_grid.setCellTexture(
+        chunk_coords,
+        m_chunks_type_grid_texture_indexes[m_chunks->getData(chunk_coords)->getType()]);
 }
 
-void Minimap::setCurrentRoom(const sf::Vector2i &room_coord)
+void Minimap::setCurrentChunk(const sf::Vector2i &chunk_coords)
 {
-    m_current_room = room_coord;
+    m_current_chunk = chunk_coords;
     updateGeometry();
 }
 
@@ -78,45 +79,45 @@ void Minimap::onThemeChanged(const WidgetTheme &widget_theme)
 
     sf::Vector2f cell_size = {34.0f, 34.0f};
 
-    m_rooms_map_grid.setTexture(*ResourceCache::get<sf::Texture>(widget_theme.texture));
-    m_rooms_map_grid.setTextureRect({{128, 0}, {96, 192}});
-    m_rooms_map_grid.setTextureCellSize({32, 32});
-    m_rooms_map_grid.setCellSize(cell_size);
+    m_chunks_grid.setTexture(*ResourceCache::get<sf::Texture>(widget_theme.texture));
+    m_chunks_grid.setTextureRect({{128, 0}, {96, 192}});
+    m_chunks_grid.setTextureCellSize({32, 32});
+    m_chunks_grid.setCellSize(cell_size);
 
-    m_room_map_grid_texture_indexes
+    m_chunks_grid_texture_indexes
         = {{0, 15},
-           {room_side::LEFT, 0},
-           {room_side::LEFT | room_side::TOP, 1},
-           {room_side::LEFT | room_side::TOP | room_side::RIGHT, 2},
-           {room_side::TOP, 3},
-           {room_side::TOP | room_side::RIGHT, 4},
-           {room_side::TOP | room_side::RIGHT | room_side::BOTTOM, 5},
-           {room_side::RIGHT, 6},
-           {room_side::RIGHT | room_side::BOTTOM, 7},
-           {room_side::RIGHT | room_side::BOTTOM | room_side::LEFT, 8},
-           {room_side::BOTTOM, 9},
-           {room_side::BOTTOM | room_side::LEFT, 10},
-           {room_side::BOTTOM | room_side::LEFT | room_side::TOP, 11},
-           {room_side::TOP | room_side::BOTTOM, 12},
-           {room_side::LEFT | room_side::RIGHT, 13},
-           {room_side::LEFT | room_side::TOP | room_side::RIGHT | room_side::BOTTOM, 14}};
+           {chunk_side::LEFT, 0},
+           {chunk_side::LEFT | chunk_side::TOP, 1},
+           {chunk_side::LEFT | chunk_side::TOP | chunk_side::RIGHT, 2},
+           {chunk_side::TOP, 3},
+           {chunk_side::TOP | chunk_side::RIGHT, 4},
+           {chunk_side::TOP | chunk_side::RIGHT | chunk_side::BOTTOM, 5},
+           {chunk_side::RIGHT, 6},
+           {chunk_side::RIGHT | chunk_side::BOTTOM, 7},
+           {chunk_side::RIGHT | chunk_side::BOTTOM | chunk_side::LEFT, 8},
+           {chunk_side::BOTTOM, 9},
+           {chunk_side::BOTTOM | chunk_side::LEFT, 10},
+           {chunk_side::BOTTOM | chunk_side::LEFT | chunk_side::TOP, 11},
+           {chunk_side::TOP | chunk_side::BOTTOM, 12},
+           {chunk_side::LEFT | chunk_side::RIGHT, 13},
+           {chunk_side::LEFT | chunk_side::TOP | chunk_side::RIGHT | chunk_side::BOTTOM, 14}};
 
-    m_rooms_type_grid.setTexture(*ResourceCache::get<sf::Texture>(widget_theme.texture));
-    m_rooms_type_grid.setTextureRect({{128, 192}, {96, 32}});
-    m_rooms_type_grid.setTextureCellSize({32, 32});
-    m_rooms_type_grid.setCellSize(cell_size);
+    m_chunks_type_grid.setTexture(*ResourceCache::get<sf::Texture>(widget_theme.texture));
+    m_chunks_type_grid.setTextureRect({{128, 192}, {96, 32}});
+    m_chunks_type_grid.setTextureCellSize({32, 32});
+    m_chunks_type_grid.setCellSize(cell_size);
 
-    m_room_type_grid_texture_indexes
-        = {{room_type::UNKNOW, 0},
-           {room_type::DEFAULT, -1},
-           {room_type::BOSS, 1},
-           {room_type::TRADER, 2}};
+    m_chunks_type_grid_texture_indexes
+        = {{chunk_type::UNKNOW, 0},
+           {chunk_type::DEFAULT, -1},
+           {chunk_type::BOSS, 1},
+           {chunk_type::TRADER, 2}};
 
-    m_current_room_highlight.setTexture(*ResourceCache::get<sf::Texture>(widget_theme.texture));
-    m_current_room_highlight.setBorderSize(0.0f);
-    m_current_room_highlight.setTextureRect({{160, 160}, {32, 32}});
-    m_current_room_highlight.setSize(cell_size);
-    m_current_room_highlight.setBorderTextureSize(0);
+    m_current_chunk_highlight.setTexture(*ResourceCache::get<sf::Texture>(widget_theme.texture));
+    m_current_chunk_highlight.setBorderSize(0.0f);
+    m_current_chunk_highlight.setTextureRect({{160, 160}, {32, 32}});
+    m_current_chunk_highlight.setSize(cell_size);
+    m_current_chunk_highlight.setBorderTextureSize(0);
 
     updateGeometry();
 }
@@ -139,23 +140,24 @@ void Minimap::draw(sf::RenderTarget &target, const sf::RenderStates &states) con
                     widget_theme.padding.left + widget_theme.padding.right,
                     widget_theme.padding.top + widget_theme.padding.bottom});
 
-        target.draw(m_rooms_map_grid, new_states);
-        target.draw(m_rooms_type_grid, new_states);
+        target.draw(m_chunks_grid, new_states);
+        target.draw(m_chunks_type_grid, new_states);
     }
 
-    target.draw(m_current_room_highlight, new_states);
+    target.draw(m_current_chunk_highlight, new_states);
 }
 
 void Minimap::updateGeometry()
 {
     sf::Vector2f position = getSize() / 2.0f
-        - (vector2::mult(sf::Vector2f{m_current_room}, m_rooms_map_grid.getCellSize())
-           + m_rooms_map_grid.getCellSize() / 2.0f);
+        - (vector2::mult(sf::Vector2f{m_current_chunk}, m_chunks_grid.getCellSize())
+           + m_chunks_grid.getCellSize() / 2.0f);
 
-    m_rooms_map_grid.setPoisition(position);
-    m_rooms_type_grid.setPoisition(position);
+    m_chunks_grid.setPoisition(position);
+    m_chunks_type_grid.setPoisition(position);
 
-    m_current_room_highlight.setPoisition((getSize() - m_current_room_highlight.getSize()) / 2.0f);
+    m_current_chunk_highlight.setPoisition(
+        (getSize() - m_current_chunk_highlight.getSize()) / 2.0f);
 }
 
 } // namespace fck::gui

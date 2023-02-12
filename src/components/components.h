@@ -5,6 +5,7 @@
 #include "damage.h"
 #include "drawable.h"
 #include "drawable_animation.h"
+#include "grid.h"
 #include "look_around.h"
 #include "marker.h"
 #include "player.h"

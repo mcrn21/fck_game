@@ -50,9 +50,6 @@ Signal<const Entity &, const std::string &> entity::play_sound;
 Signal<const Entity &, const std::string &> entity::stop_sound;
 Signal<const Entity &> entity::stop_all_sound;
 
-// other
-Signal<const Entity &, tile_material_type::Type> entity::set_tile_material;
-
 // skills
 Signal<const Entity &, SkillBase *> entity::skill_applied;
 Signal<const Entity &, SkillBase *> entity::skill_finished;
