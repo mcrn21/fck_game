@@ -7,19 +7,19 @@
 namespace fck::gui
 {
 
-SkillIcon::SkillIcon(const SkillBase &skill, Widget *parent) : Widget{parent}, m_skill{&skill}
+SkillIcon::SkillIcon(const skill::Skill &skill, Widget *parent) : Widget{parent}, m_skill{&skill}
 {
     setWidgetTheme(WidgetTheme::get<SkillIcon>());
 
-    KnowledgeBase::SkillItemBase *skill_item = KnowledgeBase::getSkill(m_skill->getName());
+    const SkillFactory::Factory *factory = m_skill->getSkillFactory();
 
-    m_skill_icon.setTexture(*ResourceCache::get<sf::Texture>(skill_item->getTextureName()));
-    m_skill_icon.setTextureRect(skill_item->getTextureRect());
+    m_skill_icon.setTexture(*ResourceCache::get<sf::Texture>(factory->getSkillTextureName()));
+    m_skill_icon.setTextureRect(factory->getSkillTextureRect());
 
     setSize({96.0f, 96.0f});
 }
 
-const SkillBase *SkillIcon::getSkill() const
+const skill::Skill *SkillIcon::getSkill() const
 {
     return m_skill;
 }

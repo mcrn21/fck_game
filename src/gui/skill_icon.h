@@ -4,7 +4,7 @@
 #include "box.h"
 #include "widget.h"
 
-#include "../skills/skill_base.h"
+#include "../skills/skill.h"
 
 #include <SFML/Graphics.hpp>
 
@@ -14,10 +14,10 @@ namespace fck::gui
 class SkillIcon : public Widget
 {
 public:
-    SkillIcon(const SkillBase &skill, Widget *parent = nullptr);
+    SkillIcon(const skill::Skill &skill, Widget *parent = nullptr);
     ~SkillIcon() = default;
 
-    const SkillBase *getSkill() const;
+    const skill::Skill *getSkill() const;
 
     void setActivated(bool activated);
 
@@ -31,7 +31,7 @@ private:
     void updateGeometry();
 
 private:
-    const SkillBase *m_skill;
+    const skill::Skill *m_skill;
     Box m_background;
     Box m_skill_icon;
 };

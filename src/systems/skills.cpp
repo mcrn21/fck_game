@@ -23,22 +23,10 @@ void Skills::update(double delta_time)
             if (skills_component.next_skill < skills_component.skills.size()
                 && !(entity_state::NOT_AVALIBLE & state_component.state))
             {
-                Entity target;
-                if (entity.has<component::Target>())
-                {
-                    component::Target &target_component = entity.get<component::Target>();
-                    if (target_component.target.isValid())
-                    {
-                        component::State &target_state_component
-                            = target_component.target.get<component::State>();
-                        if (target_state_component.state != entity_state::DEATH)
-                            target = target_component.target;
-                    }
-                }
 
                 if (skills_component.skills[skills_component.next_skill]->isReady())
                 {
-                    skills_component.skills[skills_component.next_skill]->_apply(entity, target);
+                    skills_component.skills[skills_component.next_skill]->start();
                     entity_funcs::skill_applied(
                         entity, skills_component.skills[skills_component.next_skill].get());
                 }
@@ -60,7 +48,7 @@ void Skills::update(double delta_time)
                     continue;
                 }
 
-                skill->_update(delta_time);
+                skill->update(delta_time);
 
                 if (skill->isReady())
                     entity_funcs::skill_finished(entity, skill.get());

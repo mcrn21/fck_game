@@ -39,8 +39,8 @@ public: //slots
         const Entity &entity, const Entity &target, const Entity &old_target);
     void onEntityHealthChanged(const Entity &entity, float);
     void onEntityArmorChanged(const Entity &entity, float);
-    void onEntitySkillApplied(const Entity &entity, SkillBase *);
-    void onEntitySkillFinished(const Entity &entity, SkillBase *);
+    void onEntitySkillApplied(const Entity &entity, skill::Skill *);
+    void onEntitySkillFinished(const Entity &entity, skill::Skill *);
     void onChunkOpened(const sf::Vector2i &chunk_coords);
     void onChunkChanged(const sf::Vector2i &chunk_coords);
 

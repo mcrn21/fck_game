@@ -24,14 +24,24 @@ void ScriptFactory::setSolState(sol::state *sol_state)
     instance().m_sol_state = sol_state;
 }
 
-void ScriptFactory::registerScriptFacory(
+void ScriptFactory::registerScriptFactory(
     const std::string &script_name, const std::string &script_str)
 {
-    instance().m_sol_state->script(script_str);
+    if (!instance().m_sol_state)
+        return;
+
+    sol::load_result load_result = instance().m_sol_state->load(script_str);
+
+    if (!load_result.valid())
+    {
+        sol::error err = load_result;
+        spdlog::warn("Register script error: {}", err.what());
+        return;
+    }
 
     std::unique_ptr<Factory> script_factory = std::make_unique<Factory>();
-    script_factory->create_function = (*instance().m_sol_state)[script_name];
 
+    script_factory->create_function = load_result.get<sol::protected_function>();
     instance().m_script_factories[script_name] = std::move(script_factory);
 
     spdlog::info("Register script factory: {}", script_name);

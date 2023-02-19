@@ -217,27 +217,29 @@ void KnowledgeBase::loadEntityFromBuffer(const std::string &name, const std::str
 
 void KnowledgeBase::loadSkillFromBuffer(const std::string &name, const std::string &data)
 {
-    toml::table table = toml::parse(data);
+    SkillFactory::registerSkillFactory(name, data);
 
-    std::string base_skill = table.at("base_skill").as_string()->get();
+    //    toml::table table = toml::parse(data);
 
-    auto skill_fabrics = m_base_skill_fabrics.find(base_skill);
-    if (skill_fabrics == m_base_skill_fabrics.end())
-        throw Exception{fmt::format("Base skill not found: {}", base_skill)};
+    //    std::string base_skill = table.at("base_skill").as_string()->get();
 
-    std::unique_ptr<SkillItemBase> skill_item_base;
-    skill_item_base.reset(skill_fabrics->second());
+    //    auto skill_fabrics = m_base_skill_fabrics.find(base_skill);
+    //    if (skill_fabrics == m_base_skill_fabrics.end())
+    //        throw Exception{fmt::format("Base skill not found: {}", base_skill)};
 
-    skill_item_base->init(name, &table);
+    //    std::unique_ptr<SkillItemBase> skill_item_base;
+    //    skill_item_base.reset(skill_fabrics->second());
 
-    spdlog::info("Add skill: {}", name);
-    m_skills.emplace(name, std::move(skill_item_base));
+    //    skill_item_base->init(name, &table);
+
+    //    spdlog::info("Add skill: {}", name);
+    //    m_skills.emplace(name, std::move(skill_item_base));
 }
 
 void KnowledgeBase::loadScriptFromBuffer(const std::string &name, const std::string &data)
 {
     //    spdlog::debug("Load lua script: {}: {}", name, data);
-    ScriptFactory::registerScriptFacory(name, data);
+    ScriptFactory::registerScriptFactory(name, data);
 }
 
 } // namespace fck

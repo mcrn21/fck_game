@@ -11,6 +11,7 @@
 #include "../knowledge_base/entity_factory.h"
 #include "../knowledge_base/knowledge_base.h"
 #include "../scripts/script.h"
+#include "../skills/skill.h"
 
 #include <SFML/Audio.hpp>
 #include <SFML/Graphics.hpp>
@@ -251,7 +252,7 @@ REGISTER_COMPONENT_FACTORY(component_type::STATS, StatsComponentFactory);
 struct Skills
 {
     int32_t next_skill = -1;
-    std::vector<std::unique_ptr<SkillBase>> skills;
+    std::vector<std::unique_ptr<skill::Skill>> skills;
 };
 
 struct SkillsComponentFactory : public ComponentFactory::Factory

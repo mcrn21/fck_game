@@ -4,7 +4,7 @@
 #include "fck/entity.h"
 #include "fck_common.h"
 #include "sigslot/signal.hpp"
-#include "skills/skill_base.h"
+#include "skills/skill.h"
 
 #include <SFML/Graphics.hpp>
 
@@ -54,8 +54,8 @@ struct entity_funcs
     static sigslot::signal<const Entity &, const std::string &> sound_playing;
     static sigslot::signal<const Entity &, const std::string &> sound_stopped;
     static sigslot::signal<const Entity &> all_sound_stopped;
-    static sigslot::signal<const Entity &, SkillBase *> skill_applied;
-    static sigslot::signal<const Entity &, SkillBase *> skill_finished;
+    static sigslot::signal<const Entity &, skill::Skill *> skill_applied;
+    static sigslot::signal<const Entity &, skill::Skill *> skill_finished;
 
 private:
     entity_funcs() = delete;

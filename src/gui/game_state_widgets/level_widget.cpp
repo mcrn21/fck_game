@@ -133,7 +133,7 @@ void LevelWidget::updatePlayerSkills()
     for (auto &skill : skills_component.skills)
     {
         SkillIcon *skill_icon = new SkillIcon{*skill, this};
-        skill_icon->setActivated(!skill->isReady());
+        //        skill_icon->setActivated(!skill->isReady());
         m_player_skill_icons.push_back(std::unique_ptr<SkillIcon>(skill_icon));
     }
 
@@ -184,7 +184,7 @@ void LevelWidget::onEntityArmorChanged(const Entity &entity, float)
         updateTargetStats();
 }
 
-void LevelWidget::onEntitySkillApplied(const Entity &entity, SkillBase *)
+void LevelWidget::onEntitySkillApplied(const Entity &entity, skill::Skill *)
 {
     if (entity == m_player_entity)
     {
@@ -193,7 +193,7 @@ void LevelWidget::onEntitySkillApplied(const Entity &entity, SkillBase *)
     }
 }
 
-void LevelWidget::onEntitySkillFinished(const Entity &entity, SkillBase *)
+void LevelWidget::onEntitySkillFinished(const Entity &entity, skill::Skill *)
 {
     if (entity == m_player_entity)
     {

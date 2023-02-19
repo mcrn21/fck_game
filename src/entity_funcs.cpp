@@ -19,8 +19,8 @@ sigslot::signal<const Entity &, float> entity_funcs::armor_changed;
 sigslot::signal<const Entity &, const std::string &> entity_funcs::sound_playing;
 sigslot::signal<const Entity &, const std::string &> entity_funcs::sound_stopped;
 sigslot::signal<const Entity &> entity_funcs::all_sound_stopped;
-sigslot::signal<const Entity &, SkillBase *> entity_funcs::skill_applied;
-sigslot::signal<const Entity &, SkillBase *> entity_funcs::skill_finished;
+sigslot::signal<const Entity &, skill::Skill *> entity_funcs::skill_applied;
+sigslot::signal<const Entity &, skill::Skill *> entity_funcs::skill_finished;
 
 // funcs
 // transform

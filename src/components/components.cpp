@@ -248,9 +248,18 @@ void SkillsComponentFactory::create(Entity &entity)
     if (component_table.contains("skills"))
         skills = vector::tomlArrayToStringVector(component_table.at("skills").as_array());
 
-    for (const std::string &skill : skills)
-        component.skills.push_back(
-            std::unique_ptr<SkillBase>(KnowledgeBase::getSkill(skill)->create()));
+    for (const std::string &skill_name : skills)
+    {
+        skill::Skill *skill = SkillFactory::createSkill(skill_name);
+        if (!skill)
+        {
+            spdlog::warn("Skill not found: {}", skill_name);
+            return;
+        }
+
+        skill->setEntityToTable(entity);
+        component.skills.push_back(std::unique_ptr<skill::Skill>(skill));
+    }
 }
 
 // MARKER

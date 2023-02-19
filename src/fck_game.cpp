@@ -112,6 +112,7 @@ FckGame::FckGame()
     m_lua_state.open_libraries(sol::lib::base, sol::lib::coroutine, sol::lib::string, sol::lib::io);
     bindToLua(m_lua_state);
 
+    SkillFactory::setSolState(&m_lua_state);
     ScriptFactory::setSolState(&m_lua_state);
 }
 

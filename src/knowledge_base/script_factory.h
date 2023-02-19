@@ -18,8 +18,8 @@ public:
     };
 
     static void setSolState(sol::state *sol_state);
-    static void registerScriptFacory(const std::string &script_name, const std::string &script_str);
-
+    static void registerScriptFactory(
+        const std::string &script_name, const std::string &script_str);
     static script::Script *createScript(const std::string &script_name);
 
 private:

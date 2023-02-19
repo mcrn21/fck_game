@@ -10,6 +10,7 @@
 #include "component_factory.h"
 #include "entity_factory.h"
 #include "script_factory.h"
+#include "skill_factory.h"
 
 #include "../sqlite/sqlite3.h"
 
