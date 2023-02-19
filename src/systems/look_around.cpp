@@ -1,7 +1,4 @@
 #include "look_around.h"
-
-#include "../entity_utils.h"
-
 #include "../fck/utilities.h"
 
 namespace fck::system
@@ -27,8 +24,7 @@ void LookAround::update(double delta_time)
             Entity other = m_tree->getUserData(id);
             if (other != entity)
             {
-                if (!other.has<component::State>()
-                    || !other.has<component::Type>())
+                if (!other.has<component::State>())
                     return true;
 
                 look_around_component.found_entities.push_back(other);
@@ -47,9 +43,13 @@ void LookAround::update(double delta_time)
 
 void LookAround::updateBounds(const Entity &entity)
 {
-    component::LookAround &look_around_component = entity.get<component::LookAround>();
-    component::State &state_component = entity.get<component::State>();
-    component::Transform &transform_component = entity.get<component::Transform>();
+    if (!entity.has<component::LookAround>() || !entity.has<component::State>()
+        || !entity.has<component::Transform>())
+        return;
+
+    auto &look_around_component = entity.get<component::LookAround>();
+    auto &state_component = entity.get<component::State>();
+    auto &transform_component = entity.get<component::Transform>();
 
     sf::Vector2f global_position = transform_component.transform.getPosition();
 

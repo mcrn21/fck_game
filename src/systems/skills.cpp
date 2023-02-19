@@ -1,6 +1,6 @@
 #include "skills.h"
 
-#include "../entity_utils.h"
+#include "../entity_funcs.h"
 
 namespace fck::system
 {
@@ -39,7 +39,7 @@ void Skills::update(double delta_time)
                 if (skills_component.skills[skills_component.next_skill]->isReady())
                 {
                     skills_component.skills[skills_component.next_skill]->_apply(entity, target);
-                    entity::skill_applied.emit(
+                    entity_funcs::skill_applied(
                         entity, skills_component.skills[skills_component.next_skill].get());
                 }
             }
@@ -56,14 +56,14 @@ void Skills::update(double delta_time)
                 if (state_component.state == entity_state::DEATH)
                 {
                     skill->finish();
-                    entity::skill_finished.emit(entity, skill.get());
+                    entity_funcs::skill_finished(entity, skill.get());
                     continue;
                 }
 
                 skill->_update(delta_time);
 
                 if (skill->isReady())
-                    entity::skill_finished.emit(entity, skill.get());
+                    entity_funcs::skill_finished(entity, skill.get());
             }
         }
     }

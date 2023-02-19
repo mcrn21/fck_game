@@ -4,8 +4,8 @@
 #include "chunk.h"
 
 #include "../fck/b2_dynamic_tree.h"
-#include "../fck/sigslot.h"
 #include "../fck/vector_2d.h"
+#include "../sigslot/signal.hpp"
 
 namespace fck::map
 {
@@ -24,8 +24,10 @@ public:
     const sf::Vector2i &getAreaSize() const;
     const sf::Vector2i &getChunkSize() const;
 
-    const sf::Vector2i &getFirstChunk() const;
-    const sf::Vector2i &getCurrentChunk() const;
+    const sf::Vector2i &getFirstChunkCoords() const;
+    const sf::Vector2i &getCurrentChunkCoords() const;
+
+    const Chunk *getCurrentChunk() const;
     void setCurrentChunk(
         const sf::Vector2i &chunk_coords,
         const std::vector<Entity> &ignore_disabling_entities = std::vector<Entity>{});
@@ -33,8 +35,8 @@ public:
     sf::Vector2i tileCoordsByPosition(const sf::Vector2f &position);
 
 public:
-    Signal<const sf::Vector2i &> chunk_opened;
-    Signal<const sf::Vector2i &> chunk_changed;
+    sigslot::signal<const sf::Vector2i &> chunk_opened;
+    sigslot::signal<const sf::Vector2i &> chunk_changed;
 
 private:
     b2::DynamicTree<Entity> *m_scene_tree;

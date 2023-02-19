@@ -1,20 +1,19 @@
 #ifndef FCKGAME_LHJLOJYRDNWT_H
 #define FCKGAME_LHJLOJYRDNWT_H
 
-#include "fck_common.h"
-#include "level.h"
-#include "map/map.h"
-
-#include "gui/gui.h"
-#include "systems/systems.h"
-
 #include "fck/b2_dynamic_tree.h"
 #include "fck/base_game.h"
 #include "fck/event_handler.h"
 #include "fck/input_actions_map.h"
 #include "fck/world.h"
+#include "fck_common.h"
+#include "gui/gui.h"
+#include "map/map.h"
+#include "systems/systems.h"
 
 #include <SFML/Graphics.hpp>
+
+#include <sol/sol.hpp>
 
 #include <list>
 #include <memory>
@@ -51,59 +50,11 @@ private:
 
     void setupInputActions();
 
-    void createLevel(const std::string &level_name);
-
 public: // slots
     void onActionActivated(keyboard_action::Action action);
 
-    // world
-    void onWorldEntityEnabled(const Entity &entity);
-    void onWorldEntityDisabled(const Entity &entity);
-    void onWorldEntityDestroyed(const Entity &entity);
-
-    // transform
-    void entityMove(const Entity &entity, const sf::Vector2f &offset);
-    void entitySetPosition(const Entity &entity, const sf::Vector2f &position);
-    void entitySetParent(const Entity &entity, const Entity &parent);
-
-    // state
-    void entitySetState(const Entity &entity, entity_state::State state);
-    void entitySetDirection(const Entity &entity, entity_state::Direction direction);
-
-    // taregt
-    void entitySetTarget(const Entity &entity, const Entity &target);
-
-    // marker
-    void entitySetMarker(const Entity &entity, const Entity &marker);
-
-    // stats
-    void entitySetHealth(const Entity &entity, float health);
-    void entitySetArmor(const Entity &entity, float armor);
-
-    // destroy
-    void entityDestroy(const Entity &entity);
-
-    // collided
-    void entityCollided(const Entity &entity, const Entity &other);
-
-    // drawable
-    void entityDrawableSetState(const Entity &entity, const std::string &state);
-
-    // sound
-    void entityPlaySound(const Entity &entity, const std::string &sound_name);
-    void entityStopSound(const Entity &entity, const std::string &sound_name);
-    void entityStopAllSound(const Entity &entity);
-
-    // grid
-    void entityUpdateGridPosition(const Entity &entity);
-
-    // skills
-    void onEntitySkillApplied(const Entity &entity, SkillBase *skill);
-    void onEntitySkillFinished(const Entity &entity, SkillBase *skill);
-
-    // map
-    void onMapChunkOpened(const sf::Vector2i &chunk_coords);
-    void onMapChunkChanged(const sf::Vector2i &chunk_coords);
+private:
+    sigslot::signal<map::Map *> map_changed;
 
 private:
     sf::RenderTexture m_scene_render_texture;
@@ -127,11 +78,10 @@ private:
     b2::DynamicTree<Entity> m_scene_tree;
 
     std::unique_ptr<map::Map> m_map;
-    std::unique_ptr<Level> m_level;
     Entity m_player_entity;
 
     system::Render m_render_system;
-    system::PlayerActions m_player_actions_system;
+    system::Player m_player_system;
     system::Movement m_movement_system;
     system::ViewMovement m_view_movement_system;
     system::DrawableAnimation m_drawable_animation_system;
@@ -143,8 +93,11 @@ private:
     system::Stats m_stats_system;
     system::Skills m_skills_system;
     system::Damage m_damage_sysytem;
+    system::Sound m_sound_system;
 
     bool m_render_debug;
+
+    sol::state m_lua_state;
 };
 
 } // namespace fck

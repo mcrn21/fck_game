@@ -1,41 +1,13 @@
 #include "target_follow.h"
-
-#include "../entity_utils.h"
-
+#include "../entity_funcs.h"
 #include "../fck/a_star.h"
 #include "../fck/utilities.h"
 
 namespace fck::system
 {
 
-TargetFollow::TargetFollow() : m_walls{nullptr}
+TargetFollow::TargetFollow() : m_map{nullptr}, m_walls{nullptr}
 {
-}
-
-const Vector2D<int32_t> *TargetFollow::getWalls() const
-{
-    return m_walls;
-}
-
-void TargetFollow::setWalls(const Vector2D<int32_t> &walls)
-{
-    m_walls = &walls;
-}
-
-const sf::Vector2i &TargetFollow::getWallSize() const
-{
-    return m_wall_size;
-}
-
-void TargetFollow::setWallSize(const sf::Vector2i &wall_size)
-{
-    m_wall_size = wall_size;
-}
-
-void TargetFollow::clearWalls()
-{
-    m_walls = nullptr;
-    m_wall_size = {};
 }
 
 void TargetFollow::update(double delta_time)
@@ -54,10 +26,10 @@ void TargetFollow::update(double delta_time)
                 target_follow_component.path.clear();
                 target_follow_component.state = component::TargetFollow::LOST;
                 velocity_component.velocity = {0.0f, 0.0f};
-                entity::set_state.emit(entity, entity_state::IDLE);
-                entity::set_drawable_state.emit(
+                entity_funcs::setState(entity, entity_state::IDLE);
+                entity_funcs::setDrawableState(
                     entity, entity_state::stateToString(entity_state::IDLE));
-                entity::stop_sound.emit(entity, entity_state::stateToString(entity_state::MOVE));
+                entity_funcs::stopSound(entity, entity_state::stateToString(entity_state::MOVE));
             }
             continue;
         }
@@ -73,12 +45,6 @@ void TargetFollow::update(double delta_time)
         velocity_component.velocity = {0.0f, 0.0f};
 
         sf::Vector2i target_coord = transformPosition(target_follow_component.target);
-
-        spdlog::debug(
-            "Target coord: {} x {}, path size: {}",
-            target_coord.x,
-            target_coord.y,
-            target_follow_component.path.size());
 
         // Need update path
         if ((target_follow_component.path.empty()
@@ -117,7 +83,7 @@ void TargetFollow::update(double delta_time)
 
         if (target_follow_component.path.empty())
         {
-            entity::set_state.emit(entity, entity_state::IDLE);
+            entity_funcs::setState(entity, entity_state::IDLE);
             continue;
         }
 
@@ -158,39 +124,55 @@ void TargetFollow::update(double delta_time)
                 if ((velocity_component.velocity.x != 0 || velocity_component.velocity.y != 0)
                     && state_component.state != entity_state::MOVE)
                 {
-                    entity::set_state.emit(entity, entity_state::MOVE);
-                    entity::set_drawable_state.emit(
+                    entity_funcs::setState(entity, entity_state::MOVE);
+                    entity_funcs::setDrawableState(
                         entity, entity_state::stateToString(entity_state::MOVE));
-                    entity::play_sound.emit(
+                    entity_funcs::playSound(
                         entity, entity_state::stateToString(entity_state::MOVE));
                 }
                 else if (
                     !vector2::isValid(velocity_component.velocity)
                     && state_component.state != entity_state::IDLE)
                 {
-                    entity::set_state.emit(entity, entity_state::IDLE);
-                    entity::set_drawable_state.emit(
+                    entity_funcs::setState(entity, entity_state::IDLE);
+                    entity_funcs::setDrawableState(
                         entity, entity_state::stateToString(entity_state::IDLE));
-                    entity::stop_sound.emit(
+                    entity_funcs::stopSound(
                         entity, entity_state::stateToString(entity_state::MOVE));
                 }
 
                 if (velocity_component.velocity.x > 0)
-                    entity::set_direction.emit(entity, entity_state::RIGHT);
+                    entity_funcs::setDirection(entity, entity_state::RIGHT);
                 else if (velocity_component.velocity.x < 0)
-                    entity::set_direction.emit(entity, entity_state::LEFT);
+                    entity_funcs::setDirection(entity, entity_state::LEFT);
             }
         }
         else
         {
             target_follow_component.path.clear();
             target_follow_component.state = component::TargetFollow::RICHED;
-            entity::set_state.emit(entity, entity_state::IDLE);
-            entity::set_drawable_state.emit(
-                entity, entity_state::stateToString(entity_state::IDLE));
-            entity::stop_sound.emit(entity, entity_state::stateToString(entity_state::MOVE));
+            entity_funcs::setState(entity, entity_state::IDLE);
+            entity_funcs::setDrawableState(entity, entity_state::stateToString(entity_state::IDLE));
+            entity_funcs::stopSound(entity, entity_state::stateToString(entity_state::MOVE));
         }
     }
+}
+
+void TargetFollow::onMapChanged(map::Map *map)
+{
+    m_map = map;
+    m_walls = nullptr;
+    m_wall_size = {};
+}
+
+void TargetFollow::onChunkChanged(const sf::Vector2i &chunk_coords)
+{
+    if (!m_map)
+        return;
+
+    const map::Chunk *chunk = m_map->getChunks().getData(chunk_coords);
+    m_walls = &chunk->getWalls();
+    m_wall_size = chunk->getWallSize();
 }
 
 sf::Vector2i TargetFollow::transformPosition(const sf::Vector2f &position)

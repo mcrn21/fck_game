@@ -1,6 +1,6 @@
 #include "base_attack.h"
 
-#include "../entity_utils.h"
+#include "../entity_funcs.h"
 
 #include "../components/components.h"
 
@@ -46,10 +46,10 @@ void BaseAttack::update(double delta_time)
         component::State &state_component = getEntity().get<component::State>();
         if (!(entity_state::ATTACK & state_component.state))
         {
-            entity::set_state.emit(getEntity(), entity_state::DAMAGED);
-            entity::set_drawable_state.emit(
+            entity_funcs::setState(getEntity(), entity_state::DAMAGED);
+            entity_funcs::setDrawableState(
                 getEntity(), entity_state::stateToString(entity_state::DAMAGED));
-            entity::play_sound.emit(getEntity(), "damaged");
+            entity_funcs::playSound(getEntity(), "damaged");
         }
 
         m_first_update = false;
@@ -68,8 +68,8 @@ void BaseAttack::update(double delta_time)
     component::State &state_component = getEntity().get<component::State>();
     if (state_component.state == entity_state::DAMAGED)
     {
-        entity::set_state.emit(getEntity(), entity_state::IDLE);
-        entity::set_drawable_state.emit(
+        entity_funcs::setState(getEntity(), entity_state::IDLE);
+        entity_funcs::setDrawableState(
             getEntity(), entity_state::stateToString(entity_state::IDLE));
     }
 }

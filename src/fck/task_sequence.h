@@ -1,9 +1,9 @@
 #ifndef TASKSEQUENCE_CGQHJSRTWYFM_H
 #define TASKSEQUENCE_CGQHJSRTWYFM_H
 
+#include "../sigslot/signal.hpp"
 #include "common.h"
 #include "event_handler.h"
-#include "sigslot.h"
 
 #include <functional>
 #include <vector>
@@ -27,8 +27,8 @@ public:
     void event(Event *);
 
 public:
-    Signal<> task_finished;
-    Signal<> sequence_finished;
+    sigslot::signal<> task_finished;
+    sigslot::signal<> sequence_finished;
 
 private:
     std::vector<std::function<void()>> m_tasks;

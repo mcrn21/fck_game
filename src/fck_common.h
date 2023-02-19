@@ -120,33 +120,15 @@ enum Type
     TARGET,
     TARGET_FOLLOW,
     LOOK_AROUND,
-    TYPE,
     STATS,
-    ACTIONS,
     SKILLS,
     DAMAGE,
-    MARKER,
-    SHADOW,
-    GRID
+    MARKER
 };
 
 std::string toString(Type type);
 Type fromString(const std::string &string);
 } // namespace component_type
-
-namespace entity_type
-{
-
-enum Type
-{
-    NO_TYPE,
-    PLAYER,
-    ENEMY
-};
-
-std::string toString(Type type);
-Type fromString(const std::string &string);
-} // namespace entity_type
 
 namespace tile_material_type
 {

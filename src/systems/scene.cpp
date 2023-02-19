@@ -1,7 +1,5 @@
 #include "scene.h"
 
-#include "../entity_utils.h"
-
 namespace fck::system
 {
 
@@ -9,8 +7,11 @@ Scene::Scene(b2::DynamicTree<Entity> *tree) : m_tree{tree}
 {
 }
 
-void Scene::moveEntity(const Entity &entity, const sf::Vector2f &offset)
+void Scene::onEntityMoved(const Entity &entity, const sf::Vector2f &offset)
 {
+    if (!entity.has<component::Scene>() || !entity.has<component::Transform>())
+        return;
+
     auto &scene_component = entity.get<component::Scene>();
     auto &transform_component = entity.get<component::Transform>();
 

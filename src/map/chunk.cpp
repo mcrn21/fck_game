@@ -27,7 +27,7 @@ void Chunk::setEntities(const std::vector<Entity> &entities)
     m_entities = entities;
 }
 
-const std::unordered_map<chunk_side::Side, Entity> &Chunk::getChunkEntityEntities() const
+const std::unordered_map<chunk_side::Side, Entity> &Chunk::getChunkEntryEntities() const
 {
     return m_chunk_entity_entities;
 }

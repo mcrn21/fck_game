@@ -1,7 +1,7 @@
 #ifndef BASEATTACK_VFWOWSSGQALK_H
 #define BASEATTACK_VFWOWSSGQALK_H
 
-#include "../knowledge_base.h"
+#include "../knowledge_base/knowledge_base.h"
 
 #include "../skills/skill_base.h"
 

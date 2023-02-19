@@ -83,14 +83,10 @@ std::string toString(Type type)
            {Type::TARGET, "target"},
            {Type::TARGET_FOLLOW, "target_follow"},
            {Type::LOOK_AROUND, "look_around"},
-           {Type::TYPE, "type"},
            {Type::STATS, "stats"},
-           {Type::ACTIONS, "actions"},
            {Type::SKILLS, "skills"},
            {Type::DAMAGE, "damage"},
-           {Type::MARKER, "marker"},
-           {Type::SHADOW, "shadow"},
-           {Type::GRID, "grid"}};
+           {Type::MARKER, "marker"}};
 
     auto strings_found = strings.find(type);
     if (strings_found != strings.end())
@@ -114,14 +110,10 @@ Type fromString(const std::string &string)
            {"target", Type::TARGET},
            {"target_follow", Type::TARGET_FOLLOW},
            {"look_around", Type::LOOK_AROUND},
-           {"type", Type::TYPE},
            {"stats", Type::STATS},
-           {"actions", Type::ACTIONS},
            {"skills", Type::SKILLS},
            {"damage", Type::DAMAGE},
-           {"marker", Type::MARKER},
-           {"shadow", Type::SHADOW},
-           {"grid", Type::GRID}};
+           {"marker", Type::MARKER}};
 
     auto types_found = types.find(string);
     if (types_found != types.end())
@@ -130,33 +122,6 @@ Type fromString(const std::string &string)
 }
 
 } // namespace component_type
-
-namespace entity_type
-{
-
-std::string toString(Type type)
-{
-    static std::unordered_map<Type, std::string> strings
-        = {{Type::PLAYER, "player"}, {Type::ENEMY, "enemy"}};
-
-    auto strings_found = strings.find(type);
-    if (strings_found != strings.end())
-        return strings_found->second;
-    return "no_type";
-}
-
-Type fromString(const std::string &string)
-{
-    static std::unordered_map<std::string, Type> types
-        = {{"player", Type::PLAYER}, {"enemy", Type::ENEMY}};
-
-    auto types_found = types.find(string);
-    if (types_found != types.end())
-        return types_found->second;
-    return Type::NO_TYPE;
-}
-
-} // namespace entity_type
 
 namespace tile_material_type
 {
@@ -218,7 +183,7 @@ Side fromString(const std::string &string)
     return Side::NO_SIDE;
 }
 
-} // namespace room_side
+} // namespace chunk_side
 
 namespace chunk_type
 {
@@ -251,6 +216,6 @@ Type fromString(const std::string &string)
     return Type::NO_TYPE;
 }
 
-} // namespace room_type
+} // namespace chunk_type
 
 } // namespace fck

@@ -50,12 +50,12 @@ void TaskSequence::event(Event *)
     if (m_in_process)
     {
         m_tasks[m_current_task]();
-        task_finished.emit();
+        task_finished();
         m_in_process = false;
         ++m_current_task;
         if (m_current_task >= int32_t(m_tasks.size()))
         {
-            sequence_finished.emit();
+            sequence_finished();
             m_running = false;
             m_current_task = 0;
         }

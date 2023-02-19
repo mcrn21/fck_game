@@ -87,10 +87,10 @@ void drawVelocity(const Entity &entity, sf::RenderTarget &target, const sf::Rend
 
 void drawMapWalls(map::Map *map, sf::RenderTarget &target, const sf::RenderStates &states)
 {
-    if (map->getCurrentChunk().x < 0 || map->getCurrentChunk().y < 0)
+    if (map->getCurrentChunkCoords().x < 0 || map->getCurrentChunkCoords().y < 0)
         return;
 
-    const map::Chunk *chunk = map->getChunks().getData(map->getCurrentChunk());
+    const map::Chunk *chunk = map->getChunks().getData(map->getCurrentChunkCoords());
     if (!chunk)
         return;
 
@@ -113,10 +113,10 @@ void drawTargetFollowPath(
     if (!entity.has<component::TargetFollow>())
         return;
 
-    if (map->getCurrentChunk().x < 0 || map->getCurrentChunk().y < 0)
+    if (map->getCurrentChunkCoords().x < 0 || map->getCurrentChunkCoords().y < 0)
         return;
 
-    const map::Chunk *chunk = map->getChunks().getData(map->getCurrentChunk());
+    const map::Chunk *chunk = map->getChunks().getData(map->getCurrentChunkCoords());
     if (!chunk)
         return;
 

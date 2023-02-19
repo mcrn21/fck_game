@@ -15,7 +15,10 @@ public:
     Render(b2::DynamicTree<Entity> *tree);
     ~Render() = default;
 
-    void moveEntity(const Entity &entity, const sf::Vector2f &offset);
+public: // slots
+    void onEntityMoved(const Entity &entity, const sf::Vector2f &offset);
+
+    void onEntityDirectionChanged(const Entity &entity, entity_state::Direction direction);
 
 protected:
     void onEntityAdded(Entity &entity);

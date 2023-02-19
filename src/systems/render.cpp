@@ -9,8 +9,11 @@ Render::Render(b2::DynamicTree<Entity> *tree) : m_tree{tree}
 {
 }
 
-void Render::moveEntity(const Entity &entity, const sf::Vector2f &offset)
+void Render::onEntityMoved(const Entity &entity, const sf::Vector2f &offset)
 {
+    if (!entity.has<component::Drawable>() || !entity.has<component::Transform>())
+        return;
+
     auto &drawable_component = entity.get<component::Drawable>();
     if (!drawable_component.proxy)
         return;
@@ -26,6 +29,19 @@ void Render::moveEntity(const Entity &entity, const sf::Vector2f &offset)
     if (drawable_component.tree_id > -1)
         drawable_component.tree->moveProxy(
             drawable_component.tree_id, drawable_component.global_bounds, offset);
+}
+
+void Render::onEntityDirectionChanged(const Entity &entity, entity_state::Direction direction)
+{
+    if (!entity.has<component::Drawable>())
+        return;
+
+    auto &drawable_component = entity.get<component::Drawable>();
+    if (!drawable_component.proxy)
+        return;
+
+    sf::Transformable *t = drawable_component.proxy->toTransformable();
+    t->setScale({float(direction) * std::abs(t->getScale().x), t->getScale().y});
 }
 
 void Render::onEntityAdded(Entity &entity)

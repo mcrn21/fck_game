@@ -1,30 +1,23 @@
 #include "fck_game.h"
-#include "debug_draw.h"
-#include "entity_utils.h"
-#include "events.h"
-#include "knowledge_base.h"
-#include "settings.h"
-
+#include "bindings/bindings.h"
 #include "components/components.h"
 #include "damages/damages.h"
-#include "entity_scripts/entity_scripts.h"
-#include "map/factory.h"
-#include "skills/skills.h"
-
+#include "debug_draw.h"
+#include "entity_funcs.h"
 #include "fck/clipping.h"
 #include "fck/event_dispatcher.h"
 #include "fck/resource_cache.h"
 #include "fck/sprite_animation.h"
 #include "fck/task_sequence.h"
 #include "fck/tile_map.h"
-
-#include <imgui-SFML.h>
-#include <imgui.h>
+#include "knowledge_base/knowledge_base.h"
+#include "map/factory.h"
+#include "settings.h"
+#include "skills/skills.h"
 
 #include <spdlog/spdlog.h>
 
 #include <SFML/Audio.hpp>
-#include <SFML/Graphics.hpp>
 
 #include <algorithm>
 #include <filesystem>
@@ -36,6 +29,7 @@ FckGame::FckGame()
     : BaseGame{},
       m_render_window_view{sf::FloatRect(sf::Vector2f(0, 0), sf::Vector2f(1, 1))},
       m_scene_view{sf::FloatRect(sf::Vector2f(0, 0), sf::Vector2f(1, 1))},
+      m_script_system{&m_lua_state},
       m_render_system{&m_render_tree},
       m_scene_system{&m_scene_tree},
       m_look_around_system{&m_scene_tree},
@@ -53,7 +47,7 @@ FckGame::FckGame()
     getRrenderWindow().setView(m_render_window_view);
 
     m_world.addSystem(m_render_system);
-    m_world.addSystem(m_player_actions_system);
+    m_world.addSystem(m_player_system);
     m_world.addSystem(m_movement_system);
 
     m_world.addSystem(m_view_movement_system);
@@ -68,51 +62,57 @@ FckGame::FckGame()
     m_world.addSystem(m_stats_system);
     m_world.addSystem(m_skills_system);
     m_world.addSystem(m_damage_sysytem);
+    m_world.addSystem(m_sound_system);
 
     // world
-    m_world.entity_enabled.connect(this, &FckGame::onWorldEntityEnabled);
-    m_world.entity_disabled.connect(this, &FckGame::onWorldEntityDisabled);
-    m_world.entity_destroyed.connect(this, &FckGame::onWorldEntityDestroyed);
+    m_world.entity_enabled.connect(&system::Script::onEntityEnabled, &m_script_system);
+    m_world.entity_disabled.connect(&system::Script::onEntityDisabled, &m_script_system);
+    m_world.entity_destroyed.connect(&system::Script::onEntityDestroyed, &m_script_system);
+    m_world.entity_destroyed.connect([](const Entity &entity) {
+        if (entity.has<component::Transform>())
+            entity_funcs::setParent(entity, Entity{});
+
+        if (entity.has<component::Target>())
+            entity_funcs::setTarget(entity, Entity{});
+
+        if (entity.has<component::Marker>())
+            entity_funcs::setMarker(entity, Entity{});
+    });
 
     // transform
-    entity::move.connect(this, &FckGame::entityMove);
-    entity::set_position.connect(this, &FckGame::entitySetPosition);
-    entity::set_parent.connect(this, &FckGame::entitySetParent);
+    entity_funcs::moved.connect(&system::Scene::onEntityMoved, &m_scene_system);
+    entity_funcs::moved.connect(&system::Render::onEntityMoved, &m_render_system);
+    entity_funcs::moved.connect([this](const Entity &entity, const sf::Vector2f &) {
+        m_look_around_system.updateBounds(entity);
+    });
+    entity_funcs::moved.connect(&system::Script::onEntityMoved, &m_script_system);
+    entity_funcs::moved.connect(&system::Sound::onEntityMoved, &m_sound_system);
 
     // state
-    entity::set_state.connect(this, &FckGame::entitySetState);
-    entity::set_direction.connect(this, &FckGame::entitySetDirection);
-
-    // taregt
-    entity::set_target.connect(this, &FckGame::entitySetTarget);
-
-    // marker
-    entity::set_marker.connect(this, &FckGame::entitySetMarker);
-
-    // stats
-    entity::set_heath.connect(this, &FckGame::entitySetHealth);
-    entity::set_armor.connect(this, &FckGame::entitySetArmor);
-
-    // destroy
-    entity::destroy.connect(this, &FckGame::entityDestroy);
+    entity_funcs::state_changed.connect(&system::Script::onEntityStateChanged, &m_script_system);
+    entity_funcs::direction_changed.connect(
+        &system::Render::onEntityDirectionChanged, &m_render_system);
+    entity_funcs::direction_changed.connect([this](const Entity &entity, entity_state::Direction) {
+        m_look_around_system.updateBounds(entity);
+    });
+    entity_funcs::direction_changed.connect(
+        &system::Script::onEntityDirectionChanged, &m_script_system);
 
     // collided
-    entity::collided.connect(this, &FckGame::entityCollided);
+    entity_funcs::collided.connect(&system::Script::onEntityCollided, &m_script_system);
 
-    // drawable
-    entity::set_drawable_state.connect(this, &FckGame::entityDrawableSetState);
+    // target
+    entity_funcs::target_changed.connect(&system::Player::onEntityTargetChanged, &m_player_system);
 
-    // sound
-    entity::play_sound.connect(this, &FckGame::entityPlaySound);
-    entity::stop_sound.connect(this, &FckGame::entityStopSound);
-    entity::stop_all_sound.connect(this, &FckGame::entityStopAllSound);
+    // map
+    map_changed.connect(&system::TargetFollow::onMapChanged, &m_target_follow_system);
+    map_changed.connect(&system::Script::onMapChanged, &m_script_system);
 
-    // skills
-    entity::skill_applied.connect(this, &FckGame::onEntitySkillApplied);
-    entity::skill_finished.connect(this, &FckGame::onEntitySkillFinished);
+    // lua
+    m_lua_state.open_libraries(sol::lib::base, sol::lib::coroutine, sol::lib::string, sol::lib::io);
+    bindToLua(m_lua_state);
 
-    // Global value
-    sf::Listener::setGlobalVolume(100);
+    ScriptFactory::setSolState(&m_lua_state);
 }
 
 void FckGame::init()
@@ -144,7 +144,7 @@ void FckGame::init()
              gui::LoadingWidget *loading_widget
                  = static_cast<gui::LoadingWidget *>(m_main_widget.getChildren().back());
              loading_widget->setTotal(first_loading_tasks->getTasks().size() - 2);
-             first_loading_tasks->task_finished.connect(loading_widget, &gui::LoadingWidget::next);
+             first_loading_tasks->task_finished.connect(&gui::LoadingWidget::next, loading_widget);
              loadFonts();
          },
          [this]() { loadTextures(); },
@@ -153,8 +153,7 @@ void FckGame::init()
              KnowledgeBase::loadSkillsFromDatabase(Settings::getGlobal()->resources_database_name);
          },
          [this]() {
-             KnowledgeBase::loadEntityScriptsFromDatabase(
-                 Settings::getGlobal()->resources_database_name);
+             KnowledgeBase::loadScriptsFromDatabase(Settings::getGlobal()->resources_database_name);
          },
          [this]() {
              KnowledgeBase::loadEntitiesFromDatabase(
@@ -162,7 +161,7 @@ void FckGame::init()
          },
          [this]() { setupInputActions(); },
          [this, first_loading_tasks]() {
-             first_loading_tasks->task_finished.disconnect();
+             first_loading_tasks->task_finished.disconnect_all();
              setState(game_state::MAIN_MENU);
              first_loading_tasks->deleteLater();
          }});
@@ -211,7 +210,7 @@ void FckGame::update(const sf::Time &elapsed)
 
         m_visible_entities.clear();
 
-        m_player_actions_system.update(delta_time);
+        m_player_system.update(delta_time);
         m_target_follow_system.update(delta_time);
 
         m_look_around_system.update(delta_time);
@@ -294,12 +293,8 @@ void FckGame::draw(const sf::Time &elapsed)
                 sf::RenderStates render_states;
                 render_states.transform *= transform_component.transform.getTransform();
 
-                if (entity.has<component::Shadow>())
-                {
-                    component::Shadow &shadow_component = entity.get<component::Shadow>();
-                    if (shadow_component.shadow_shape)
-                        m_scene_render_texture.draw(*shadow_component.shadow_shape, render_states);
-                }
+                if (drawable_component.shadow_shape)
+                    m_scene_render_texture.draw(*drawable_component.shadow_shape, render_states);
 
                 m_scene_render_texture.draw(*drawable_component.proxy->toDrawable(), render_states);
 
@@ -356,7 +351,7 @@ void FckGame::setState(game_state::State state)
     game_state::State old_state = m_state;
     m_state = state;
 
-    m_input_actions.action_activated.disconnect();
+    m_input_actions.action_activated.disconnect_all();
 
     switch (m_state)
     {
@@ -373,7 +368,7 @@ void FckGame::setState(game_state::State state)
         m_main_widget.clearChildren();
         gui::MainMenuWidget *main_menu_widget = new gui::MainMenuWidget{false, &m_main_widget};
         m_input_actions.action_activated.connect(
-            main_menu_widget, &gui::MainMenuWidget::onActionActivated);
+            &gui::MainMenuWidget::onActionActivated, main_menu_widget);
         break;
     }
     case game_state::LEVEL: {
@@ -383,20 +378,32 @@ void FckGame::setState(game_state::State state)
         {
             gui::LevelWidget *level_widget = new gui::LevelWidget{&m_main_widget};
             level_widget->setPlayerEntity(m_player_entity);
+
+            // signals
+            entity_funcs::target_changed.connect(
+                &gui::LevelWidget::onEntityTargetChanged, level_widget);
+            entity_funcs::health_changed.connect(
+                &gui::LevelWidget::onEntityHealthChanged, level_widget);
+            entity_funcs::armor_changed.connect(
+                &gui::LevelWidget::onEntityArmorChanged, level_widget);
+            entity_funcs::skill_applied.connect(
+                &gui::LevelWidget::onEntitySkillApplied, level_widget);
+            entity_funcs::skill_finished.connect(
+                &gui::LevelWidget::onEntitySkillFinished, level_widget);
         }
 
-        m_input_actions.action_activated.connect(this, &FckGame::onActionActivated);
+        m_input_actions.action_activated.connect(&FckGame::onActionActivated, this);
         m_input_actions.action_activated.connect(
-            &m_player_actions_system, &system::PlayerActions::onActionActivated);
+            &system::Player::onActionActivated, &m_player_system);
         m_input_actions.action_diactivated.connect(
-            &m_player_actions_system, &system::PlayerActions::onActionDiactivated);
+            &system::Player::onActionDiactivated, &m_player_system);
 
         break;
     }
     case game_state::LEVEL_MENU: {
         gui::MainMenuWidget *main_menu_widget = new gui::MainMenuWidget{true, &m_main_widget};
         m_input_actions.action_activated.connect(
-            main_menu_widget, &gui::MainMenuWidget::onActionActivated);
+            &gui::MainMenuWidget::onActionActivated, main_menu_widget);
         break;
     }
     default:
@@ -537,7 +544,7 @@ void FckGame::newGame()
                  = static_cast<gui::LoadingWidget *>(m_main_widget.getChildren().back());
              loading_widget->setTotal(loading_new_game_tasks->getTasks().size() - 2);
              loading_new_game_tasks->task_finished.connect(
-                 loading_widget, &gui::LoadingWidget::next);
+                 &gui::LoadingWidget::next, loading_widget);
 
              //             m_level = std::make_unique<Level>(&m_world, &m_scene_tree);
              //             m_level->room_opened.connect(this, &FckGame::onLevelRoomOpened);
@@ -545,10 +552,9 @@ void FckGame::newGame()
              //             m_level->loadFromFile("resources/levels/l1.tmx");
 
              map::Factory map_factory{&m_world, &m_scene_tree};
-             m_map.reset(map_factory.generateMapFromFile(30, "resources/levels/l1.tmx"));
+             m_map.reset(map_factory.createMap(30, "resources/levels/l1.tmx"));
 
-             m_map->chunk_opened.connect(this, &FckGame::onMapChunkOpened);
-             m_map->chunk_changed.connect(this, &FckGame::onMapChunkChanged);
+             map_changed(m_map.get());
          },
          [this]() {
              //             Vector2D<BoolProxy> rooms_map;
@@ -563,24 +569,25 @@ void FckGame::newGame()
              m_view_movement_system.setMovementBounds(
                  {{0.0f, 0.0f}, sf::Vector2f(m_map->getAreaSize())});
 
-             m_player_entity = KnowledgeBase::createPlayer("pp", &m_world);
+             m_player_entity = EntityFactory::createPlayer("pp", &m_world);
 
-             component::Script &player_entity_script_component
-                 = m_player_entity.add<component::Script>();
-             player_entity_script_component.entity_script.reset(new entity_script::Player());
+             //             component::Script &player_entity_script_component
+             //                 = m_player_entity.add<component::Script>();
 
-             entityMove(m_player_entity, sf::Vector2f{100.0f, 100.0f});
+             //player_entity_script_component.entity_script.reset(new entity_script::Player());
 
-             Entity kyoshi_2 = KnowledgeBase::createEntity("kyoshi_2", &m_world);
-             entityMove(kyoshi_2, {150.0f, 150.0f});
-             entitySetState(kyoshi_2, entity_state::IDLE);
-             entitySetDirection(kyoshi_2, entity_state::RIGHT);
+             entity_funcs::setPosition(m_player_entity, sf::Vector2f{100.0f, 100.0f});
+
+             Entity kyoshi_2 = EntityFactory::createEntity("kyoshi_2", &m_world);
+             entity_funcs::setPosition(kyoshi_2, {150.0f, 150.0f});
+             entity_funcs::setState(kyoshi_2, entity_state::IDLE);
+             entity_funcs::setDirection(kyoshi_2, entity_state::RIGHT);
              kyoshi_2.enable();
 
              m_player_entity.enable();
          },
          [this, loading_new_game_tasks]() {
-             loading_new_game_tasks->task_finished.disconnect();
+             loading_new_game_tasks->task_finished.disconnect_all();
 
              setState(game_state::LEVEL);
 
@@ -588,9 +595,12 @@ void FckGame::newGame()
                  = static_cast<gui::LevelWidget *>(m_main_widget.getChildren().back());
              level_widget->setChunks(m_map->getChunks());
 
-             m_map->setCurrentChunk(m_map->getFirstChunk(), {m_player_entity});
+             m_map->chunk_changed.connect(
+                 &system::TargetFollow::onChunkChanged, &m_target_follow_system);
+             m_map->chunk_changed.connect(&gui::LevelWidget::onChunkChanged, level_widget);
+             m_map->chunk_opened.connect(&gui::LevelWidget::onChunkOpened, level_widget);
 
-             //             m_level->enableRoom(m_level->getFirstRoomCoord(), {50.0f, 50.0f});
+             m_map->setCurrentChunk(m_map->getFirstChunkCoords(), {m_player_entity});
 
              loading_new_game_tasks->deleteLater();
          }});
@@ -608,14 +618,16 @@ void FckGame::returnToMainMenu()
                  = static_cast<gui::LoadingWidget *>(m_main_widget.getChildren().back());
              loading_widget->setTotal(return_to_main_menu_tasks->getTasks().size() - 2);
              return_to_main_menu_tasks->task_finished.connect(
-                 loading_widget, &gui::LoadingWidget::next);
-             m_target_follow_system.clearWalls();
+                 &gui::LoadingWidget::next, loading_widget);
          },
-         [this]() { m_map.reset(); },
+         [this]() {
+             m_map.reset();
+             map_changed(nullptr);
+         },
          [this]() { m_world.destroyAllEntities(); },
          [this]() { m_visible_entities.clear(); },
          [this, return_to_main_menu_tasks]() {
-             return_to_main_menu_tasks->task_finished.disconnect();
+             return_to_main_menu_tasks->task_finished.disconnect_all();
 
              setState(game_state::MAIN_MENU);
 
@@ -652,10 +664,6 @@ void FckGame::setupInputActions()
         = InputAction(sf::Keyboard::L, InputAction::PRESS_ONCE);
 }
 
-void FckGame::createLevel(const std::string &level_name)
-{
-}
-
 void FckGame::onActionActivated(keyboard_action::Action action)
 {
     if (action == keyboard_action::TOGGLE_RENDER_DEBUG)
@@ -663,530 +671,6 @@ void FckGame::onActionActivated(keyboard_action::Action action)
 
     if (action == keyboard_action::BACK)
         EventDispatcher::runTask([this]() { setState(game_state::LEVEL_MENU); });
-}
-
-void FckGame::onWorldEntityEnabled(const Entity &entity)
-{
-    if (entity.has<component::Script>())
-    {
-        component::Script &script_component = entity.get<component::Script>();
-        if (script_component.entity_script)
-            script_component.entity_script->onEntityEnabled(entity);
-    }
-}
-
-void FckGame::onWorldEntityDisabled(const Entity &entity)
-{
-    if (entity.has<component::Script>())
-    {
-        component::Script &script_component = entity.get<component::Script>();
-        if (script_component.entity_script)
-            script_component.entity_script->onEntityDisabled(entity);
-    }
-
-    if (entity.has<component::Sound>())
-        entityStopAllSound(entity);
-}
-
-void FckGame::onWorldEntityDestroyed(const Entity &entity)
-{
-    if (entity.has<component::Script>())
-    {
-        component::Script &script_component = entity.get<component::Script>();
-        if (script_component.entity_script)
-            script_component.entity_script->onEntityDestroyed(entity);
-    }
-}
-
-void FckGame::entityMove(const Entity &entity, const sf::Vector2f &offset)
-{
-    component::Transform &transform_component = entity.get<component::Transform>();
-    transform_component.transform.move(offset);
-
-    if (!transform_component.children.empty())
-    {
-        for (auto it = transform_component.children.begin();
-             it != transform_component.children.end();)
-        {
-            if (it->isValid())
-            {
-                component::Transform &child_transform_component = it->get<component::Transform>();
-                entitySetPosition(*it, transform_component.transform.getPosition());
-                ++it;
-            }
-            else
-            {
-                it = transform_component.children.erase(it);
-            }
-        }
-    }
-
-    if (entity.has<component::Scene>())
-        m_scene_system.moveEntity(entity, offset);
-
-    if (entity.has<component::Drawable>())
-        m_render_system.moveEntity(entity, offset);
-
-    if (entity.has<component::LookAround>())
-        m_look_around_system.updateBounds(entity);
-
-    // grid
-    entityUpdateGridPosition(entity);
-
-    // update sound listener for player
-    if (entity == m_player_entity)
-    {
-        sf::Listener::setPosition(
-            {transform_component.transform.getPosition().x,
-             0,
-             transform_component.transform.getPosition().y});
-    }
-
-    // update entity sounds positions
-    if (entity.has<component::Sound>())
-    {
-        component::Sound &sound_component = entity.get<component::Sound>();
-        for (auto &it : sound_component.sounds)
-        {
-            it.second->setPosition(sf::Vector3f{
-                transform_component.transform.getPosition().x,
-                0,
-                transform_component.transform.getPosition().y});
-        }
-    }
-
-    if (entity.has<component::Script>())
-    {
-        component::Script &script_component = entity.get<component::Script>();
-        if (script_component.entity_script)
-            script_component.entity_script->onEntityMoved(entity, offset);
-    }
-}
-
-void FckGame::entitySetPosition(const Entity &entity, const sf::Vector2f &position)
-{
-    component::Transform &transform_component = entity.get<component::Transform>();
-    entityMove(entity, position - transform_component.transform.getPosition());
-}
-
-void FckGame::entitySetParent(const Entity &entity, const Entity &parent)
-{
-    component::Transform &transform_component = entity.get<component::Transform>();
-
-    if (transform_component.parent == parent)
-        return;
-
-    if (transform_component.parent.isValid())
-    {
-        component::Transform &parent_transform_component
-            = transform_component.parent.get<component::Transform>();
-
-        parent_transform_component.children.erase(
-            std::remove(
-                parent_transform_component.children.begin(),
-                parent_transform_component.children.end(),
-                entity),
-            parent_transform_component.children.end());
-    }
-
-    transform_component.parent = parent;
-
-    if (transform_component.parent.isValid())
-    {
-        component::Transform &parent_transform_component
-            = transform_component.parent.get<component::Transform>();
-        parent_transform_component.children.push_back(entity);
-        entity::set_position.emit(entity, parent_transform_component.transform.getPosition());
-    }
-}
-
-void FckGame::entitySetState(const Entity &entity, entity_state::State state)
-{
-    component::State &state_component = entity.get<component::State>();
-
-    if (state_component.state == state)
-        return;
-
-    state_component.state = state;
-
-    if (state_component.state == entity_state::DEATH && entity.has<component::Velocity>())
-    {
-        component::Velocity &velocity_component = entity.get<component::Velocity>();
-        velocity_component.velocity = {};
-    }
-
-    if (entity.has<component::Script>())
-    {
-        component::Script &script_component = entity.get<component::Script>();
-        if (script_component.entity_script)
-            script_component.entity_script->onEntityStateChanged(entity, state);
-    }
-}
-
-void FckGame::entitySetDirection(const Entity &entity, entity_state::Direction direction)
-{
-    component::State &state_component = entity.get<component::State>();
-
-    if (state_component.direction == direction)
-        return;
-
-    state_component.direction = direction;
-
-    if (entity.has<component::Transform>())
-    {
-        component::Transform &transform_component = entity.get<component::Transform>();
-        transform_component.transform.setScale(
-            {float(state_component.direction)
-                 * std::abs(transform_component.transform.getScale().x),
-             transform_component.transform.getScale().y});
-    }
-
-    if (entity.has<component::LookAround>())
-        m_look_around_system.updateBounds(entity);
-
-    if (entity.has<component::Script>())
-    {
-        component::Script &script_component = entity.get<component::Script>();
-        if (script_component.entity_script)
-            script_component.entity_script->onEntityDirectionChanged(entity, direction);
-    }
-}
-
-void FckGame::entitySetTarget(const Entity &entity, const Entity &target)
-{
-    component::Target &target_component = entity.get<component::Target>();
-
-    if (target_component.target == target)
-        return;
-
-    Entity old_target = target_component.target;
-    target_component.target = target;
-
-    if (old_target.isValid())
-    {
-        component::Target &old_target_target_component = old_target.get<component::Target>();
-
-        old_target_target_component.lookings.erase(
-            std::remove(
-                old_target_target_component.lookings.begin(),
-                old_target_target_component.lookings.end(),
-                entity),
-            old_target_target_component.lookings.end());
-    }
-
-    if (target_component.target.isValid())
-    {
-        component::Target &target_target_component
-            = target_component.target.get<component::Target>();
-        target_target_component.lookings.push_back(entity);
-    }
-
-    // Set marker
-    if (entity == m_player_entity)
-    {
-        if (old_target.isValid())
-            entitySetMarker(old_target, Entity{});
-
-        if (target_component.target.isValid())
-            entitySetMarker(
-                target_component.target, KnowledgeBase::createEntity("target", &m_world));
-    }
-
-    // Update target stats gui
-    if (entity == m_player_entity && m_state == game_state::LEVEL)
-    {
-        gui::LevelWidget *level_widget
-            = static_cast<gui::LevelWidget *>(m_main_widget.getChildren().back());
-        level_widget->setTargetEntity(target);
-    }
-}
-
-void FckGame::entitySetMarker(const Entity &entity, const Entity &marker)
-{
-    component::Marker &marker_component = entity.get<component::Marker>();
-
-    if (marker_component.marker == marker)
-        return;
-
-    if (marker_component.marker.isValid())
-        entityDestroy(marker_component.marker);
-
-    marker_component.marker = marker;
-
-    if (marker_component.marker.isValid())
-    {
-        entitySetParent(marker_component.marker, entity);
-        if (!marker_component.marker.isEnabled())
-            marker_component.marker.enable();
-    }
-}
-
-void FckGame::entitySetHealth(const Entity &entity, float health)
-{
-    component::Stats &stats_component = entity.get<component::Stats>();
-
-    stats_component.health = health;
-
-    if (stats_component.health < 0)
-        stats_component.health = 0;
-
-    if (stats_component.health > stats_component.max_health)
-        stats_component.health = stats_component.max_health;
-
-    // Update stats gui
-    if (m_state == game_state::LEVEL)
-    {
-        if (m_player_entity.isValid())
-        {
-            if (entity == m_player_entity)
-            {
-                gui::LevelWidget *level_widget
-                    = static_cast<gui::LevelWidget *>(m_main_widget.getChildren().back());
-                level_widget->updatePlayerStats();
-            }
-            else if (entity == m_player_entity.get<component::Target>().target)
-            {
-                gui::LevelWidget *level_widget
-                    = static_cast<gui::LevelWidget *>(m_main_widget.getChildren().back());
-                level_widget->updateTargetStats();
-            }
-        }
-    }
-}
-
-void FckGame::entitySetArmor(const Entity &entity, float armor)
-{
-    component::Stats &stats_component = entity.get<component::Stats>();
-
-    stats_component.armor = armor;
-
-    if (stats_component.armor < 0)
-        stats_component.armor = 0;
-
-    if (stats_component.armor > stats_component.max_armor)
-        stats_component.armor = stats_component.max_armor;
-
-    // Update stats gui
-    if (m_state == game_state::LEVEL)
-    {
-        if (m_player_entity.isValid())
-        {
-            if (entity == m_player_entity)
-            {
-                gui::LevelWidget *level_widget
-                    = static_cast<gui::LevelWidget *>(m_main_widget.getChildren().back());
-                level_widget->updatePlayerStats();
-            }
-            else if (entity == m_player_entity.get<component::Target>().target)
-            {
-                gui::LevelWidget *level_widget
-                    = static_cast<gui::LevelWidget *>(m_main_widget.getChildren().back());
-                level_widget->updateTargetStats();
-            }
-        }
-    }
-}
-
-void FckGame::entityDestroy(const Entity &entity)
-{
-    if (entity.has<component::Transform>())
-        entitySetParent(entity, Entity{});
-
-    if (entity.has<component::Target>())
-        entitySetTarget(entity, Entity{});
-
-    if (entity.has<component::Marker>())
-        entitySetMarker(entity, Entity{});
-
-    m_world.destroyEntity(entity);
-}
-
-void FckGame::entityCollided(const Entity &entity, const Entity &other)
-{
-    if (entity.has<component::Script>())
-    {
-        component::Script &script_component = entity.get<component::Script>();
-        if (script_component.entity_script)
-            script_component.entity_script->onEntityCollided(entity, other);
-    }
-
-    if (other.has<component::Script>())
-    {
-        component::Script &script_component = other.get<component::Script>();
-        if (script_component.entity_script)
-            script_component.entity_script->onEntityCollided(other, entity);
-    }
-}
-
-void FckGame::entityDrawableSetState(const Entity &entity, const std::string &state)
-{
-    if (entity.has<component::DrawableState>())
-    {
-        component::DrawableState &drawable_state_component = entity.get<component::DrawableState>();
-
-        if (drawable_state_component.state)
-            drawable_state_component.state->setCurrentState(state);
-    }
-
-    if (entity.has<component::DrawableAnimation>())
-    {
-        component::DrawableAnimation &drawable_animation_component
-            = entity.get<component::DrawableAnimation>();
-
-        if (drawable_animation_component.animation)
-        {
-            drawable_animation_component.animation->setCurrentState(state);
-            drawable_animation_component.animation->start();
-        }
-    }
-}
-
-void FckGame::entityPlaySound(const Entity &entity, const std::string &sound_name)
-{
-    if (!entity.has<component::Sound>())
-        return;
-
-    component::Sound &sound_component = entity.get<component::Sound>();
-
-    if (sound_name == entity_state::stateToString(entity_state::MOVE))
-    {
-        for (auto &it : sound_component.sounds)
-        {
-            if (it.first.ends_with(sound_name))
-                it.second->stop();
-        }
-
-        std::string move_sound_name;
-        if (entity.has<component::Grid>())
-        {
-            auto &grid_component = entity.get<component::Grid>();
-            move_sound_name = tile_material_type::toString(grid_component.tile_material) + "_move";
-        }
-
-        auto sounds_found = sound_component.sounds.find(move_sound_name);
-        if (sounds_found == sound_component.sounds.end())
-            move_sound_name = "move";
-
-        sounds_found = sound_component.sounds.find(move_sound_name);
-        if (sounds_found != sound_component.sounds.end())
-            sounds_found->second->play();
-    }
-    else
-    {
-        auto sounds_found = sound_component.sounds.find(sound_name);
-        if (sounds_found != sound_component.sounds.end())
-            sounds_found->second->play();
-    }
-}
-
-void FckGame::entityStopSound(const Entity &entity, const std::string &sound_name)
-{
-    if (!entity.has<component::Sound>())
-        return;
-
-    component::Sound &sound_component = entity.get<component::Sound>();
-
-    if (sound_name == entity_state::stateToString(entity_state::MOVE))
-    {
-        for (auto &it : sound_component.sounds)
-        {
-            if (it.first.ends_with(sound_name))
-                it.second->stop();
-        }
-    }
-    else
-    {
-        auto sounds_found = sound_component.sounds.find(sound_name);
-        if (sounds_found != sound_component.sounds.end())
-            sounds_found->second->stop();
-    }
-}
-
-void FckGame::entityStopAllSound(const Entity &entity)
-{
-    if (!entity.has<component::Sound>())
-        return;
-
-    component::Sound &sound_component = entity.get<component::Sound>();
-
-    for (auto &it : sound_component.sounds)
-        it.second->stop();
-}
-
-void FckGame::entityUpdateGridPosition(const Entity &entity)
-{
-    if (!entity.has<component::Grid>() || !m_level
-        || m_level->getCurrentRoomCoord() == sf::Vector2i{-1, -1})
-        return;
-
-    auto &grid_component = entity.get<component::Grid>();
-    sf::Vector2i grid_position
-        = m_level->getRoomsMap()
-              .getData(m_level->getCurrentRoomCoord())
-              ->getTileMaterials()
-              .transformPosition(entity.get<component::Transform>().transform.getPosition());
-
-    if (grid_component.position == grid_position)
-        return;
-
-    grid_component.position = grid_position;
-
-    auto old_tile_material = grid_component.tile_material;
-    grid_component.tile_material = m_level->getRoomsMap()
-                                       .getData(m_level->getCurrentRoomCoord())
-                                       ->getTileMaterials()
-                                       .getData(grid_component.position);
-
-    // Update current playing sound
-    if (entity.has<component::Sound>() && old_tile_material != grid_component.tile_material)
-    {
-        component::Sound &sound_component = entity.get<component::Sound>();
-        if (entity.has<component::State>())
-        {
-            component::State &state_component = entity.get<component::State>();
-            if (state_component.state == entity_state::MOVE)
-                entityPlaySound(entity, entity_state::stateToString(entity_state::MOVE));
-        }
-    }
-}
-
-void FckGame::onEntitySkillApplied(const Entity &entity, SkillBase *skill)
-{
-    if (entity == m_player_entity)
-    {
-        gui::LevelWidget *level_widget
-            = static_cast<gui::LevelWidget *>(m_main_widget.getChildren().back());
-        level_widget->updatePlayerSkillStates();
-    }
-}
-
-void FckGame::onEntitySkillFinished(const Entity &entity, SkillBase *skill)
-{
-    if (entity == m_player_entity)
-    {
-        gui::LevelWidget *level_widget
-            = static_cast<gui::LevelWidget *>(m_main_widget.getChildren().back());
-        level_widget->updatePlayerSkillStates();
-    }
-}
-
-void FckGame::onMapChunkOpened(const sf::Vector2i &chunk_coords)
-{
-    gui::LevelWidget *level_widget
-        = static_cast<gui::LevelWidget *>(m_main_widget.getChildren().back());
-    level_widget->setChunkOpened(chunk_coords);
-}
-
-void FckGame::onMapChunkChanged(const sf::Vector2i &chunk_coords)
-{
-    // change walls in target follow system
-    const map::Chunk *chunk = m_map->getChunks().getData(chunk_coords);
-    m_target_follow_system.setWalls(chunk->getWalls());
-    m_target_follow_system.setWallSize(chunk->getWallSize());
-
-    gui::LevelWidget *level_widget
-        = static_cast<gui::LevelWidget *>(m_main_widget.getChildren().back());
-    level_widget->setCurrentChunk(chunk_coords);
 }
 
 } // namespace fck

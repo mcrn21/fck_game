@@ -16,7 +16,8 @@ public:
     Scene(b2::DynamicTree<Entity> *tree);
     ~Scene() = default;
 
-    void moveEntity(const Entity &entity, const sf::Vector2f &offset);
+public: // slots
+    void onEntityMoved(const Entity &entity, const sf::Vector2f &offset);
 
 protected:
     void onEntityAdded(Entity &entity);

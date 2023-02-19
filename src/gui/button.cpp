@@ -58,7 +58,7 @@ void Button::onMouseReleased(const sf::Vector2f &mouse_position)
     m_background.setTextureRect(widget_theme.background.texture_rects.at(getState()));
     m_text.setFillColor(widget_theme.text.fill_colors.at(getState()));
     m_text.setOutlineColor(widget_theme.text.outline_colors.at(getState()));
-    clicked.emit();
+    clicked();
 }
 
 void Button::onKeyPressed(const sf::Event::KeyEvent &key)
@@ -80,7 +80,7 @@ void Button::onKeyReleased(const sf::Event::KeyEvent &key)
         m_background.setTextureRect(widget_theme.background.texture_rects.at(getState()));
         m_text.setFillColor(widget_theme.text.fill_colors.at(getState()));
         m_text.setOutlineColor(widget_theme.text.outline_colors.at(getState()));
-        clicked.emit();
+        clicked();
     }
 }
 

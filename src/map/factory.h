@@ -20,12 +20,12 @@ public:
     Factory(World *world, b2::DynamicTree<Entity> *scene_tree);
     ~Factory() = default;
 
-    Map *generateMapFromFile(int32_t chunks_count, const std::string &file_name);
+    Map *createMap(int32_t chunks_count, const std::string &file_name);
 
 private:
-    void generateRandomChunks(int32_t chunks_count, Map *map);
+    void createRandomChunks(int32_t chunks_count, Map *map);
 
-    void generateChunksContent(Map *map, const Tmx &tmx);
+    void createChunksContent(Map *map, const Tmx &tmx);
     void createChunk(Map *map, Chunk *chunk, const Tmx::Group &chunks_group, const Tmx &tmx);
     void createChunkTilemaps(
         Chunk *chunk,

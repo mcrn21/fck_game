@@ -1,6 +1,6 @@
 #include "collision.h"
 
-#include "../entity_utils.h"
+#include "../entity_funcs.h"
 
 #include "../fck/collisions.h"
 #include "../fck/utilities.h"
@@ -74,8 +74,7 @@ void Collision::update(double delta_time)
                     component::Collision &other_collision_component
                         = other.get<component::Collision>();
 
-                    collisions::AABB other_aabb{
-                        other.get<component::Scene>().global_bounds};
+                    collisions::AABB other_aabb{other.get<component::Scene>().global_bounds};
                     other_aabb.half += scene_component.global_bounds.getSize() / 2.0f;
 
                     auto hit = other_aabb.intersectSegment(position, delta);
@@ -88,7 +87,8 @@ void Collision::update(double delta_time)
                                 return true;
 
                             prev_not_wall_collided_entity = other;
-                            entity::collided.emit(entity, other);
+                            entity_funcs::collided(entity, other);
+                            entity_funcs::collided(other, entity);
                             return true;
                         }
 
@@ -100,7 +100,8 @@ void Collision::update(double delta_time)
 
             if (sweep.hit)
             {
-                entity::collided.emit(entity, sweep.entity);
+                entity_funcs::collided(entity, sweep.entity);
+                entity_funcs::collided(sweep.entity, entity);
 
                 position = sweep.hit->position + sweep.hit->normal;
 
@@ -128,7 +129,7 @@ void Collision::update(double delta_time)
         {
             position -= velocity_component.velocity * float(delta_time) * 1.2f;
             position += delta_position;
-            entity::set_position.emit(entity, position);
+            entity_funcs::setPosition(entity, position);
         }
     }
 }

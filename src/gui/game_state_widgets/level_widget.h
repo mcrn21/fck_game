@@ -1,12 +1,12 @@
 #ifndef LEVELWIDGET_SKMCNUWIVHCR_H
 #define LEVELWIDGET_SKMCNUWIVHCR_H
 
+#include "../../fck/entity.h"
+#include "../../sigslot/signal.hpp"
 #include "../minimap.h"
 #include "../progress_bar.h"
 #include "../skill_icon.h"
 #include "../widget.h"
-
-#include "../../fck/entity.h"
 
 #include <SFML/Graphics.hpp>
 
@@ -16,11 +16,11 @@
 namespace fck::gui
 {
 
-class LevelWidget : public Widget
+class LevelWidget : public Widget, public sigslot::observer_st
 {
 public:
     LevelWidget(Widget *parent = nullptr);
-    ~LevelWidget() = default;
+    ~LevelWidget();
 
     const Entity &getPlayerEntity() const;
     void setPlayerEntity(const Entity &entity);
@@ -30,12 +30,19 @@ public:
 
     void updatePlayerStats();
     void updatePlayerSkills();
-    void updatePlayerSkillStates();
     void updateTargetStats();
 
     void setChunks(const Vector2D<map::Chunk *> &chunks);
-    void setChunkOpened(const sf::Vector2i &room_coord);
-    void setCurrentChunk(const sf::Vector2i &room_coord);
+
+public: //slots
+    void onEntityTargetChanged(
+        const Entity &entity, const Entity &target, const Entity &old_target);
+    void onEntityHealthChanged(const Entity &entity, float);
+    void onEntityArmorChanged(const Entity &entity, float);
+    void onEntitySkillApplied(const Entity &entity, SkillBase *);
+    void onEntitySkillFinished(const Entity &entity, SkillBase *);
+    void onChunkOpened(const sf::Vector2i &chunk_coords);
+    void onChunkChanged(const sf::Vector2i &chunk_coords);
 
 protected:
     void onWindowResized(const sf::Vector2f &size) override;

@@ -38,14 +38,22 @@ const sf::Vector2i &Map::getChunkSize() const
     return m_chunk_size;
 }
 
-const sf::Vector2i &Map::getFirstChunk() const
+const sf::Vector2i &Map::getFirstChunkCoords() const
 {
     return m_first_chunk_coords;
 }
 
-const sf::Vector2i &Map::getCurrentChunk() const
+const sf::Vector2i &Map::getCurrentChunkCoords() const
 {
     return m_current_chunk_coords;
+}
+
+const Chunk *Map::getCurrentChunk() const
+{
+    if (vector2::isNegotive(m_current_chunk_coords))
+        return nullptr;
+
+    return m_chunks.getData(m_current_chunk_coords);
 }
 
 void Map::setCurrentChunk(
@@ -85,10 +93,10 @@ void Map::setCurrentChunk(
         if (!m_chunks.getData(m_current_chunk_coords)->isOpen())
         {
             m_chunks.getData(m_current_chunk_coords)->setOpen(true);
-            chunk_opened.emit(m_current_chunk_coords);
+            chunk_opened(m_current_chunk_coords);
         }
 
-        chunk_changed.emit(m_current_chunk_coords);
+        chunk_changed(m_current_chunk_coords);
     }
 }
 

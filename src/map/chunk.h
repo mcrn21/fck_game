@@ -23,7 +23,7 @@ public:
     const std::vector<Entity> &getEntities() const;
     void setEntities(const std::vector<Entity> &entities);
 
-    const std::unordered_map<chunk_side::Side, Entity> &getChunkEntityEntities() const;
+    const std::unordered_map<chunk_side::Side, Entity> &getChunkEntryEntities() const;
     void setChunkEntryEntities(const std::unordered_map<chunk_side::Side, Entity> &entities);
 
     const Vector2D<int32_t> &getWalls() const;

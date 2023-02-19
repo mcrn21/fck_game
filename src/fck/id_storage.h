@@ -59,7 +59,7 @@ struct Id
 
     operator bool() const
     {
-        return m_id != 0;
+        return m_id != 0 && m_id < std::numeric_limits<uint64_t>::max();
     }
 
     uint64_t getId() const

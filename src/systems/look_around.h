@@ -9,11 +9,7 @@
 namespace fck::system
 {
 
-class LookAround : public System<
-                       component::LookAround,
-                       component::Transform,
-                       component::State,
-                       component::Type>
+class LookAround : public System<component::LookAround, component::Transform, component::State>
 {
 public:
     LookAround(b2::DynamicTree<Entity> *tree);

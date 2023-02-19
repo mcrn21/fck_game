@@ -1,11 +1,10 @@
 #ifndef BUTTON_SLAXZLFHTNLG_H
 #define BUTTON_SLAXZLFHTNLG_H
 
+#include "../sigslot/signal.hpp"
 #include "box.h"
 #include "label.h"
 #include "widget.h"
-
-#include "../fck/sigslot.h"
 
 #include <SFML/Graphics.hpp>
 
@@ -38,7 +37,7 @@ private:
     void updateGeometry();
 
 public:
-    Signal<> clicked;
+    sigslot::signal<> clicked;
 
 private:
     Box m_background;

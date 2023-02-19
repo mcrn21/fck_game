@@ -1,8 +1,8 @@
 #ifndef INPUTACTIONS_GLASEISJUVEL_H
 #define INPUTACTIONS_GLASEISJUVEL_H
 
+#include "../sigslot/signal.hpp"
 #include "input_action.h"
-#include "sigslot.h"
 
 #include <SFML/Window/Event.hpp>
 
@@ -30,8 +30,8 @@ public:
     void event(const sf::Event &e);
 
 public:
-    Signal<T> action_activated;
-    Signal<T> action_diactivated;
+    sigslot::signal<T> action_activated;
+    sigslot::signal<T> action_diactivated;
 
 private:
     std::unordered_map<T, InputAction> m_input_actions;
@@ -95,7 +95,7 @@ void InputActionsMap<T>::event(const sf::Event &e)
                 {
                     it.second.activated = true;
                     it.second.caused = true;
-                    action_activated.emit(it.first);
+                    action_activated(it.first);
                     continue;
                 }
 
@@ -110,7 +110,7 @@ void InputActionsMap<T>::event(const sf::Event &e)
                 {
                     it.second.activated = true;
                     it.second.caused = true;
-                    action_activated.emit(it.first);
+                    action_activated(it.first);
                     continue;
                 }
             }
@@ -127,14 +127,14 @@ void InputActionsMap<T>::event(const sf::Event &e)
                 {
                     it.second.caused = false;
                     it.second.activated = false;
-                    action_diactivated.emit(it.first);
+                    action_diactivated(it.first);
                 }
 
                 if (it.second.type == InputAction::RELEASE_ONCE)
                 {
                     it.second.activated = true;
                     it.second.activated = false;
-                    action_activated.emit(it.first);
+                    action_activated(it.first);
                 }
             }
         }

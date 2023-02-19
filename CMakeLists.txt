@@ -9,6 +9,7 @@ find_package(SFML COMPONENTS Graphics System Window Network Audio REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(tomlplusplus REQUIRED)
 find_package(pugixml REQUIRED)
+find_package(sol2 REQUIRED)
 
 file(GLOB_RECURSE PROJECT_CPP_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 file(GLOB_RECURSE PROJECT_C_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/*.c)
@@ -24,4 +25,5 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     SFML::Audio
     spdlog::spdlog
     tomlplusplus::tomlplusplus
-    pugixml::pugixml)
+    pugixml::pugixml
+    sol2::sol2)

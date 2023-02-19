@@ -31,6 +31,9 @@ public:
     T &add(Args &&...args);
 
     template<typename T>
+    T &add(const T &component);
+
+    template<typename T>
     void remove();
 
     void removeAllComponents();
@@ -60,9 +63,17 @@ private:
 template<typename T, typename... Args>
 T &Entity::add(Args &&...args)
 {
-    Component<T> *component = new Component<T>{new T{std::forward<Args>(args)...}};
-    add(component, componentTypeId<T>());
-    return *(component->data.get());
+    Component<T> *c = new Component<T>{new T{std::forward<Args>(args)...}};
+    add(c, componentTypeId<T>());
+    return *(c->data.get());
+}
+
+template<typename T>
+T &Entity::add(const T &component)
+{
+    Component<T> *c = new Component<T>{new T{component}};
+    add(c, componentTypeId<T>());
+    return *(c->data.get());
 }
 
 template<typename T>

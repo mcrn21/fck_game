@@ -61,6 +61,12 @@ LevelWidget::LevelWidget(Widget *parent) : Widget{parent}
     updateGeometry();
 }
 
+LevelWidget::~LevelWidget()
+{
+    // disconnect all slots
+    disconnect_all();
+}
+
 const Entity &LevelWidget::getPlayerEntity() const
 {
     return m_player_entity;
@@ -134,12 +140,6 @@ void LevelWidget::updatePlayerSkills()
     updateGeometry();
 }
 
-void LevelWidget::updatePlayerSkillStates()
-{
-    for (auto &skill_icon : m_player_skill_icons)
-        skill_icon->setActivated(!skill_icon->getSkill()->isReady());
-}
-
 void LevelWidget::updateTargetStats()
 {
     if (!m_target_entity.isValid())
@@ -161,14 +161,55 @@ void LevelWidget::setChunks(const Vector2D<map::Chunk *> &chunks)
     m_minimap->setChunks(chunks);
 }
 
-void LevelWidget::setChunkOpened(const sf::Vector2i &room_coord)
+void LevelWidget::onEntityTargetChanged(
+    const Entity &entity, const Entity &target, const Entity &old_target)
 {
-    m_minimap->setChunkOpened(room_coord);
+    if (entity == m_player_entity)
+        setTargetEntity(target);
 }
 
-void LevelWidget::setCurrentChunk(const sf::Vector2i &room_coord)
+void LevelWidget::onEntityHealthChanged(const Entity &entity, float)
 {
-    m_minimap->setCurrentChunk(room_coord);
+    if (entity == m_player_entity)
+        updatePlayerStats();
+    else if (entity == m_target_entity)
+        updateTargetStats();
+}
+
+void LevelWidget::onEntityArmorChanged(const Entity &entity, float)
+{
+    if (entity == m_player_entity)
+        updatePlayerStats();
+    else if (entity == m_target_entity)
+        updateTargetStats();
+}
+
+void LevelWidget::onEntitySkillApplied(const Entity &entity, SkillBase *)
+{
+    if (entity == m_player_entity)
+    {
+        for (auto &skill_icon : m_player_skill_icons)
+            skill_icon->setActivated(!skill_icon->getSkill()->isReady());
+    }
+}
+
+void LevelWidget::onEntitySkillFinished(const Entity &entity, SkillBase *)
+{
+    if (entity == m_player_entity)
+    {
+        for (auto &skill_icon : m_player_skill_icons)
+            skill_icon->setActivated(!skill_icon->getSkill()->isReady());
+    }
+}
+
+void LevelWidget::onChunkOpened(const sf::Vector2i &chunk_coords)
+{
+    m_minimap->setChunkOpened(chunk_coords);
+}
+
+void LevelWidget::onChunkChanged(const sf::Vector2i &chunk_coords)
+{
+    m_minimap->setCurrentChunk(chunk_coords);
 }
 
 void LevelWidget::onWindowResized(const sf::Vector2f &size)

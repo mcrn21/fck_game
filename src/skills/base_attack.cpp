@@ -1,11 +1,7 @@
 #include "base_attack.h"
-
-#include "../entity_utils.h"
-
-#include "../damages/damages.h"
-
 #include "../components/components.h"
-
+#include "../damages/damages.h"
+#include "../entity_funcs.h"
 #include "../fck/utilities.h"
 
 #include "spdlog/spdlog.h"
@@ -44,8 +40,7 @@ void BaseAttack::apply(const Entity &entity, const Entity &target)
 
     if (m_target.isValid())
     {
-        component::Transform &target_transform_component
-            = m_target.get<component::Transform>();
+        component::Transform &target_transform_component = m_target.get<component::Transform>();
         component::Scene &target_scene_component = m_target.get<component::Scene>();
 
         m_jump_point = target_transform_component.transform.getPosition();
@@ -53,7 +48,7 @@ void BaseAttack::apply(const Entity &entity, const Entity &target)
             ? (m_target_jump_offset.x + target_scene_component.global_bounds.width / 2)
             : -(m_target_jump_offset.x + target_scene_component.global_bounds.width / 2);
 
-        entity::set_direction.emit(
+        entity_funcs::setDirection(
             m_entity,
             m_jump_point.x > target_transform_component.transform.getPosition().x
                 ? entity_state::LEFT
@@ -81,15 +76,15 @@ void BaseAttack::apply(const Entity &entity, const Entity &target)
     m_jump_velocity
         = sf::Vector2f(-velocity * std::cos(angle_to_point), -velocity * std::sin(angle_to_point));
 
-    entity::set_state.emit(entity, entity_state::ATTACK);
+    entity_funcs::setState(entity, entity_state::ATTACK);
 
     std::random_device rd;
     std::mt19937 mt(rd());
     std::uniform_int_distribution<int32_t> dist(0, m_attack_animations.size() - 1);
 
-    entity::set_drawable_state.emit(m_entity, m_attack_animations[dist(mt)]);
-    entity::stop_all_sound.emit(m_entity);
-    entity::play_sound.emit(m_entity, entity_state::stateToString(entity_state::ATTACK));
+    entity_funcs::setDrawableState(m_entity, m_attack_animations[dist(mt)]);
+    entity_funcs::stopAllSound(m_entity);
+    entity_funcs::playSound(m_entity, entity_state::stateToString(entity_state::ATTACK));
 }
 
 void BaseAttack::update(double delta_time)
@@ -98,9 +93,9 @@ void BaseAttack::update(double delta_time)
 
     if (isReady())
     {
-        entity::set_state.emit(m_entity, entity_state::IDLE);
-        entity::set_drawable_state.emit(m_entity, entity_state::stateToString(entity_state::IDLE));
-        entity::stop_sound.emit(m_entity, entity_state::stateToString(entity_state::ATTACK));
+        entity_funcs::setState(m_entity, entity_state::IDLE);
+        entity_funcs::setDrawableState(m_entity, entity_state::stateToString(entity_state::IDLE));
+        entity_funcs::stopSound(m_entity, entity_state::stateToString(entity_state::ATTACK));
     }
 }
 
@@ -137,8 +132,7 @@ void BaseAttack::targetAttack(double delta_time)
         if (target_state_component.state != entity_state::DAMAGED
             && target_state_component.state != entity_state::DEATH)
         {
-            component::Transform &target_transform_component
-                = m_target.get<component::Transform>();
+            component::Transform &target_transform_component = m_target.get<component::Transform>();
             sf::Vector2f rebounce_velocity
                 = {m_jump_point.x > target_transform_component.transform.getPosition().x ? -100.0f
                                                                                          : 100.0f,

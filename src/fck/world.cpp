@@ -155,7 +155,7 @@ void World::refresh()
             }
         }
 
-        entity_enabled.emit(entity);
+        entity_enabled(entity);
     }
 
     // go through all the deactivated entities from last call to refresh
@@ -182,7 +182,7 @@ void World::refresh()
             }
         }
 
-        entity_disabled.emit(entity);
+        entity_disabled(entity);
     }
 
     // go through all the killed entities from last call to refresh
@@ -191,7 +191,7 @@ void World::refresh()
         if (!entity.isValid())
             continue;
 
-        entity_destroyed.emit(entity);
+        entity_destroyed(entity);
 
         m_entity_cache.alive.erase(
             std::remove(m_entity_cache.alive.begin(), m_entity_cache.alive.end(), entity),

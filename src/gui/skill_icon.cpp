@@ -1,6 +1,6 @@
 #include "skill_icon.h"
 
-#include "../knowledge_base.h"
+#include "../knowledge_base/knowledge_base.h"
 
 #include "../fck/resource_cache.h"
 

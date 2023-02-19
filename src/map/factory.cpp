@@ -1,8 +1,5 @@
 #include "factory.h"
-
 #include "../components/components.h"
-#include "../entity_scripts/entity_scripts.h"
-#include "../entity_utils.h"
 #include "../fck/noise.h"
 #include "../fck/tile_map.h"
 #include "../fck/utilities.h"
@@ -21,7 +18,7 @@ Factory::Factory(World *world, b2::DynamicTree<Entity> *scene_tree)
 {
 }
 
-Map *Factory::generateMapFromFile(int32_t chunks_count, const std::string &file_name)
+Map *Factory::createMap(int32_t chunks_count, const std::string &file_name)
 {
     Tmx tmx;
 
@@ -30,11 +27,11 @@ Map *Factory::generateMapFromFile(int32_t chunks_count, const std::string &file_
 
     std::unique_ptr<Map> map = std::make_unique<Map>(m_scene_tree);
 
-    spdlog::info("Ganarate random chunks");
-    generateRandomChunks(chunks_count, map.get());
+    spdlog::info("Genarate random chunks");
+    createRandomChunks(chunks_count, map.get());
 
-    spdlog::info("Ganarate chunks content");
-    generateChunksContent(map.get(), tmx);
+    spdlog::info("Genarate chunks content");
+    createChunksContent(map.get(), tmx);
 
     map->m_tile_size = tmx.getTileSize();
     map->m_area_size = vector2::mult(tmx.getTileSize(), tmx.getSize());
@@ -55,7 +52,7 @@ Map *Factory::generateMapFromFile(int32_t chunks_count, const std::string &file_
     return map.release();
 }
 
-void Factory::generateRandomChunks(int32_t chunks_count, Map *map)
+void Factory::createRandomChunks(int32_t chunks_count, Map *map)
 {
     sf::Vector2i noise_map_size = {100, 100};
 
@@ -198,7 +195,7 @@ void Factory::generateRandomChunks(int32_t chunks_count, Map *map)
     }
 }
 
-void Factory::generateChunksContent(Map *map, const Tmx &tmx)
+void Factory::createChunksContent(Map *map, const Tmx &tmx)
 {
     for (Chunk *chunk : map->m_chunks)
     {
@@ -305,7 +302,7 @@ void Factory::createChunkTilemaps(
 {
     int32_t z_order = 0;
 
-    Vector2D<Tile> tiles{tmx.getTileSize()};
+    Vector2D<Tile> tiles{tmx.getSize()};
 
     for (const Tmx::Layer &layer : layers)
     {
@@ -445,8 +442,16 @@ Entity Factory::createChunkEntryEntity(Map *map, const Tmx::Object &object)
 
     auto &script_component = entity.add<component::Script>();
 
-    auto *chunk_entry_script = new entity_script::ChunkEntry{map, side};
-    script_component.entity_script.reset(chunk_entry_script);
+    script::Script *script = ScriptFactory::createScript("chunk_entry");
+    if (!script)
+    {
+        entity.destroy();
+        return entity;
+    }
+
+    script_component.script.reset(script);
+    script_component.script->setEntityToTable(entity);
+    script_component.script->getScriptTable()["side"] = side;
 
     return entity;
 }

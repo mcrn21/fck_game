@@ -1,10 +1,10 @@
 #ifndef WORLD_SJTWXYDCLHBB_H
 #define WORLD_SJTWXYDCLHBB_H
 
+#include "../sigslot/signal.hpp"
 #include "component_storage.h"
 #include "entity.h"
 #include "id_storage.h"
-#include "sigslot.h"
 #include "system.h"
 
 #include <unordered_map>
@@ -68,9 +68,9 @@ private:
     void resize(int32_t size);
 
 public:
-    Signal<const Entity &> entity_enabled;
-    Signal<const Entity &> entity_disabled;
-    Signal<const Entity &> entity_destroyed;
+    sigslot::signal<const Entity &> entity_enabled;
+    sigslot::signal<const Entity &> entity_disabled;
+    sigslot::signal<const Entity &> entity_destroyed;
 
 private:
     struct SystemDeleter

@@ -15,6 +15,9 @@ public:
     ~Movement() = default;
 
     void update(double delta_time);
+
+public: // slots
+    void onEntityStateChanged(const Entity &entity, entity_state::State state);
 };
 
 } // namespace fck::system
